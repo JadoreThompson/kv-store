@@ -1,4 +1,4 @@
-package main.java.com.zenz.kvstore;
+package com.zenz.kvstore;
 
 import java.util.function.Consumer;
 
@@ -37,5 +37,9 @@ public class Array<T> {
 
     public int size() {
         return size;
+    }
+
+    public int length() {
+        return arr.length;
     }
 }

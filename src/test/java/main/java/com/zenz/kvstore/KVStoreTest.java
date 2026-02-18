@@ -1,4 +1,4 @@
-package main.java.com.zenz.kvstore;
+package com.zenz.kvstore;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -24,7 +24,7 @@ class KVStoreTest {
         byte[] value = "hello".getBytes(StandardCharsets.UTF_8);
         store.put("key1", value);
 
-        Map.Node node = store.get("key1");
+        KVMap.Node node = store.get("key1");
 
         assertNotNull(node);
         assertArrayEquals(value, node.value);
@@ -33,7 +33,7 @@ class KVStoreTest {
 
     @Test
     void get_missingKey_returnsNull() {
-        Map.Node node = store.get("nonexistent");
+        KVMap.Node node = store.get("nonexistent");
         assertNull(node);
     }
 
@@ -42,7 +42,7 @@ class KVStoreTest {
         store.put("key1", "first".getBytes(StandardCharsets.UTF_8));
         store.put("key1", "second".getBytes(StandardCharsets.UTF_8));
 
-        Map.Node node = store.get("key1");
+        KVMap.Node node = store.get("key1");
 
         assertNotNull(node);
         assertArrayEquals("second".getBytes(StandardCharsets.UTF_8), node.value);
@@ -66,7 +66,7 @@ class KVStoreTest {
         byte[] value = ByteBuffer.allocate(4).putInt(99).array();
         store.put("count", value);
 
-        Map.Node node = store.get("count");
+        KVMap.Node node = store.get("count");
 
         assertNotNull(node);
         assertEquals(99, ByteBuffer.wrap(node.value).getInt());
@@ -76,7 +76,7 @@ class KVStoreTest {
     void put_emptyByteArray_retrievesCorrectly() {
         store.put("empty", new byte[0]);
 
-        Map.Node node = store.get("empty");
+        KVMap.Node node = store.get("empty");
 
         assertNotNull(node);
         assertArrayEquals(new byte[0], node.value);
@@ -92,7 +92,7 @@ class KVStoreTest {
         }
 
         for (int i = 0; i < count; i++) {
-            Map.Node node = store.get("key_" + i);
+            KVMap.Node node = store.get("key_" + i);
             assertNotNull(node, "Expected node for key_" + i);
             assertEquals(i, ByteBuffer.wrap(node.value).getInt());
         }

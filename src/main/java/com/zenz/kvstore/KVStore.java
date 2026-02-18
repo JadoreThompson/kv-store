@@ -1,13 +1,13 @@
-package main.java.com.zenz.kvstore;
+package com.zenz.kvstore;
 
 public class KVStore {
-    private final Map map;
+    private final KVMap map;
 
     public KVStore() {
-        map = new Map();
+        map = new KVMap();
     }
 
-    public Map.Node get(String key) {
+    public KVMap.Node get(String key) {
         return map.get(key);
     }
 
