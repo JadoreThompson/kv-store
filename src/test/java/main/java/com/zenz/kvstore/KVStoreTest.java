@@ -217,7 +217,7 @@ class KVStoreTest {
 
         // Load snapshot
         Path snapshotFile = snapshotsFolder.resolve("0.snapshot");
-        KVMap map = snapshotter.loadSnapshotV2(snapshotFile.toString());
+        KVMap map = snapshotter.loadSnapshot(snapshotFile.toString());
         KVStore restored = new KVStore(logsFolder.toString(), false, map);
 
         // Verify restored data
@@ -243,7 +243,7 @@ class KVStoreTest {
         snapshotter.snapshot(logFile.toString());
 
         Path snapshotFile = snapshotsFolder.resolve("0.snapshot");
-        KVMap map = snapshotter.loadSnapshotV2(snapshotFile.toString());
+        KVMap map = snapshotter.loadSnapshot(snapshotFile.toString());
         KVStore restored = new KVStore(logsFolder.toString(), false, map);
 
         // Verify all entries

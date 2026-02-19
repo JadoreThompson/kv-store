@@ -48,9 +48,14 @@ public class KVSnapshotter {
         if (!prefix.equals("0")) {
             long prevSnapshot = Long.parseLong(prefix) - 1;
             String prevSnapshotFname = folder.getPath() + "/" + prevSnapshot + ".snapshot";
-            store = loadSnapshot(prevSnapshotFname);
+//            store = loadSnapshot(prevSnapshotFname);
+            KVMap map = loadSnapshot(prevSnapshotFname);
+            Path tmpDirPath = getTmpLogsDir();
+            File tmpDir = tmpDirPath.toFile();
+            tmpDir.mkdirs();
+            store = new KVStore(tmpDirPath.toString(), false, map);
         } else {
-            store = new KVStore(Files.createTempDirectory("tmp-").toString(), false);
+            store = new KVStore(getTmpLogsDir().toString(), false);
         }
 
         // Apply the logged operations
@@ -131,28 +136,7 @@ public class KVSnapshotter {
         writer.write(KVPAIRS_END + "\n");
     }
 
-    public KVStore loadSnapshot(String fpath) throws IOException {
-        Path tmpDir = Files.createTempDirectory("tmp-");
-        KVStore store = new KVStore(tmpDir.toString(), false);
-
-        try (BufferedReader reader = new BufferedReader(new FileReader(fpath))) {
-            String line;
-
-            while ((line = reader.readLine()) != null) {
-                Header header = loadHeader(reader);
-                ArrayList<KVPair> pairs = loadKVPairs(reader);
-                if (pairs != null) {
-                    for (KVPair pair : pairs) {
-                        store.put(pair.key, pair.value);
-                    }
-                }
-            }
-        }
-
-        return store;
-    }
-
-    public KVMap loadSnapshotV2() throws IOException {
+    public KVMap loadSnapshot() throws IOException {
         File[] files = folder.listFiles();
         if (files == null || files.length == 0) return null;
 
@@ -164,10 +148,10 @@ public class KVSnapshotter {
             }
         }
 
-        return loadSnapshotV2(recentSnapshot.getAbsolutePath());
+        return loadSnapshot(recentSnapshot.getAbsolutePath());
     }
 
-    public KVMap loadSnapshotV2(String fpath) throws IOException {
+    public KVMap loadSnapshot(String fpath) throws IOException {
         KVMap map = new KVMap();
         try (BufferedReader reader = new BufferedReader(new FileReader(fpath))) {
             Header header = loadHeader(reader);
@@ -221,6 +205,10 @@ public class KVSnapshotter {
             KVPair pair = new KVPair(components[0], components[1].getBytes(StandardCharsets.UTF_8));
             pairs.add(pair);
         }
+    }
+
+    private Path getTmpLogsDir() throws IOException {
+        return Files.createTempDirectory("tmp-logs-");
     }
 
     public static record Header(int version) {
