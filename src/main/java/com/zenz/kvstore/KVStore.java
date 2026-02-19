@@ -7,6 +7,8 @@ import java.nio.file.Path;
 import java.util.Random;
 
 public class KVStore {
+    private static final String DEFAULT_LOGS_FOLDER = "logs";
+
     public static final int LOGS_PER_SNAPSHOT = 1_000_000;
     private final File snapshotFolder = new File("snapshots");
 
@@ -20,6 +22,19 @@ public class KVStore {
     private final KVMap map;
     private final Random random;
 
+    public KVStore(boolean snapshotEnabled) throws IOException {
+        setWALogger(DEFAULT_LOGS_FOLDER);
+        map = new KVMap();
+        random = new Random();
+        this.snapshotEnabled = snapshotEnabled;
+    }
+
+    public KVStore(boolean snapshotEnabled, KVMap map) throws IOException {
+        setWALogger(DEFAULT_LOGS_FOLDER);
+        this.map = map;
+        random = new Random();
+        this.snapshotEnabled = snapshotEnabled;
+    }
 
     public KVStore(String folderPath, boolean snapshotEnabled) throws IOException {
         setWALogger(folderPath);

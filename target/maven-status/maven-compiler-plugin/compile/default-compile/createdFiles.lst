@@ -2,13 +2,17 @@ com\zenz\kvstore\KVSnapshotter$KVPair.class
 com\zenz\kvstore\KVSnapshotter.class
 com\zenz\kvstore\KVArray.class
 com\zenz\kvstore\operations\Operation.class
+com\zenz\kvstore\NonBlockingServer$ClientSession.class
 com\zenz\kvstore\KVMap$Node.class
 com\zenz\kvstore\operations\PutOperation.class
 com\zenz\kvstore\OperationType.class
 com\zenz\kvstore\KVStore.class
+com\zenz\kvstore\KVConnectionManager.class
 com\zenz\kvstore\operations\GetOperation.class
 com\zenz\kvstore\KVSnapshotter$Header.class
 com\zenz\kvstore\Main.class
 com\zenz\kvstore\KVMap.class
 com\zenz\kvstore\operations\Operation$1.class
 com\zenz\kvstore\KVMap$NodeList.class
+com\zenz\kvstore\NonBlockingServer.class
+com\zenz\kvstore\KVConnectionManager$ClientSession.class
