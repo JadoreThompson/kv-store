@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<testsuite xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://maven.apache.org/surefire/maven-surefire-plugin/xsd/surefire-test-report-3.0.xsd" version="3.0" name="com.zenz.kvstore.KVStoreTest" time="4.035" tests="11" errors="0" skipped="0" failures="0">
+<testsuite xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://maven.apache.org/surefire/maven-surefire-plugin/xsd/surefire-test-report-3.0.xsd" version="3.0" name="com.zenz.kvstore.KVStoreTest" time="1.954" tests="14" errors="0" skipped="0" failures="0">
   <properties>
     <property name="java.specification.version" value="22"/>
     <property name="sun.cpu.isalist" value="amd64"/>
@@ -15,8 +15,9 @@
     <property name="sun.java.launcher" value="SUN_STANDARD"/>
     <property name="user.country" value="GB"/>
     <property name="sun.boot.library.path" value="C:\Program Files\Java\jdk-22\bin"/>
-    <property name="sun.java.command" value="C:\Users\ADMIN\AppData\Local\Temp\surefire5413404526756446882\surefirebooter-20260219132158878_3.jar C:\Users\ADMIN\AppData\Local\Temp\surefire5413404526756446882 2026-02-19T13-21-58_751-jvmRun1 surefire-20260219132158878_1tmp surefire_0-20260219132158878_2tmp"/>
+    <property name="sun.java.command" value="C:\Users\ADMIN\AppData\Local\Temp\surefire2395769367277285570\surefirebooter-20260219193836791_3.jar C:\Users\ADMIN\AppData\Local\Temp\surefire2395769367277285570 2026-02-19T19-38-36_685-jvmRun1 surefire-20260219193836791_1tmp surefire_0-20260219193836791_2tmp"/>
     <property name="jdk.debug" value="release"/>
+    <property name="test" value="KVStoreTest"/>
     <property name="surefire.test.class.path" value="C:\Users\ADMIN\MyProjects\kv-store\target\test-classes;C:\Users\ADMIN\MyProjects\kv-store\target\classes;C:\Users\ADMIN\.m2\repository\org\junit\jupiter\junit-jupiter\5.10.2\junit-jupiter-5.10.2.jar;C:\Users\ADMIN\.m2\repository\org\junit\jupiter\junit-jupiter-api\5.10.2\junit-jupiter-api-5.10.2.jar;C:\Users\ADMIN\.m2\repository\org\opentest4j\opentest4j\1.3.0\opentest4j-1.3.0.jar;C:\Users\ADMIN\.m2\repository\org\junit\platform\junit-platform-commons\1.10.2\junit-platform-commons-1.10.2.jar;C:\Users\ADMIN\.m2\repository\org\apiguardian\apiguardian-api\1.1.2\apiguardian-api-1.1.2.jar;C:\Users\ADMIN\.m2\repository\org\junit\jupiter\junit-jupiter-params\5.10.2\junit-jupiter-params-5.10.2.jar;C:\Users\ADMIN\.m2\repository\org\junit\jupiter\junit-jupiter-engine\5.10.2\junit-jupiter-engine-5.10.2.jar;C:\Users\ADMIN\.m2\repository\org\junit\platform\junit-platform-engine\1.10.2\junit-platform-engine-1.10.2.jar;"/>
     <property name="sun.cpu.endian" value="little"/>
     <property name="user.home" value="C:\Users\ADMIN"/>
@@ -30,7 +31,7 @@
     <property name="line.separator" value="&#10;"/>
     <property name="java.vm.specification.vendor" value="Oracle Corporation"/>
     <property name="java.specification.name" value="Java Platform API Specification"/>
-    <property name="surefire.real.class.path" value="C:\Users\ADMIN\AppData\Local\Temp\surefire5413404526756446882\surefirebooter-20260219132158878_3.jar"/>
+    <property name="surefire.real.class.path" value="C:\Users\ADMIN\AppData\Local\Temp\surefire2395769367277285570\surefirebooter-20260219193836791_3.jar"/>
     <property name="user.script" value=""/>
     <property name="sun.management.compiler" value="HotSpot 64-Bit Tiered Compilers"/>
     <property name="java.runtime.version" value="22.0.2+9-70"/>
@@ -58,15 +59,126 @@
     <property name="sun.io.unicode.encoding" value="UnicodeLittle"/>
     <property name="java.class.version" value="66.0"/>
   </properties>
-  <testcase name="multipleOperations_allLoggedToWAL" classname="com.zenz.kvstore.KVStoreTest" time="0.054"/>
-  <testcase name="put_multipleKeys_allRetrievable" classname="com.zenz.kvstore.KVStoreTest" time="0.023"/>
-  <testcase name="put_integerAsBytes_retrievesCorrectly" classname="com.zenz.kvstore.KVStoreTest" time="0.01"/>
-  <testcase name="get_logsOperationToWAL" classname="com.zenz.kvstore.KVStoreTest" time="0.01"/>
-  <testcase name="put_emptyByteArray_retrievesCorrectly" classname="com.zenz.kvstore.KVStoreTest" time="0.008"/>
-  <testcase name="put_thenGet_returnsNode" classname="com.zenz.kvstore.KVStoreTest" time="0.011"/>
-  <testcase name="get_missingKey_returnsNull" classname="com.zenz.kvstore.KVStoreTest" time="0.006"/>
-  <testcase name="put_andGet_bothLoggedToWAL" classname="com.zenz.kvstore.KVStoreTest" time="0.009"/>
+  <testcase name="snapshotter_restoresDataFromSnapshot" classname="com.zenz.kvstore.KVStoreTest" time="0.132">
+    <system-out><![CDATA[Components: 
+533758297PUTrestoreKey1restoreValue1
+<>PUT
+Components: 
+321852669PUTrestoreKey2restoreValue2
+<>PUT
+Contents 
+===HEADER START===
+1
+===HEADER END===
+===KV START===
+restoreKey1 restoreValue1
+restoreKey2 restoreValue2
+===KV END===
+
+Line: restoreKey1 restoreValue1
+Value in component restoreValue1
+Line: restoreKey2 restoreValue2
+Value in component restoreValue2
+Line: ===KV END===
+All files found within logs folder +'C:\Users\ADMIN\AppData\Local\Temp\tmp-logs-12260714405791856951'
+    - C:\Users\ADMIN\AppData\Local\Temp\tmp-logs-12260714405791856951\0.log
+
+-> restoreValue1 restoreValue1
+]]></system-out>
+  </testcase>
+  <testcase name="multipleOperations_allLoggedToWAL" classname="com.zenz.kvstore.KVStoreTest" time="0.015"/>
+  <testcase name="snapshotter_roundTrip_preservesData" classname="com.zenz.kvstore.KVStoreTest" time="0.089">
+    <system-out><![CDATA[Runnign test 'snapshotter_roundTrip_preservesData'
+Components: 
+967142303PUTroundtripKey0value0
+<>PUT
+Components: 
+-462338514PUTroundtripKey1value1
+<>PUT
+Components: 
+-1099554847PUTroundtripKey2value2
+<>PUT
+Components: 
+527548468PUTroundtripKey3value3
+<>PUT
+Components: 
+-1784219914PUTroundtripKey4value4
+<>PUT
+Components: 
+-422789907PUTroundtripKey5value5
+<>PUT
+Components: 
+1143491685PUTroundtripKey6value6
+<>PUT
+Components: 
+-2140138317PUTroundtripKey7value7
+<>PUT
+Components: 
+1177217060PUTroundtripKey8value8
+<>PUT
+Components: 
+1952330310PUTroundtripKey9value9
+<>PUT
+Contents 
+===HEADER START===
+1
+===HEADER END===
+===KV START===
+roundtripKey0 value0
+roundtripKey1 value1
+roundtripKey2 value2
+roundtripKey3 value3
+roundtripKey4 value4
+roundtripKey5 value5
+roundtripKey6 value6
+roundtripKey7 value7
+roundtripKey8 value8
+roundtripKey9 value9
+===KV END===
+
+Line: roundtripKey0 value0
+Value in component value0
+Line: roundtripKey1 value1
+Value in component value1
+Line: roundtripKey2 value2
+Value in component value2
+Line: roundtripKey3 value3
+Value in component value3
+Line: roundtripKey4 value4
+Value in component value4
+Line: roundtripKey5 value5
+Value in component value5
+Line: roundtripKey6 value6
+Value in component value6
+Line: roundtripKey7 value7
+Value in component value7
+Line: roundtripKey8 value8
+Value in component value8
+Line: roundtripKey9 value9
+Value in component value9
+Line: ===KV END===
+All files found within logs folder +'C:\Users\ADMIN\AppData\Local\Temp\tmp-logs-6423568745037162236'
+    - C:\Users\ADMIN\AppData\Local\Temp\tmp-logs-6423568745037162236\0.log
+
+]]></system-out>
+  </testcase>
+  <testcase name="put_multipleKeys_allRetrievable" classname="com.zenz.kvstore.KVStoreTest" time="0.02"/>
+  <testcase name="put_integerAsBytes_retrievesCorrectly" classname="com.zenz.kvstore.KVStoreTest" time="0.008"/>
+  <testcase name="get_logsOperationToWAL" classname="com.zenz.kvstore.KVStoreTest" time="0.009"/>
+  <testcase name="put_emptyByteArray_retrievesCorrectly" classname="com.zenz.kvstore.KVStoreTest" time="0.009"/>
+  <testcase name="put_thenGet_returnsNode" classname="com.zenz.kvstore.KVStoreTest" time="0.008"/>
+  <testcase name="get_missingKey_returnsNull" classname="com.zenz.kvstore.KVStoreTest" time="0.005"/>
+  <testcase name="put_andGet_bothLoggedToWAL" classname="com.zenz.kvstore.KVStoreTest" time="0.008"/>
+  <testcase name="snapshotter_createsSnapshotFromWAL" classname="com.zenz.kvstore.KVStoreTest" time="0.016">
+    <system-out><![CDATA[Components: 
+-824606769PUTsnapKey1snapValue1
+<>PUT
+Components: 
+1309381531PUTsnapKey2snapValue2
+<>PUT
+]]></system-out>
+  </testcase>
   <testcase name="put_logsOperationToWAL" classname="com.zenz.kvstore.KVStoreTest" time="0.006"/>
-  <testcase name="put_sameKeyTwice_updatesValue" classname="com.zenz.kvstore.KVStoreTest" time="0.016"/>
-  <testcase name="put_manyEntries_allRetrievable" classname="com.zenz.kvstore.KVStoreTest" time="3.849"/>
+  <testcase name="put_sameKeyTwice_updatesValue" classname="com.zenz.kvstore.KVStoreTest" time="0.011"/>
+  <testcase name="put_manyEntries_allRetrievable" classname="com.zenz.kvstore.KVStoreTest" time="1.583"/>
 </testsuite>

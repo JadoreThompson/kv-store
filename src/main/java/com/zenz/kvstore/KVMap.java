@@ -1,6 +1,7 @@
 package com.zenz.kvstore;
 
 import java.util.Objects;
+import java.util.function.Consumer;
 
 public class KVMap {
     public static int INITIAL_CAPACITY = 1000;
@@ -134,6 +135,14 @@ public class KVMap {
         return false;
     }
 
+    public Array<NodeList> getHt1() {
+        return ht1;
+    }
+
+    public Array<NodeList> getHt2() {
+        return ht2;
+    }
+
     public static class Node {
         public final String key;
         public byte[] value;
@@ -157,11 +166,19 @@ public class KVMap {
         }
     }
 
-    private static class NodeList {
+    public static class NodeList {
         public Node head;
 
         public NodeList(Node node) {
             head = node;
+        }
+
+        public void forEach(Consumer<Node> consumer) {
+            Node cur = head;
+            while (cur != null) {
+                consumer.accept(cur);
+                cur = cur.next;
+            }
         }
     }
 }

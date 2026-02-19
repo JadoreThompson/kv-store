@@ -29,9 +29,9 @@ public class Array<T> {
         return arr[index];
     }
 
-    public void forEach(Consumer<T> action) {
+    public void forEach(Consumer<T> consumer) {
         for (int i = 0; i < size; i++) {
-            action.accept(arr[i]);
+            consumer.accept(arr[i]);
         }
     }
 

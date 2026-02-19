@@ -3,37 +3,41 @@ package com.zenz.kvstore;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
 
 import java.io.File;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
+import java.nio.file.Path;
 
 import static org.junit.jupiter.api.Assertions.*;
 
 class KVStoreTest {
 
-    private static String WAL_FNAME = "test.log";
-    private File file;
-    private KVStore store;
-    private WALogger logger;
+    //    @TempDir
+//    Path tempDir;
+    private Path logsFolder;
+    private Path snapshotsFolder;
 
-    public KVStoreTest() {
-        file = new File(WAL_FNAME);
-    }
+    private KVStore store;
 
     @BeforeEach
     void setUp() throws IOException {
-        file.createNewFile();
-        logger = new WALogger(file.getName());
-        store = new KVStore(logger);
+        logsFolder = Files.createTempDirectory("tmp-logs-");
+        snapshotsFolder = Files.createTempDirectory("tmp-snapshots-");
+        store = new KVStore(logsFolder.toString(), false);
     }
 
     @AfterEach
     void tearDown() throws IOException {
-        logger.close();
-        file.delete();
+        if (store.logger != null) {
+            store.logger.close();
+        }
+
+        logsFolder.toFile().delete();
+        snapshotsFolder.toFile().delete();
     }
 
     // --- put / get ---
@@ -120,35 +124,41 @@ class KVStoreTest {
     // --- WAL logging ---
 
     @Test
+//    void put_logsOperationToWAL(@TempDir Path tempDir) throws IOException {
     void put_logsOperationToWAL() throws IOException {
         store.put("walKey", "walValue".getBytes(StandardCharsets.UTF_8));
-        logger.close();
+        store.logger.close();
 
-        String walContents = Files.readString(file.toPath());
+        File logFile = logsFolder.resolve("0.log").toFile();
+        String walContents = Files.readString(logFile.toPath());
 
         assertTrue(walContents.contains("PUT"), "WAL should contain PUT operation");
         assertTrue(walContents.contains("walKey"), "WAL should contain the key");
     }
 
     @Test
+//    void get_logsOperationToWAL(@TempDir Path tempDir) throws IOException {
     void get_logsOperationToWAL() throws IOException {
         store.put("walKey", "walValue".getBytes(StandardCharsets.UTF_8));
         store.get("walKey");
-        logger.close();
+        store.logger.close();
 
-        String walContents = Files.readString(file.toPath());
+        File logFile = logsFolder.resolve("0.log").toFile();
+        String walContents = Files.readString(logFile.toPath());
 
         assertTrue(walContents.contains("GET"), "WAL should contain GET operation");
         assertTrue(walContents.contains("walKey"), "WAL should contain the key");
     }
 
     @Test
+//    void put_andGet_bothLoggedToWAL(@TempDir Path tempDir) throws IOException {
     void put_andGet_bothLoggedToWAL() throws IOException {
         store.put("name", "alice".getBytes(StandardCharsets.UTF_8));
         store.get("name");
-        logger.close();
+        store.logger.close();
 
-        String walContents = Files.readString(file.toPath());
+        File logFile = logsFolder.resolve("0.log").toFile();
+        String walContents = Files.readString(logFile.toPath());
         String[] lines = walContents.strip().split("\n");
 
         assertEquals(2, lines.length, "WAL should have exactly 2 entries");
@@ -157,14 +167,16 @@ class KVStoreTest {
     }
 
     @Test
+//    void multipleOperations_allLoggedToWAL(@TempDir Path tempDir) throws IOException {
     void multipleOperations_allLoggedToWAL() throws IOException {
         store.put("k1", "v1".getBytes(StandardCharsets.UTF_8));
         store.put("k2", "v2".getBytes(StandardCharsets.UTF_8));
         store.get("k1");
         store.get("k2");
-        logger.close();
+        store.logger.close();
 
-        String walContents = Files.readString(file.toPath());
+        File logFile = logsFolder.resolve("0.log").toFile();
+        String walContents = Files.readString(logFile.toPath());
         String[] lines = walContents.strip().split("\n");
 
         assertEquals(4, lines.length, "WAL should have exactly 4 entries");
@@ -172,5 +184,109 @@ class KVStoreTest {
         assertTrue(lines[1].contains("PUT") && lines[1].contains("k2"), "Line 2 should be PUT k2");
         assertTrue(lines[2].contains("GET") && lines[2].contains("k1"), "Line 3 should be GET k1");
         assertTrue(lines[3].contains("GET") && lines[3].contains("k2"), "Line 4 should be GET k2");
+    }
+
+    // --- Integration: Snapshotting ---
+
+    @Test
+//    void snapshotter_createsSnapshotFromWAL(@TempDir Path tempDir) throws IOException {
+    void snapshotter_createsSnapshotFromWAL() throws IOException {
+        // Add some data
+        store.put("snapKey1", "snapValue1".getBytes(StandardCharsets.UTF_8));
+        store.put("snapKey2", "snapValue2".getBytes(StandardCharsets.UTF_8));
+        store.logger.close();
+
+        // Create snapshotter and snapshot
+//        Path snapshotDir = logsFolder.resolve("snapshots");
+        Files.createDirectories(snapshotsFolder);
+        KVSnapshotter snapshotter = new KVSnapshotter(snapshotsFolder.toString());
+
+        Path logFile = logsFolder.resolve("0.log");
+        snapshotter.snapshot(logFile.toString());
+
+        // Verify snapshot file exists
+        Path snapshotFile = snapshotsFolder.resolve("0.snapshot");
+        assertTrue(snapshotFile.toFile().exists(), "Snapshot file should be created");
+
+        // Verify snapshot contents
+        String snapshotContents = Files.readString(snapshotFile);
+        assertTrue(snapshotContents.contains("snapKey1"), "Snapshot should contain snapKey1");
+        assertTrue(snapshotContents.contains("snapKey2"), "Snapshot should contain snapKey2");
+    }
+
+    @Test
+//    void snapshotter_restoresDataFromSnapshot(@TempDir Path tempDir) throws IOException {
+    void snapshotter_restoresDataFromSnapshot() throws IOException {
+        // Add some data
+        store.put("restoreKey1", "restoreValue1".getBytes(StandardCharsets.UTF_8));
+        store.put("restoreKey2", "restoreValue2".getBytes(StandardCharsets.UTF_8));
+        store.logger.close();
+
+        // Create snapshot
+//        Path snapshotDir = logsFolder.resolve("snapshots");
+        Files.createDirectories(snapshotsFolder);
+        KVSnapshotter snapshotter = new KVSnapshotter(snapshotsFolder.toString());
+
+        Path logFile = logsFolder.resolve("0.log");
+        snapshotter.snapshot(logFile.toString());
+
+        // Load snapshot
+        Path snapshotFile = snapshotsFolder.resolve("0.snapshot");
+//        KVStore restored = snapshotter.loadSnapshot(snapshotFile.toString());
+        KVMap map = snapshotter.loadSnapshotV2(snapshotFile.toString());
+        KVStore restored = new KVStore(logsFolder.toString(), false, map);
+
+        // Verify restored data
+        assertNotNull(restored.get("restoreKey1"), "restoreKey1 should exist in restored store");
+        assertNotNull(restored.get("restoreKey2"), "restoreKey2 should exist in restored store");
+        System.out.print("-> ");
+        for (Byte b : "restoreValue1".getBytes(StandardCharsets.UTF_8)) {
+            System.out.print((char) b.longValue());
+        }
+
+        System.out.print(" ");
+
+        for (Byte b : restored.get("restoreKey1").value) {
+            System.out.print((char) b.longValue());
+        }
+        System.out.println();
+//        System.out.println("restoreValue1".getBytes(StandardCharsets.UTF_8) + " " + restored.get("restoreKey1").value);
+        assertArrayEquals("restoreValue1".getBytes(StandardCharsets.UTF_8), restored.get("restoreKey1").value);
+        assertArrayEquals("restoreValue2".getBytes(StandardCharsets.UTF_8), restored.get("restoreKey2").value);
+
+        restored.logger.close();
+    }
+
+    @Test
+//    void snapshotter_roundTrip_preservesData(@TempDir Path tempDir) throws IOException {
+    void snapshotter_roundTrip_preservesData() throws IOException {
+        System.out.println("Runnign test " + "'" + "snapshotter_roundTrip_preservesData" + "'");
+        // Add multiple entries
+        for (int i = 0; i < 10; i++) {
+            store.put("roundtripKey" + i, ("value" + i).getBytes(StandardCharsets.UTF_8));
+        }
+        store.logger.close();
+
+        // Create and load snapshot
+//        Path snapshotDir = logsFolder.resolve("snapshots");
+//        Files.createDirectories(snapshotsFolder);
+        KVSnapshotter snapshotter = new KVSnapshotter(snapshotsFolder.toString());
+
+        Path logFile = logsFolder.resolve("0.log");
+        snapshotter.snapshot(logFile.toString());
+
+        Path snapshotFile = snapshotsFolder.resolve("0.snapshot");
+//        KVStore restored = snapshotter.loadSnapshot(snapshotFile.toString());
+        KVMap map = snapshotter.loadSnapshotV2(snapshotFile.toString());
+        KVStore restored = new KVStore(logsFolder.toString(), false, map);
+
+        // Verify all entries
+        for (int i = 0; i < 10; i++) {
+            KVMap.Node node = restored.get("roundtripKey" + i);
+            assertNotNull(node, "Key roundtripKey" + i + " should exist");
+            assertArrayEquals(("value" + i).getBytes(StandardCharsets.UTF_8), node.value);
+        }
+
+        restored.logger.close();
     }
 }

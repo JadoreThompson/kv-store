@@ -5,21 +5,32 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="113ca11e-a295-4741-aad7-90962967a262" name="Changes" comment="">
-      <change beforePath="$PROJECT_DIR$/.gitignore" beforeDir="false" afterPath="$PROJECT_DIR$/.gitignore" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/com/zenz/kvstore/GetOperation.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/com/zenz/kvstore/KVSnapshotter.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/com/zenz/kvstore/Log.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/com/zenz/kvstore/Operation.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/com/zenz/kvstore/OperationType.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/com/zenz/kvstore/PutOperation.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/zenz/kvstore/Array.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/zenz/kvstore/Array.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/com/zenz/kvstore/KVMap.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/zenz/kvstore/KVMap.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/com/zenz/kvstore/KVStore.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/zenz/kvstore/KVStore.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/com/zenz/kvstore/Main.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/zenz/kvstore/Main.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/com/zenz/kvstore/WALogger.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/zenz/kvstore/WALogger.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/test/java/main/java/com/zenz/kvstore/KVStoreTest.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/test/java/main/java/com/zenz/kvstore/KVStoreTest.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/com/zenz/kvstore/Array.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/com/zenz/kvstore/Array.class" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/target/classes/com/zenz/kvstore/KVMap$Node.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/com/zenz/kvstore/KVMap$Node.class" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/target/classes/com/zenz/kvstore/KVMap$NodeList.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/com/zenz/kvstore/KVMap$NodeList.class" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/target/classes/com/zenz/kvstore/KVMap.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/com/zenz/kvstore/KVMap.class" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/target/classes/com/zenz/kvstore/KVStore.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/com/zenz/kvstore/KVStore.class" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/target/classes/com/zenz/kvstore/Main.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/com/zenz/kvstore/Main.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/com/zenz/kvstore/WALogger$Log.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/com/zenz/kvstore/WALogger$Operation.class" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/target/classes/com/zenz/kvstore/WALogger.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/com/zenz/kvstore/WALogger.class" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/target/maven-status/maven-compiler-plugin/compile/default-compile/createdFiles.lst" beforeDir="false" afterPath="$PROJECT_DIR$/target/maven-status/maven-compiler-plugin/compile/default-compile/createdFiles.lst" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/target/maven-status/maven-compiler-plugin/compile/default-compile/inputFiles.lst" beforeDir="false" afterPath="$PROJECT_DIR$/target/maven-status/maven-compiler-plugin/compile/default-compile/inputFiles.lst" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/maven-status/maven-compiler-plugin/testCompile/default-testCompile/createdFiles.lst" beforeDir="false" afterPath="$PROJECT_DIR$/target/maven-status/maven-compiler-plugin/testCompile/default-testCompile/createdFiles.lst" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/maven-status/maven-compiler-plugin/testCompile/default-testCompile/inputFiles.lst" beforeDir="false" afterPath="$PROJECT_DIR$/target/maven-status/maven-compiler-plugin/testCompile/default-testCompile/inputFiles.lst" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/target/surefire-reports/TEST-com.zenz.kvstore.KVStoreTest.xml" beforeDir="false" afterPath="$PROJECT_DIR$/target/surefire-reports/TEST-com.zenz.kvstore.KVStoreTest.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/target/surefire-reports/TEST-com.zenz.kvstore.MapTest.xml" beforeDir="false" afterPath="$PROJECT_DIR$/target/surefire-reports/TEST-com.zenz.kvstore.MapTest.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/target/surefire-reports/com.zenz.kvstore.KVStoreTest.txt" beforeDir="false" afterPath="$PROJECT_DIR$/target/surefire-reports/com.zenz.kvstore.KVStoreTest.txt" afterDir="false" />
@@ -56,6 +67,9 @@
     &quot;accountId&quot;: &quot;1f8b3808-e4a8-4946-9225-280343a681cb&quot;
   }
 }</component>
+  <component name="HighlightingSettingsPerFile">
+    <setting file="jar://$PROJECT_DIR$/../../../../Program Files/Java/jdk-22/lib/src.zip!/java.base/java/util/ArrayList.java" root0="SKIP_INSPECTION" />
+  </component>
   <component name="McpProjectServerCommands">
     <commands />
     <urls />
@@ -137,7 +151,7 @@
       <workItem from="1771448469095" duration="591000" />
       <workItem from="1771449079940" duration="61000" />
       <workItem from="1771449172209" duration="4556000" />
-      <workItem from="1771504085601" duration="3458000" />
+      <workItem from="1771504085601" duration="26615000" />
     </task>
     <servers />
   </component>

@@ -1,4 +1,4 @@
 -------------------------------------------------------------------------------
-Test set: com.zenz.kvstore.MapTest
+Test set: com.zenz.kvstore.KVSnapshotterTest
 -------------------------------------------------------------------------------
-Tests run: 7, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.036 s -- in com.zenz.kvstore.MapTest
+Tests run: 7, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.939 s -- in com.zenz.kvstore.KVSnapshotterTest
