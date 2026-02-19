@@ -1,14 +1,16 @@
-package com.zenz.kvstore;
+package com.zenz.kvstore.operations;
+
+import com.zenz.kvstore.OperationType;
 
 import java.nio.charset.StandardCharsets;
 
 public record PutOperation(int id, String key, byte[] value) implements Operation {
-    
+
     @Override
     public OperationType type() {
         return OperationType.PUT;
     }
-    
+
     public static PutOperation fromLine(int id, String[] components) {
         String key = components[2];
         String valueStr = components[3];

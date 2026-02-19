@@ -2,11 +2,11 @@ package com.zenz.kvstore;
 
 import java.util.function.Consumer;
 
-public class Array<T> {
+public class KVArray<T> {
     private final T[] arr;
     private int size = 0;
 
-    public Array(int length) {
+    public KVArray(int length) {
         arr = (T[]) new Object[length];
     }
 

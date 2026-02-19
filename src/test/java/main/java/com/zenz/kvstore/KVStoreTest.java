@@ -15,9 +15,6 @@ import java.nio.file.Path;
 import static org.junit.jupiter.api.Assertions.*;
 
 class KVStoreTest {
-
-    //    @TempDir
-//    Path tempDir;
     private Path logsFolder;
     private Path snapshotsFolder;
 
@@ -124,7 +121,6 @@ class KVStoreTest {
     // --- WAL logging ---
 
     @Test
-//    void put_logsOperationToWAL(@TempDir Path tempDir) throws IOException {
     void put_logsOperationToWAL() throws IOException {
         store.put("walKey", "walValue".getBytes(StandardCharsets.UTF_8));
         store.logger.close();
@@ -137,7 +133,6 @@ class KVStoreTest {
     }
 
     @Test
-//    void get_logsOperationToWAL(@TempDir Path tempDir) throws IOException {
     void get_logsOperationToWAL() throws IOException {
         store.put("walKey", "walValue".getBytes(StandardCharsets.UTF_8));
         store.get("walKey");
@@ -151,7 +146,6 @@ class KVStoreTest {
     }
 
     @Test
-//    void put_andGet_bothLoggedToWAL(@TempDir Path tempDir) throws IOException {
     void put_andGet_bothLoggedToWAL() throws IOException {
         store.put("name", "alice".getBytes(StandardCharsets.UTF_8));
         store.get("name");
@@ -167,7 +161,6 @@ class KVStoreTest {
     }
 
     @Test
-//    void multipleOperations_allLoggedToWAL(@TempDir Path tempDir) throws IOException {
     void multipleOperations_allLoggedToWAL() throws IOException {
         store.put("k1", "v1".getBytes(StandardCharsets.UTF_8));
         store.put("k2", "v2".getBytes(StandardCharsets.UTF_8));
@@ -189,7 +182,6 @@ class KVStoreTest {
     // --- Integration: Snapshotting ---
 
     @Test
-//    void snapshotter_createsSnapshotFromWAL(@TempDir Path tempDir) throws IOException {
     void snapshotter_createsSnapshotFromWAL() throws IOException {
         // Add some data
         store.put("snapKey1", "snapValue1".getBytes(StandardCharsets.UTF_8));
@@ -197,10 +189,7 @@ class KVStoreTest {
         store.logger.close();
 
         // Create snapshotter and snapshot
-//        Path snapshotDir = logsFolder.resolve("snapshots");
-        Files.createDirectories(snapshotsFolder);
         KVSnapshotter snapshotter = new KVSnapshotter(snapshotsFolder.toString());
-
         Path logFile = logsFolder.resolve("0.log");
         snapshotter.snapshot(logFile.toString());
 
@@ -215,7 +204,6 @@ class KVStoreTest {
     }
 
     @Test
-//    void snapshotter_restoresDataFromSnapshot(@TempDir Path tempDir) throws IOException {
     void snapshotter_restoresDataFromSnapshot() throws IOException {
         // Add some data
         store.put("restoreKey1", "restoreValue1".getBytes(StandardCharsets.UTF_8));
@@ -223,34 +211,18 @@ class KVStoreTest {
         store.logger.close();
 
         // Create snapshot
-//        Path snapshotDir = logsFolder.resolve("snapshots");
-        Files.createDirectories(snapshotsFolder);
         KVSnapshotter snapshotter = new KVSnapshotter(snapshotsFolder.toString());
-
         Path logFile = logsFolder.resolve("0.log");
         snapshotter.snapshot(logFile.toString());
 
         // Load snapshot
         Path snapshotFile = snapshotsFolder.resolve("0.snapshot");
-//        KVStore restored = snapshotter.loadSnapshot(snapshotFile.toString());
         KVMap map = snapshotter.loadSnapshotV2(snapshotFile.toString());
         KVStore restored = new KVStore(logsFolder.toString(), false, map);
 
         // Verify restored data
         assertNotNull(restored.get("restoreKey1"), "restoreKey1 should exist in restored store");
         assertNotNull(restored.get("restoreKey2"), "restoreKey2 should exist in restored store");
-        System.out.print("-> ");
-        for (Byte b : "restoreValue1".getBytes(StandardCharsets.UTF_8)) {
-            System.out.print((char) b.longValue());
-        }
-
-        System.out.print(" ");
-
-        for (Byte b : restored.get("restoreKey1").value) {
-            System.out.print((char) b.longValue());
-        }
-        System.out.println();
-//        System.out.println("restoreValue1".getBytes(StandardCharsets.UTF_8) + " " + restored.get("restoreKey1").value);
         assertArrayEquals("restoreValue1".getBytes(StandardCharsets.UTF_8), restored.get("restoreKey1").value);
         assertArrayEquals("restoreValue2".getBytes(StandardCharsets.UTF_8), restored.get("restoreKey2").value);
 
@@ -258,9 +230,7 @@ class KVStoreTest {
     }
 
     @Test
-//    void snapshotter_roundTrip_preservesData(@TempDir Path tempDir) throws IOException {
     void snapshotter_roundTrip_preservesData() throws IOException {
-        System.out.println("Runnign test " + "'" + "snapshotter_roundTrip_preservesData" + "'");
         // Add multiple entries
         for (int i = 0; i < 10; i++) {
             store.put("roundtripKey" + i, ("value" + i).getBytes(StandardCharsets.UTF_8));
@@ -268,15 +238,11 @@ class KVStoreTest {
         store.logger.close();
 
         // Create and load snapshot
-//        Path snapshotDir = logsFolder.resolve("snapshots");
-//        Files.createDirectories(snapshotsFolder);
         KVSnapshotter snapshotter = new KVSnapshotter(snapshotsFolder.toString());
-
         Path logFile = logsFolder.resolve("0.log");
         snapshotter.snapshot(logFile.toString());
 
         Path snapshotFile = snapshotsFolder.resolve("0.snapshot");
-//        KVStore restored = snapshotter.loadSnapshot(snapshotFile.toString());
         KVMap map = snapshotter.loadSnapshotV2(snapshotFile.toString());
         KVStore restored = new KVStore(logsFolder.toString(), false, map);
 

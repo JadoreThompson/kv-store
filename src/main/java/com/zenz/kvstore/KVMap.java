@@ -8,13 +8,13 @@ public class KVMap {
     public static float LOAD_FACTOR = 1.0f;
     public static int REHASH_BUCKETS = 100;
     private int capacity;
-    private Array<NodeList> ht1;
-    private Array<NodeList> ht2;
+    private KVArray<NodeList> ht1;
+    private KVArray<NodeList> ht2;
     private int rehashIdx;
 
     public KVMap() {
         capacity = INITIAL_CAPACITY;
-        ht1 = new Array<>(capacity);
+        ht1 = new KVArray<>(capacity);
         rehashIdx = -1;
     }
 
@@ -127,7 +127,7 @@ public class KVMap {
 
         if (ht1.size() >= (int) (capacity * LOAD_FACTOR)) {
             capacity *= capacity;
-            ht2 = new Array<>(capacity);
+            ht2 = new KVArray<>(capacity);
             rehashIdx = 0;
             return true;
         }
@@ -135,11 +135,11 @@ public class KVMap {
         return false;
     }
 
-    public Array<NodeList> getHt1() {
+    public KVArray<NodeList> getHt1() {
         return ht1;
     }
 
-    public Array<NodeList> getHt2() {
+    public KVArray<NodeList> getHt2() {
         return ht2;
     }
 

@@ -1,4 +1,6 @@
-package com.zenz.kvstore;
+package com.zenz.kvstore.operations;
+
+import com.zenz.kvstore.OperationType;
 
 public interface Operation {
     int id();
@@ -7,12 +9,6 @@ public interface Operation {
 
     static Operation fromLine(String line) {
         String[] components = line.strip().split(" ");
-        System.out.println("Components: ");
-        for (String comp : components) {
-            System.out.print(comp);
-        }
-        System.out.println();
-        System.out.println("<>" + components[1]);
         int id = Integer.parseInt(components[0]);
         OperationType type = OperationType.valueOf(components[1]);
 

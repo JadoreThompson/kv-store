@@ -1,5 +1,9 @@
 package com.zenz.kvstore;
 
+import com.zenz.kvstore.operations.GetOperation;
+import com.zenz.kvstore.operations.Operation;
+import com.zenz.kvstore.operations.PutOperation;
+
 import java.io.*;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
@@ -52,21 +56,9 @@ public class KVSnapshotter {
         // Apply the logged operations
         for (String line : lines) {
             if (line.isBlank()) continue;
-//            Log log = Log.fromLine(line);
-
-//            if (log.operation.equals(OperationType.PUT)) {
-//                String[] components = log.message.split(" ");
-//                store.put(components[0], components[1].getBytes(StandardCharsets.UTF_8));
-//            } else if (log.operation.equals(OperationType.GET)) {
-//                store.get(log.message);
-//            } else {
-//                throw new UnsupportedOperationException("Unsupported operation + " + log.operation.getValue());
-//            }
 
             Operation operation = Operation.fromLine(line);
             if (operation.type().equals(OperationType.PUT)) {
-//                String[] components = log.message.split(" ");
-//                store.put(components[0], components[1].getBytes(StandardCharsets.UTF_8));
                 PutOperation putOp = (PutOperation) operation;
                 store.put(putOp.key(), putOp.value());
             } else if (operation.type().equals(OperationType.GET)) {
@@ -140,7 +132,6 @@ public class KVSnapshotter {
     }
 
     public KVStore loadSnapshot(String fpath) throws IOException {
-//        System.out.println("Contents: " + Files.readString(Path.of(fpath)));
         Path tmpDir = Files.createTempDirectory("tmp-");
         KVStore store = new KVStore(tmpDir.toString(), false);
 
@@ -148,7 +139,6 @@ public class KVSnapshotter {
             String line;
 
             while ((line = reader.readLine()) != null) {
-                System.out.println("Line: " + line);
                 Header header = loadHeader(reader);
                 ArrayList<KVPair> pairs = loadKVPairs(reader);
                 if (pairs != null) {
@@ -179,7 +169,6 @@ public class KVSnapshotter {
 
     public KVMap loadSnapshotV2(String fpath) throws IOException {
         KVMap map = new KVMap();
-        System.out.println("Contents " + "\n" + Files.readString(Path.of(fpath)));
         try (BufferedReader reader = new BufferedReader(new FileReader(fpath))) {
             Header header = loadHeader(reader);
             ArrayList<KVPair> pairs = loadKVPairs(reader);
@@ -224,23 +213,11 @@ public class KVSnapshotter {
 
         while (true) {
             line = reader.readLine();
-            System.out.println("Line: " + line);
+
             if (line == null) return null;
             if (line.equals(KVPAIRS_END)) return pairs;
 
             String[] components = line.strip().split(" ");
-
-            System.out.println("Value in component " + components[1]);
-//            if (components.length >= 2) {
-//                KVPair pair = new KVPair(components[0], components[1].getBytes(StandardCharsets.UTF_8));
-//                pairs.add(pair);
-//            }
-
-//            OperationType opType = OperationType.valueOf(components[1]);
-//            if (opType.equals(OperationType.PUT)) {
-//                KVPair pair = new KVPair(components[2], components[3].getBytes(StandardCharsets.UTF_8));
-//            }
-
             KVPair pair = new KVPair(components[0], components[1].getBytes(StandardCharsets.UTF_8));
             pairs.add(pair);
         }

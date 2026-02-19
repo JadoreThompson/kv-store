@@ -51,11 +51,6 @@ public class KVStore {
             new File(logFname).createNewFile();
         } else {
             // Find the most recent log file
-            System.out.println("All files found within logs folder +" + "'" + logsFolder.toString() + "'");
-            for (File file : logFiles) {
-                System.out.println("    - " + file.toString());
-            }
-            System.out.println();
             String recentFName = (numFiles - 1) + ".log";
             logFname = folderPath + "/" + recentFName;
             String contents = Files.readString(Path.of(logFname));

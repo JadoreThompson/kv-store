@@ -1,11 +1,10 @@
-C:\Users\ADMIN\MyProjects\kv-store\src\main\java\com\zenz\kvstore\Array.java
-C:\Users\ADMIN\MyProjects\kv-store\src\main\java\com\zenz\kvstore\GetOperation.java
+C:\Users\ADMIN\MyProjects\kv-store\src\main\java\com\zenz\kvstore\KVArray.java
 C:\Users\ADMIN\MyProjects\kv-store\src\main\java\com\zenz\kvstore\KVMap.java
 C:\Users\ADMIN\MyProjects\kv-store\src\main\java\com\zenz\kvstore\KVSnapshotter.java
 C:\Users\ADMIN\MyProjects\kv-store\src\main\java\com\zenz\kvstore\KVStore.java
-C:\Users\ADMIN\MyProjects\kv-store\src\main\java\com\zenz\kvstore\Log.java
 C:\Users\ADMIN\MyProjects\kv-store\src\main\java\com\zenz\kvstore\Main.java
-C:\Users\ADMIN\MyProjects\kv-store\src\main\java\com\zenz\kvstore\Operation.java
+C:\Users\ADMIN\MyProjects\kv-store\src\main\java\com\zenz\kvstore\operations\GetOperation.java
+C:\Users\ADMIN\MyProjects\kv-store\src\main\java\com\zenz\kvstore\operations\Operation.java
+C:\Users\ADMIN\MyProjects\kv-store\src\main\java\com\zenz\kvstore\operations\PutOperation.java
 C:\Users\ADMIN\MyProjects\kv-store\src\main\java\com\zenz\kvstore\OperationType.java
-C:\Users\ADMIN\MyProjects\kv-store\src\main\java\com\zenz\kvstore\PutOperation.java
 C:\Users\ADMIN\MyProjects\kv-store\src\main\java\com\zenz\kvstore\WALogger.java
