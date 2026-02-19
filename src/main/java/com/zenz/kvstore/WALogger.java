@@ -7,20 +7,19 @@ import java.nio.channels.FileChannel;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
+import java.util.Random;
 
 public class WALogger {
     private FileChannel channel;
 
     public WALogger(String fPath) throws IOException {
         File file = new File(fPath);
+
         if (!file.exists()) {
             file.createNewFile();
         }
-        channel = FileChannel.open(Path.of(fPath), StandardOpenOption.APPEND);
-    }
 
-    public WALogger(String fPath, int batchSize) throws IOException {
-        this(fPath);
+        channel = FileChannel.open(Path.of(fPath), StandardOpenOption.APPEND);
     }
 
     public void log(String message) throws IOException {
@@ -36,7 +35,38 @@ public class WALogger {
         channel.force(true);
     }
 
+    public void log(Log logObject) throws IOException {
+        ByteBuffer buffer = ByteBuffer.wrap(
+                (logObject.id + " " + logObject.operation.getValue() + " " + logObject.message + "\n").getBytes(StandardCharsets.UTF_8)
+        );
+
+        while (buffer.hasRemaining()) {
+            channel.write(buffer);
+        }
+
+        channel.write(buffer);
+        channel.force(true);
+    }
+
     public void close() throws IOException {
         channel.close();
+    }
+
+    public static record Log(int id, Operation operation, String message) {
+    }
+
+    public static enum Operation {
+        GET("GET"),
+        PUT("PUT");
+
+        private final String value;
+
+        private Operation(String value) {
+            this.value = value;
+        }
+
+        public String getValue() {
+            return value;
+        }
     }
 }

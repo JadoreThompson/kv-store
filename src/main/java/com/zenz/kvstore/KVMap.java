@@ -111,7 +111,6 @@ public class KVMap {
         }
     }
 
-
     /**
      * Returns a non-negative bucket index.
      * Note: Forcing the sign bit to 0.
