@@ -10,11 +10,11 @@ import java.util.*;
 /**
  * Non-blocking TCP server for KVStore.
  * Handles multiple concurrent connections using NIO Selector.
- * 
+ * <p>
  * Protocol format: <operationType> <arg1> <arg2> <argN>
  * Examples:
- *   PUT mykey myvalue
- *   GET mykey
+ * PUT mykey myvalue
+ * GET mykey
  */
 public class KVConnectionManager {
 
@@ -55,7 +55,7 @@ public class KVConnectionManager {
         // Register for ACCEPT events
         serverChannel.register(selector, SelectionKey.OP_ACCEPT);
 
-        System.out.println("KVStore server started on " + host + ":" + port);
+        System.out.println("KVConnectionManager server started on " + host + ":" + port);
 
         // Main event loop
         while (running) {
@@ -69,36 +69,41 @@ public class KVConnectionManager {
                 SelectionKey key = keys.next();
                 keys.remove();
 
+
                 try {
                     if (!key.isValid()) {
                         cleanup(key);
-                        continue;
-                    }
-
-                    if (key.isAcceptable()) {
+                    } else if (key.isAcceptable()) {
                         handleAccept(key);
-                    }
-
-                    if (key.isReadable()) {
+                    } else if (key.isReadable()) {
                         handleRead(key);
-                    }
-
-                    if (key.isWritable()) {
+                    } else if (key.isWritable()) {
                         handleWrite(key);
                     }
-
                 } catch (IOException e) {
                     System.err.println("Connection error: " + e.getMessage());
                     cleanup(key);
                 }
             }
         }
+
     }
 
-    public void stop() {
+    public void stop() throws IOException {
         running = false;
         if (selector != null) {
             selector.wakeup();
+        }
+
+        if (selector != null) {
+            for (SelectionKey key : selector.keys()) {
+                cleanup(key);
+            }
+            selector.close();
+        }
+
+        if (serverChannel != null) {
+            serverChannel.close();
         }
     }
 
@@ -117,8 +122,6 @@ public class KVConnectionManager {
         // Register for READ events with session attachment
         SelectionKey clientKey = client.register(selector, SelectionKey.OP_READ);
         clientKey.attach(new ClientSession(client));
-
-        System.out.println("Client connected: " + client.getRemoteAddress());
     }
 
     private void handleRead(SelectionKey key) throws IOException {
@@ -129,7 +132,6 @@ public class KVConnectionManager {
         int bytesRead = client.read(buffer);
 
         if (bytesRead == -1) {
-            System.out.println("Client disconnected: " + client.getRemoteAddress());
             cleanup(key);
             return;
         }
@@ -162,10 +164,10 @@ public class KVConnectionManager {
 
         // Handle multiple commands separated by newlines
         String[] lines = message.split("\n");
-        
+
         for (String line : lines) {
             if (line.isBlank()) continue;
-            
+
             String response = processCommand(line.trim());
             if (response != null) {
                 ByteBuffer responseBuffer = ByteBuffer.wrap((response + "\n").getBytes(StandardCharsets.UTF_8));
@@ -181,7 +183,7 @@ public class KVConnectionManager {
      */
     private String processCommand(String line) {
         String[] parts = line.split(" ");
-        
+
         if (parts.length == 0) {
             return "ERROR: Empty command";
         }
@@ -189,17 +191,17 @@ public class KVConnectionManager {
         String operation = parts[0].toUpperCase();
 
         try {
-            switch (operation) {
-                case "PUT":
-                    return handlePut(parts);
-                case "GET":
-                    return handleGet(parts);
-                case "PING":
-                    return "PONG";
-                default:
-                    return "ERROR: Unknown operation '" + operation + "'";
+            if (operation.equals("PING")) {
+                return "PONG";
             }
-        } catch (IOException e) {
+
+            OperationType opType = OperationType.valueOf(operation);
+            return switch (opType) {
+                case PUT -> handlePut(parts);
+                case GET -> handleGet(parts);
+                default -> "ERROR: Unknown operation '" + operation + "'";
+            };
+        } catch (IOException | IllegalArgumentException e) {
             return "ERROR: " + e.getMessage();
         }
     }
@@ -213,17 +215,17 @@ public class KVConnectionManager {
         }
 
         String key = parts[1];
-        
+
         // Join remaining parts as value (in case value contains spaces)
         StringBuilder valueBuilder = new StringBuilder();
         for (int i = 2; i < parts.length; i++) {
             if (i > 2) valueBuilder.append(" ");
             valueBuilder.append(parts[i]);
         }
-        
+
         byte[] value = valueBuilder.toString().getBytes(StandardCharsets.UTF_8);
         store.put(key, value);
-        
+
         return "OK";
     }
 
@@ -288,17 +290,20 @@ public class KVConnectionManager {
     }
 
     private void cleanup(SelectionKey key) {
-        try {
-            key.cancel();
+        if (key == null || !key.isValid()) return;
 
-            SocketChannel client = (SocketChannel) key.channel();
+        try {
+
+            SelectableChannel client = key.channel();
             pendingWrites.remove(client);
 
+            key.cancel();
             try {
                 client.close();
             } catch (IOException e) {
                 // Ignore
             }
+
         } catch (Exception e) {
             e.printStackTrace();
         }

@@ -13,4 +13,14 @@ public enum OperationType {
     public String getValue() {
         return value;
     }
+
+    @Override
+    public String toString() {
+        return value;
+    }
 }
+
+//public class OperationType {
+//    public static final String GET = "GET";
+//    public static final String PUT = "PUT";
+//}

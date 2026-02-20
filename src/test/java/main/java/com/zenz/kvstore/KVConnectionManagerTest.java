@@ -52,7 +52,8 @@ class KVConnectionManagerTest {
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
         }
-        Files.deleteIfExists(tempDir);
+
+        tempDir.toFile().delete();
     }
 
     private SocketChannel connectClient() throws IOException {
@@ -110,7 +111,6 @@ class KVConnectionManagerTest {
     @Test
     void put_returnsOk() throws IOException {
         SocketChannel client = connectClient();
-
         sendMessage(client, "PUT testkey testvalue");
         String response = receiveMessage(client);
 

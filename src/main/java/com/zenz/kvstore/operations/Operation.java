@@ -15,6 +15,7 @@ public interface Operation {
         return switch (type) {
             case PUT -> PutOperation.fromLine(id, components);
             case GET -> GetOperation.fromLine(id, components);
+            default -> throw new UnsupportedOperationException("Unsupported operation " + type.getValue());
         };
     }
 }
