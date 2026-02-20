@@ -17,7 +17,6 @@ import java.util.*;
  * GET mykey
  */
 public class KVConnectionManager {
-
     private static final int BUFFER_SIZE = 8192;
 
     private Selector selector;
