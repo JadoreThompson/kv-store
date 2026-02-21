@@ -2,15 +2,19 @@ package com.zenz.kvstore;
 
 import java.util.function.Consumer;
 
-public class KVArray<T> {
-    private final T[] arr;
+public class KVArray {
+    private final KVMap.NodeList[] arr;
     private int size = 0;
 
-    public KVArray(int length) {
-        arr = (T[]) new Object[length];
+    public KVArray() {
+        arr = new KVMap.NodeList[1000];
     }
 
-    public void add(int index, T value) {
+    public KVArray(int length) {
+        arr = new KVMap.NodeList[length];
+    }
+
+    public void add(int index, KVMap.NodeList value) {
         if (arr[index] == null) {
             size++;
         }
@@ -25,11 +29,11 @@ public class KVArray<T> {
         arr[index] = null;
     }
 
-    public T get(int index) {
+    public KVMap.NodeList get(int index) {
         return arr[index];
     }
 
-    public void forEach(Consumer<T> consumer) {
+    public void forEach(Consumer<KVMap.NodeList> consumer) {
         for (int i = 0; i < size; i++) {
             consumer.accept(arr[i]);
         }

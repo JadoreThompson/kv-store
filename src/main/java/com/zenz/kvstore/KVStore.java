@@ -84,7 +84,7 @@ public class KVStore {
     public void put(String key, byte[] value) throws IOException {
         snapshot();
 
-        logger.logPut(getCommandId(), OperationType.PUT, key, value);
+        logger.logPut(generateId(), OperationType.PUT, key, value);
         logCount++;
 
         map.put(key, value);
@@ -93,7 +93,7 @@ public class KVStore {
     public KVMap.Node get(String key) throws IOException {
         snapshot();
 
-        logger.logGet(getCommandId(), OperationType.GET, key);
+        logger.logGet(generateId(), OperationType.GET, key);
         logCount++;
 
         KVMap.Node result = map.get(key);
@@ -104,7 +104,7 @@ public class KVStore {
         return map;
     }
 
-    private int getCommandId() {
+    private int generateId() {
         return random.nextInt();
     }
 

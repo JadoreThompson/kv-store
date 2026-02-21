@@ -1,5 +1,8 @@
 package com.zenz.kvstore;
 
+
+import com.zenz.kvstore.KVMap;
+import com.zenz.kvstore.KVStore;
 import com.zenz.kvstore.operations.GetOperation;
 import com.zenz.kvstore.operations.Operation;
 import com.zenz.kvstore.operations.PutOperation;
@@ -11,22 +14,26 @@ import java.nio.file.Path;
 import java.util.ArrayList;
 
 public class KVSnapshotter {
-    private static final String DEFAULT_SNAPSHOT_FOLDER_NAME = "snapshots";
-    private static String HEADER_START = "===HEADER START===";
-    private static String HEADER_END = "===HEADER END===";
-    private static String KVPAIRS_START = "===KV START===";
-    private static String KVPAIRS_END = "===KV END===";
-    private final File folder;
+    private static final Path DEFAULT_SNAPSHOT_FOLDER_Path = Path.of("snapshots");
+    private static final String HEADER_START = "===HEADER START===";
+    private static final String HEADER_END = "===HEADER END===";
+    private static final String KV_START = "===KV START===";
+    private static final String KV_END = "===KV END===";
+
+    //        private final File folder;
+    private final Path folderPath;
 
     public KVSnapshotter() throws IOException {
-        folder = new File(DEFAULT_SNAPSHOT_FOLDER_NAME);
+        folderPath = DEFAULT_SNAPSHOT_FOLDER_Path;
+        File folder = folderPath.toFile();
         if (!folder.exists()) {
             folder.mkdirs();
         }
     }
 
-    public KVSnapshotter(String folderName) throws IOException {
-        folder = new File(folderName);
+    public KVSnapshotter(Path folderPath) throws IOException {
+        this.folderPath = folderPath;
+        File folder = folderPath.toFile();
         if (!folder.exists()) {
             folder.mkdirs();
         }
@@ -47,7 +54,7 @@ public class KVSnapshotter {
         KVStore store;
         if (!prefix.equals("0")) {
             long prevSnapshot = Long.parseLong(prefix) - 1;
-            String prevSnapshotFname = folder.getPath() + "/" + prevSnapshot + ".snapshot";
+            String prevSnapshotFname = folderPath + "/" + prevSnapshot + ".snapshot";
 //            store = loadSnapshot(prevSnapshotFname);
             KVMap map = loadSnapshot(prevSnapshotFname);
             Path tmpDirPath = getTmpLogsDir();
@@ -74,7 +81,7 @@ public class KVSnapshotter {
         }
 
         // Save snapshot
-        saveSnapshot(folder.getPath() + "/" + prefix + ".snapshot", store);
+        saveSnapshot(folderPath + "/" + prefix + ".snapshot", store);
     }
 
     private String extractPrefix(String fname) {
@@ -105,7 +112,7 @@ public class KVSnapshotter {
     private void writeNodes(FileWriter writer, KVStore store) throws IOException {
         KVMap map = store.getMap();
 
-        writer.write(KVPAIRS_START + "\n");
+        writer.write(KV_START + "\n");
 
         if (map.getHt2() != null) {
             for (int i = 0; i < map.getHt2().length(); i++) {
@@ -133,11 +140,11 @@ public class KVSnapshotter {
             }
         }
 
-        writer.write(KVPAIRS_END + "\n");
+        writer.write(KV_END + "\n");
     }
 
     public KVMap loadSnapshot() throws IOException {
-        File[] files = folder.listFiles();
+        File[] files = folderPath.toFile().listFiles();
         if (files == null || files.length == 0) return null;
 
         File recentSnapshot = null;
@@ -189,7 +196,7 @@ public class KVSnapshotter {
 
     private ArrayList<KVPair> loadKVPairs(BufferedReader reader) throws IOException {
         String line = reader.readLine();
-        if (line == null || !line.equals(KVPAIRS_START)) {
+        if (line == null || !line.equals(KV_START)) {
             return null;
         }
 
@@ -199,7 +206,7 @@ public class KVSnapshotter {
             line = reader.readLine();
 
             if (line == null) return null;
-            if (line.equals(KVPAIRS_END)) return pairs;
+            if (line.equals(KV_END)) return pairs;
 
             String[] components = line.strip().split(" ");
             KVPair pair = new KVPair(components[0], components[1].getBytes(StandardCharsets.UTF_8));

@@ -23,7 +23,7 @@ public class KVConnectionManager {
     private ServerSocketChannel serverChannel;
     private volatile boolean running = true;
 
-    private final KVStore store;
+    private final KVStore2 store;
     private final String host;
     private final int port;
 
@@ -31,12 +31,14 @@ public class KVConnectionManager {
     private final Map<SocketChannel, Queue<ByteBuffer>> pendingWrites = new HashMap<>();
 
     public KVConnectionManager(String host, int port) throws IOException {
-        this.store = new KVStore(false);  // Snapshots disabled for network server
+//        this.store = new KVStore(false);  // Snapshots disabled for network server
+        this.store = KVStore2.load();  // Snapshots disabled for network server
         this.host = host;
         this.port = port;
     }
 
-    public KVConnectionManager(String host, int port, KVStore store) {
+    //    public KVConnectionManager(String host, int port, KVStore store) {
+    public KVConnectionManager(String host, int port, KVStore2 store) {
         this.store = store;
         this.host = host;
         this.port = port;
@@ -54,7 +56,7 @@ public class KVConnectionManager {
         // Register for ACCEPT events
         serverChannel.register(selector, SelectionKey.OP_ACCEPT);
 
-        System.out.println("KVConnectionManager server started on " + host + ":" + port);
+        System.out.println("KV Connection Manager server started on " + host + ":" + port);
 
         // Main event loop
         while (running) {
@@ -167,7 +169,9 @@ public class KVConnectionManager {
         for (String line : lines) {
             if (line.isBlank()) continue;
 
+            System.out.println("Received command: " + line);
             String response = processCommand(line.trim());
+            System.out.println("Sending response: " + response);
             if (response != null) {
                 ByteBuffer responseBuffer = ByteBuffer.wrap((response + "\n").getBytes(StandardCharsets.UTF_8));
                 queueWrite(session.getClient(), responseBuffer);
