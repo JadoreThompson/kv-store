@@ -115,13 +115,9 @@ public class KVMapSnapshotter {
 
     private void saveSnapshot(Path serialisedMapPath, Path snapshotFpath) throws IOException {
         try (Input input = new Input(new FileInputStream(serialisedMapPath.toString()))) {
-//            Kryo kryo = new Kryo();
-//            kryo.register(KVMap.class);
-
             Kryo kryo = getKryo();
             KVMap map = kryo.readObject(input, KVMap.class);
 
-            System.out.println("Saving snapshot to file " + snapshotFpath.toString());
             try (FileWriter writer = new FileWriter(snapshotFpath.toString())) {
                 writeHeader(writer, map);
                 writeNodes(writer, map);
@@ -174,16 +170,9 @@ public class KVMapSnapshotter {
 
         for (int i = 0; i < files.length; i++) {
             if (i + 1 >= files.length || files[i + 1] == null) {
-                System.out.println("Found the recent snapshot file");
-//                return loadSnapshot(files[i].getAbsolutePath());
-                KVMap map = loadSnapshot(files[i].getAbsolutePath());
-                System.out.println("Returning null map? " + (map == null));
-                return map;
+                return loadSnapshot(files[i].getAbsolutePath());
             }
         }
-
-        System.out.println("Failed to find the recent snapshot file within folder " + folderPath.toString());
-        System.out.println();
 
         return null;
     }
@@ -191,16 +180,12 @@ public class KVMapSnapshotter {
     private KVMap loadSnapshot(String fpath) throws IOException {
         KVMap map = new KVMap();
 
-        System.out.println("Reading snapshot file " + fpath.toString());
         try (BufferedReader reader = new BufferedReader(new FileReader(fpath))) {
             Header header = loadHeader(reader);
             ArrayList<KVPair> pairs = loadKVPairs(reader);
 
-            System.out.println("Pairs is null? " + (pairs == null));
             if (pairs == null) return null;
-            System.out.println("Found " + pairs.size() + " pairs within snapshot");
             for (KVPair pair : pairs) {
-                System.out.println("\t- " + pair.key + " " + pair.value);
                 map.put(pair.key, pair.value);
             }
         }

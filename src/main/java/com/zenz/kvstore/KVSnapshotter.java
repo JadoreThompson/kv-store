@@ -2,7 +2,7 @@ package com.zenz.kvstore;
 
 
 import com.zenz.kvstore.KVMap;
-import com.zenz.kvstore.KVStore;
+import com.zenz.kvstore.KVStore2;
 import com.zenz.kvstore.operations.GetOperation;
 import com.zenz.kvstore.operations.Operation;
 import com.zenz.kvstore.operations.PutOperation;
@@ -51,7 +51,7 @@ public class KVSnapshotter {
         String[] lines = contents.strip().split("\n");
 
         // Load previous store
-        KVStore store;
+        KVStore2 store;
         if (!prefix.equals("0")) {
             long prevSnapshot = Long.parseLong(prefix) - 1;
             String prevSnapshotFname = folderPath + "/" + prevSnapshot + ".snapshot";
@@ -60,9 +60,9 @@ public class KVSnapshotter {
             Path tmpDirPath = getTmpLogsDir();
             File tmpDir = tmpDirPath.toFile();
             tmpDir.mkdirs();
-            store = new KVStore(tmpDirPath.toString(), false, map);
+            store = KVStore2.load(tmpDirPath);
         } else {
-            store = new KVStore(getTmpLogsDir().toString(), false);
+            store = KVStore2.load(getTmpLogsDir());
         }
 
         // Apply the logged operations
@@ -96,20 +96,20 @@ public class KVSnapshotter {
         return name.replace(".log", "");
     }
 
-    private void saveSnapshot(String fname, KVStore store) throws IOException {
+    private void saveSnapshot(String fname, KVStore2 store) throws IOException {
         try (FileWriter writer = new FileWriter(fname)) {
             writeHeader(writer, store);
             writeNodes(writer, store);
         }
     }
 
-    private void writeHeader(FileWriter writer, KVStore store) throws IOException {
+    private void writeHeader(FileWriter writer, KVStore2 store) throws IOException {
         writer.write(HEADER_START + "\n");
         writer.write("1\n");  // version
         writer.write(HEADER_END + "\n");
     }
 
-    private void writeNodes(FileWriter writer, KVStore store) throws IOException {
+    private void writeNodes(FileWriter writer, KVStore2 store) throws IOException {
         KVMap map = store.getMap();
 
         writer.write(KV_START + "\n");

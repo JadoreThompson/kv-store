@@ -312,7 +312,7 @@ public class KVConnectionManager {
         }
     }
 
-    public KVStore getStore() {
+    public KVStore2 getStore() {
         return store;
     }
 

@@ -157,42 +157,14 @@ public class KVStore2 {
 
         KVStore2 store;
         if (map != null) {
-            System.out.println("non-null map returned");
             store = new KVStore2(logsFolder, map);
         } else {
-            System.out.println("null map returned");
             store = new KVStore2(logsFolder);
         }
 
         store.setLoggingEnabled(false);
         restoreState(store, snapshotter);
         return store;
-//        Path snapshotFolderPath = snapshotter.getFolderPath();
-//
-//        File[] files = snapshotFolderPath.toFile().listFiles();
-//        if (files == null || files.length == 0) return;
-//
-//        Path recentSnapshotFpath = null;
-//        for (File f : files) {
-//            recentSnapshotFpath = f.toPath();
-//        }
-//
-//
-//        // Applying each batch of logs. If a log needs snapshotting
-//        // the store will trigger the snapshot
-//        files = store.getLogsFolder().toFile().listFiles();
-//        String recentSnapshotFname = recentSnapshotFpath.toFile().getName();
-//        boolean reached = false;
-//
-//        for (File file : files) {
-//            if (!reached) {
-//                if (file.getName().equals(recentSnapshotFname)) {
-//                    reached = true;
-//                }
-//            } else {
-//                applyLogs(file, store);
-//            }
-//        }
     }
 
     public static KVStore2 load(Path logsFolder, KVMapSnapshotter snapshotter) throws IOException {
@@ -200,10 +172,8 @@ public class KVStore2 {
 
         KVStore2 store;
         if (map != null) {
-            System.out.println("non-null map returned");
             store = new KVStore2(logsFolder, map);
         } else {
-            System.out.println("null map returned");
             store = new KVStore2(logsFolder);
         }
 
@@ -260,8 +230,6 @@ public class KVStore2 {
         Path snapshotFolderPath = snapshotter.getFolderPath();
 
         File[] files = snapshotFolderPath.toFile().listFiles();
-//        if (files == null || files.length == 0) return;
-        System.out.println("Number of files within snapshot folder " + files.length);
 
         Path recentSnapshotFpath = null;
         for (File f : files) {
@@ -271,18 +239,16 @@ public class KVStore2 {
         // Applying each batch of logs. If a log needs snapshotting
         // the store will trigger the snapshot
         files = store.getLogsFolder().toFile().listFiles();
-        System.out.println("Number of files within logs folder " + files.length);
         String recentSnapshotFname = (recentSnapshotFpath != null) ? recentSnapshotFpath.toFile().getName() : null;
         boolean reached = false;
 
         for (File file : files) {
-            if (!reached & recentSnapshotFname != null) {
+            if (!reached && recentSnapshotFname != null) {
                 if (file.getName().equals(recentSnapshotFname)) {
                     reached = true;
                 }
             } else {
-                System.out.println("Applying logs from file " + file.toString());
-                int logCount = applyLogs(file, store);
+                applyLogs(file, store);
             }
         }
     }
@@ -290,7 +256,6 @@ public class KVStore2 {
     private static int applyLogs(File file, KVStore2 store) throws IOException {
         String contents = Files.readString(file.toPath());
         String[] lines = contents.strip().split("\n");
-        System.out.println("Applying " + lines.length + " logs");
         for (String line : lines) {
             Operation operation = Operation.fromLine(line);
             if (operation.type().equals(OperationType.PUT)) {
@@ -304,7 +269,6 @@ public class KVStore2 {
             }
         }
 
-        System.out.println("Applied " + lines.length + " operations");
         return lines.length;
     }
 
@@ -321,18 +285,10 @@ public class KVStore2 {
         Path logFpath;
         if (numFiles == 0) {
             logFpath = logsFolder.resolve("0.log");
-//            System.out.print("yo");
-//            logFpath = logsFolder.resolve("0.log");
-//            System.out.print("oy");
-//            System.out.println();
             logFpath.toFile().createNewFile();
         } else {
             // Find the most recent log file
-//            String recentFName = (numFiles - 1) + ".log";
-            System.out.print("yo");
             String recentFName = (numFiles - 1) + ".log";
-            System.out.print("oy");
-            System.out.println();
             logFpath = logsFolder.resolve(recentFName);
         }
 
@@ -367,7 +323,6 @@ public class KVStore2 {
             logCount = 0;
 
             if (snapshotEnabled) {
-                System.out.println("Taking snapshot of map");
                 snapshotter.snapshot(map);
                 // Create a new log file
                 File[] logFiles = logsFolder.toFile().listFiles();
@@ -414,6 +369,10 @@ public class KVStore2 {
 
     public void setLogsPerSnapshot(int logsPerSnapshot) {
         this.logsPerSnapshot = logsPerSnapshot;
+    }
+
+    public KVMap getMap() {
+        return map;
     }
 }
 

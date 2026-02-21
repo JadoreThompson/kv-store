@@ -27,7 +27,7 @@ class KVConnectionManagerTest {
     @BeforeAll
     static void startServer() throws IOException, InterruptedException {
         tempDir = Files.createTempDirectory("kvstore-test-");
-        KVStore store = new KVStore(tempDir.toString(), false);
+        KVStore2 store = KVStore2.load(tempDir);
         server = new KVConnectionManager(TEST_HOST, TEST_PORT, store);
 
         serverExecutor = Executors.newSingleThreadExecutor();

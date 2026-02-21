@@ -5,20 +5,11 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="113ca11e-a295-4741-aad7-90962967a262" name="Changes" comment="">
-      <change afterPath="$PROJECT_DIR$/src/main/java/com/zenz/kvstore/KVMapSnapshotter.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/java/com/zenz/kvstore/KVStore2.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/test/java/main/java/com/zenz/kvstore/KVStore2Test.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/test/java/main/java/com/zenz/kvstore/MyTest.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/pom.xml" beforeDir="false" afterPath="$PROJECT_DIR$/pom.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/com/zenz/kvstore/KVArray.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/zenz/kvstore/KVArray.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/com/zenz/kvstore/KVConnectionManager.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/zenz/kvstore/KVConnectionManager.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/com/zenz/kvstore/KVMap.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/zenz/kvstore/KVMap.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/zenz/kvstore/KVMapSnapshotter.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/zenz/kvstore/KVMapSnapshotter.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/com/zenz/kvstore/KVSnapshotter.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/zenz/kvstore/KVSnapshotter.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/com/zenz/kvstore/KVStore.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/zenz/kvstore/KVStore.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/test/java/main/java/com/zenz/kvstore/KVSnapshotterTest.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/test/java/main/java/com/zenz/kvstore/KVSnapshotterTest.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/test/java/main/java/com/zenz/kvstore/KVStoreTest.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/test/java/main/java/com/zenz/kvstore/KVStoreTest.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/tmp.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/zenz/kvstore/KVStore2.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/zenz/kvstore/KVStore2.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/test/java/main/java/com/zenz/kvstore/KVConnectionManagerTest.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/test/java/main/java/com/zenz/kvstore/KVConnectionManagerTest.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -167,7 +158,7 @@
       <workItem from="1771595680701" duration="34000" />
       <workItem from="1771596336989" duration="140000" />
       <workItem from="1771596985810" duration="2698000" />
-      <workItem from="1771676280362" duration="20584000" />
+      <workItem from="1771676280362" duration="23969000" />
     </task>
     <servers />
   </component>
