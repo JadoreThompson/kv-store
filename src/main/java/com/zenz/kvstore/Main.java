@@ -48,8 +48,6 @@ public class Main {
         System.out.println("Starting KV Connection Manager on " + host + ":" + port);
         KVConnectionManager connManager = new KVConnectionManager(host, port);
         connManager.start();
-        // TODO: Start the server with the configured host and port
-
     }
 
     private static void printUsage() {
