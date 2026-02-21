@@ -255,7 +255,10 @@ public class KVStore2 {
 
     private static int applyLogs(File file, KVStore2 store) throws IOException {
         String contents = Files.readString(file.toPath());
+        if (contents.length() == 0) return 0;
+
         String[] lines = contents.strip().split("\n");
+
         for (String line : lines) {
             Operation operation = Operation.fromLine(line);
             if (operation.type().equals(OperationType.PUT)) {
