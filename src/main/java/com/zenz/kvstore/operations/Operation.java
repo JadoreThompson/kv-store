@@ -18,4 +18,7 @@ public interface Operation {
             default -> throw new UnsupportedOperationException("Unsupported operation " + type.getValue());
         };
     }
+
+    @Override
+    public String toString();
 }

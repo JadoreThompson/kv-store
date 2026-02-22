@@ -13,4 +13,9 @@ public record GetOperation(int id, String key) implements Operation {
         String key = components[2];
         return new GetOperation(id, key);
     }
+
+    @Override
+    public String toString() {
+        return id + " " + type().getValue() + " " + key;
+    }
 }
