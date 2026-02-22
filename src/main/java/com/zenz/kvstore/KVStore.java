@@ -156,7 +156,7 @@ public class KVStore {
                 // Create a new log file
                 File[] logFiles = logsFolder.toFile().listFiles();
                 long numFiles = logFiles.length;
-                Path fpath = Path.of(numFiles + ".log");
+                Path fpath = logsFolder.resolve(numFiles + ".log");
                 File file = fpath.toFile();
                 if (!file.exists()) file.createNewFile();
                 logger = new WALogger(fpath.toString());
