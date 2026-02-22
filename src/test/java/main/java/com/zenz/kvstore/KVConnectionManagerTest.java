@@ -27,8 +27,15 @@ class KVConnectionManagerTest {
     @BeforeAll
     static void startServer() throws IOException, InterruptedException {
         tempDir = Files.createTempDirectory("kvstore-test-");
-        KVStore2 store = KVStore2.load(tempDir);
-        store.setSnapshotEnabled(false);
+        Path logsFolderPath = tempDir.resolve("logs");
+        Path snapshotFolderPath = tempDir.resolve("snapshots");
+
+        KVMapSnapshotter snapshotter = new KVMapSnapshotter(snapshotFolderPath);
+        KVStore2 store = new KVStore2.Builder()
+                .setLogsFolder(logsFolderPath)
+                .setSnapshotter(snapshotter)
+                .setSnapshotEnabled(false)
+                .build();
         server = new KVConnectionManager(TEST_HOST, TEST_PORT, store);
 
         serverExecutor = Executors.newSingleThreadExecutor();
