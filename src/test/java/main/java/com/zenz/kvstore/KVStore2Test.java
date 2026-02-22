@@ -24,13 +24,16 @@ class KVStore2Test {
     private Path snapshotsFolder;
 
     private KVStore2 store;
+    private KVMapSnapshotter snapshotter;
     private WALogger logger;
 
     @BeforeEach
     void setUp() throws Exception {
         logsFolder = Files.createTempDirectory("tmp-logs-");
         snapshotsFolder = Files.createTempDirectory("tmp-snapshots-");
-        store = createKVStore2(logsFolder);
+//        store = createKVStore2(logsFolder);
+        snapshotter = new KVMapSnapshotter(snapshotsFolder);
+        store = new KVStore2.Builder().setLogsFolder(logsFolder).setSnapshotter(snapshotter).build();
         logger = getLogger(store);
     }
 
@@ -182,7 +185,8 @@ class KVStore2Test {
 
     @Test
     void put_logsOperationToWAL() throws Exception {
-        setLoggingEnabled(store, true);
+//        setLoggingEnabled(store, true);
+        store.setLoggingEnabled(true);
         store.put("walKey", "walValue".getBytes(StandardCharsets.UTF_8));
         logger.close();
 
@@ -195,7 +199,8 @@ class KVStore2Test {
 
     @Test
     void get_logsOperationToWAL() throws Exception {
-        setLoggingEnabled(store, true);
+//        setLoggingEnabled(store, true);
+        store.setLoggingEnabled(true);
         store.put("walKey", "walValue".getBytes(StandardCharsets.UTF_8));
         store.get("walKey");
         logger.close();
@@ -209,7 +214,8 @@ class KVStore2Test {
 
     @Test
     void put_andGet_bothLoggedToWAL() throws Exception {
-        setLoggingEnabled(store, true);
+//        setLoggingEnabled(store, true);
+        store.setLoggingEnabled(true);
         store.put("name", "alice".getBytes(StandardCharsets.UTF_8));
         store.get("name");
         logger.close();
@@ -225,7 +231,8 @@ class KVStore2Test {
 
     @Test
     void multipleOperations_allLoggedToWAL() throws Exception {
-        setLoggingEnabled(store, true);
+//        setLoggingEnabled(store, true);
+        store.setLoggingEnabled(true);
         store.put("k1", "v1".getBytes(StandardCharsets.UTF_8));
         store.put("k2", "v2".getBytes(StandardCharsets.UTF_8));
         store.get("k1");
@@ -247,14 +254,16 @@ class KVStore2Test {
 
     @Test
     void snapshotter_createsSnapshotFromWAL() throws Exception {
-        setLoggingEnabled(store, true);
+//        setLoggingEnabled(store, true);
+        store.setLoggingEnabled(true);
+
         // Add some data
         store.put("snapKey1", "snapValue1".getBytes(StandardCharsets.UTF_8));
         store.put("snapKey2", "snapValue2".getBytes(StandardCharsets.UTF_8));
         logger.close();
 
         // Create snapshotter and snapshot
-        KVMapSnapshotter snapshotter = new KVMapSnapshotter(snapshotsFolder);
+//        KVMapSnapshotter snapshotter = new KVMapSnapshotter(snapshotsFolder);
         snapshotter.setMultiThreadingEnabled(false);
 
         Path logFile = logsFolder.resolve("0.log");
@@ -270,14 +279,15 @@ class KVStore2Test {
 
     @Test
     void snapshotter_restoresDataFromSnapshot() throws Exception {
-        setLoggingEnabled(store, true);
+//        setLoggingEnabled(store, true);
+        store.setLoggingEnabled(true);
         // Add some data
         store.put("restoreKey1", "restoreValue1".getBytes(StandardCharsets.UTF_8));
         store.put("restoreKey2", "restoreValue2".getBytes(StandardCharsets.UTF_8));
         logger.close();
 
         // Create snapshot using KVMapSnapshotter
-        KVMapSnapshotter snapshotter = new KVMapSnapshotter(snapshotsFolder);
+//        KVMapSnapshotter snapshotter = new KVMapSnapshotter(snapshotsFolder);
         snapshotter.setMultiThreadingEnabled(false);
         store.setSnapshotter(snapshotter);
 
@@ -287,7 +297,8 @@ class KVStore2Test {
         // Load snapshot
         KVMap restoredMap = snapshotter.loadSnapshot();
 //        KVStore2 restored = createKVStore2(logsFolder, restoredMap);
-        KVStore2 restored = KVStore2.load(logsFolder, snapshotter);
+//        KVStore2 restored = KVStore2.load(logsFolder, snapshotter);
+        KVStore2 restored = new KVStore2.Builder().setLogsFolder(logsFolder).setSnapshotter(snapshotter).build();
 
         // Verify restored data
         assertNotNull(restored.get("restoreKey1"), "restoreKey1 should exist in restored store");
@@ -303,7 +314,8 @@ class KVStore2Test {
 
     @Test
     void snapshotter_roundTrip_preservesData() throws Exception {
-        setLoggingEnabled(store, true);
+//        setLoggingEnabled(store, true);
+        store.setLoggingEnabled(true);
         // Add multiple entries
         for (int i = 0; i < 10; i++) {
             store.put("roundtripKey" + i, ("value" + i).getBytes(StandardCharsets.UTF_8));
@@ -311,7 +323,7 @@ class KVStore2Test {
         logger.close();
 
         // Create snapshot using KVMapSnapshotter
-        KVMapSnapshotter snapshotter = new KVMapSnapshotter(snapshotsFolder);
+//        KVMapSnapshotter snapshotter = new KVMapSnapshotter(snapshotsFolder);
         snapshotter.setMultiThreadingEnabled(false);
 
         store.setSnapshotter(snapshotter);
@@ -322,7 +334,8 @@ class KVStore2Test {
         // Load snapshot
         KVMap restoredMap = snapshotter.loadSnapshot();
 //        KVStore2 restored = createKVStore2(logsFolder, restoredMap);
-        KVStore2 restored = KVStore2.load(logsFolder, snapshotter);
+//        KVStore2 restored = KVStore2.load(logsFolder, snapshotter);
+        KVStore2 restored = new KVStore2.Builder().setLogsFolder(logsFolder).setSnapshotter(snapshotter).build();
 
         // Verify all entries
         for (int i = 0; i < 10; i++) {
@@ -340,14 +353,16 @@ class KVStore2Test {
     @Test
     void snapshotDuringOperations_triggersWhenThresholdReached() throws Exception {
         // Set up snapshotter with custom folder
-        KVMapSnapshotter snapshotter = new KVMapSnapshotter(snapshotsFolder);
+//        KVMapSnapshotter snapshotter = new KVMapSnapshotter(snapshotsFolder);
         snapshotter.setMultiThreadingEnabled(false);
         store.setSnapshotter(snapshotter);
 
         // Enable snapshotting and set logs per snapshot to a small number
         store.setSnapshotEnabled(true);
-        setLogsPerSnapshot(store, 10);
-        setLoggingEnabled(store, true);
+//        setLogsPerSnapshot(store, 10);
+//        setLoggingEnabled(store, true);
+        store.setLogsPerSnapshot(10);
+        store.setLoggingEnabled(true);
 
         // Push more operations than logsPerSnapshot threshold
         int numOperations = 25;
@@ -377,12 +392,13 @@ class KVStore2Test {
     @Test
     void snapshotDuringLoad_triggersWhenThresholdReached() throws Exception {
         // Create store with snapshotting disabled and logsPerSnapshot = 10
+        int logsPerSnapshot = 10;
         store.setSnapshotEnabled(false);
-        store.setLogsPerSnapshot(10);
+        store.setLogsPerSnapshot(logsPerSnapshot);
         store.setLoggingEnabled(true);
 
         // Perform 10 put operations
-        for (int i = 0; i < 10; i++) {
+        for (int i = 0; i < logsPerSnapshot; i++) {
             store.put("key" + i, ("value" + i).getBytes(StandardCharsets.UTF_8));
         }
 
@@ -391,15 +407,20 @@ class KVStore2Test {
         // Use KVMapSnapshotter to snapshot the underlying map
         KVMapSnapshotter snapshotter = new KVMapSnapshotter(snapshotsFolder);
         snapshotter.setMultiThreadingEnabled(false);
-//        KVMap map = getMap(store);
-//        snapshotter.snapshot(map);
 
         // Verify snapshot was created
         File[] snapshotFilesBeforeLoad = snapshotsFolder.toFile().listFiles();
         assertEquals(0, snapshotFilesBeforeLoad.length, "Zero snapshot should exist before load");
 
         // Load the store using the same logsFolder
-        KVStore2 restored = KVStore2.load(logsFolder, snapshotter);
+//        KVStore2 restored = KVStore2.load(logsFolder, snapshotter);
+        System.out.println("Restoring store");
+        KVStore2 restored = new KVStore2.Builder()
+                .setLogsFolder(logsFolder)
+                .setSnapshotter(snapshotter)
+                .setSnapshotEnabled(true)
+                .setLogsPerSnapshot(logsPerSnapshot)
+                .build();
 
         // Check if during load a snapshot was created (should be 1 snapshot file)
         File[] snapshotFilesAfterLoad = snapshotsFolder.toFile().listFiles();
@@ -409,7 +430,7 @@ class KVStore2Test {
         restored.setSnapshotEnabled(false);
         restored.setLoggingEnabled(false);
 
-        for (int i = 0; i < 10; i++) {
+        for (int i = 0; i < logsPerSnapshot; i++) {
             KVMap.Node node = restored.get("key" + i);
             assertNotNull(node, "Key key" + i + " should exist in restored store");
             assertArrayEquals(("value" + i).getBytes(StandardCharsets.UTF_8), node.value);

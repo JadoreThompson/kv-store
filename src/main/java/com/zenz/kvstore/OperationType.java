@@ -20,7 +20,3 @@ public enum OperationType {
     }
 }
 
-//public class OperationType {
-//    public static final String GET = "GET";
-//    public static final String PUT = "PUT";
-//}

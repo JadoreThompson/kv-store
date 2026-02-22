@@ -1,8 +1,5 @@
 package com.zenz.kvstore;
 
-import com.esotericsoftware.kryo.Kryo;
-import com.esotericsoftware.kryo.io.Input;
-import com.esotericsoftware.kryo.io.Output;
 import com.zenz.kvstore.operations.GetOperation;
 import com.zenz.kvstore.operations.Operation;
 import com.zenz.kvstore.operations.PutOperation;
@@ -15,8 +12,7 @@ import java.util.Random;
 public class KVStore2 {
     // Default settings
     private static final Path DEFAULT_LOGS_FOLDER = Path.of("logs");
-    //    public static final int DEFAULT_LOGS_PER_SNAPSHOT = 1_000_000;
-    public static final int DEFAULT_LOGS_PER_SNAPSHOT = 10;
+    public static final int DEFAULT_LOGS_PER_SNAPSHOT = 100_000;
 
     // Durability settings
     private KVMapSnapshotter snapshotter;
@@ -94,9 +90,9 @@ public class KVStore2 {
         snapshotter = builder.snapshotter;
         snapshotEnabled = builder.snapshotEnabled;
         logsFolder = builder.logsFolder;
-        logsPerSnapshot = builder.logsPerSnapshot;
+        logsPerSnapshot = (builder.logsPerSnapshot <= 0) ? DEFAULT_LOGS_PER_SNAPSHOT : builder.logsPerSnapshot;
         loggingEnabled = builder.loggingEnabled;
-        map = builder.map;
+        map = (builder.map == null) ? new KVMap() : builder.map;
         random = new Random();
         configureLogger();
     }
@@ -210,8 +206,9 @@ public class KVStore2 {
 //        return store;
 //    }
 
-    public static KVStore2 load(Builder builder) throws IOException {
+    private static KVStore2 load(Builder builder) throws IOException {
         KVMapSnapshotter snapshotter = (builder.snapshotter != null) ? builder.snapshotter : new KVMapSnapshotter();
+//        KVMapSnapshotter snapshotter = (builder.snapshotter != null) ? builder.snapshotter : getSnapshotterTmp();
         KVMap map = snapshotter.loadSnapshot();
 
         if (map != null) {
@@ -256,6 +253,7 @@ public class KVStore2 {
     }
 
     private static void restoreState(KVStore2 store, KVMapSnapshotter snapshotter) throws IOException {
+        System.out.println("Commencing restoration process");
         Path snapshotFolderPath = snapshotter.getFolderPath();
 
         File[] files = snapshotFolderPath.toFile().listFiles();
@@ -425,28 +423,34 @@ public class KVStore2 {
             map = null;
         }
 
-        public void setSnapshotter(KVMapSnapshotter snapshotter) {
+        public Builder setSnapshotter(KVMapSnapshotter snapshotter) {
             this.snapshotter = snapshotter;
+            return this;
         }
 
-        public void setSnapshotEnabled(boolean snapshotEnabled) {
+        public Builder setSnapshotEnabled(boolean snapshotEnabled) {
             this.snapshotEnabled = snapshotEnabled;
+            return this;
         }
 
-        public void setLogsFolder(Path logsFolder) {
+        public Builder setLogsFolder(Path logsFolder) {
             this.logsFolder = logsFolder;
+            return this;
         }
 
-        public void setLoggingEnabled(boolean loggingEnabled) {
+        public Builder setLoggingEnabled(boolean loggingEnabled) {
             this.loggingEnabled = loggingEnabled;
+            return this;
         }
 
-        public void setLogsPerSnapshot(int logsPerSnapshot) {
+        public Builder setLogsPerSnapshot(int logsPerSnapshot) {
             this.logsPerSnapshot = logsPerSnapshot;
+            return this;
         }
 
-        public void setMap(KVMap map) {
+        public Builder setMap(KVMap map) {
             this.map = map;
+            return this;
         }
 
         public KVStore2 build() throws IOException {
