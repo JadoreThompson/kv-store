@@ -1,7 +1,7 @@
 package main.java.com.zenz.kvstore;
 
 import com.zenz.kvstore.KVMap;
-import com.zenz.kvstore.KVStore2;
+import com.zenz.kvstore.KVStore;
 import com.zenz.kvstore.KVMapSnapshotter;
 import com.zenz.kvstore.WALogger;
 import org.junit.jupiter.api.AfterEach;
@@ -10,7 +10,6 @@ import org.junit.jupiter.api.Test;
 
 import java.io.File;
 import java.io.IOException;
-import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
@@ -19,11 +18,11 @@ import java.nio.file.Path;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-class KVStore2Test {
+class KVStoreTest {
     private Path logsFolder;
     private Path snapshotsFolder;
 
-    private KVStore2 store;
+    private KVStore store;
     private KVMapSnapshotter snapshotter;
     private WALogger logger;
 
@@ -32,7 +31,7 @@ class KVStore2Test {
         logsFolder = Files.createTempDirectory("tmp-logs-");
         snapshotsFolder = Files.createTempDirectory("tmp-snapshots-");
         snapshotter = new KVMapSnapshotter(snapshotsFolder);
-        store = new KVStore2.Builder().setLogsFolder(logsFolder).setSnapshotter(snapshotter).build();
+        store = new KVStore.Builder().setLogsFolder(logsFolder).setSnapshotter(snapshotter).build();
         logger = getLogger(store);
     }
 
@@ -62,14 +61,14 @@ class KVStore2Test {
 
     // --- Reflection helpers for private constructor and fields ---
 
-    private WALogger getLogger(KVStore2 store) throws Exception {
-        Field loggerField = KVStore2.class.getDeclaredField("logger");
+    private WALogger getLogger(KVStore store) throws Exception {
+        Field loggerField = KVStore.class.getDeclaredField("logger");
         loggerField.setAccessible(true);
         return (WALogger) loggerField.get(store);
     }
 
-    private KVMap getMap(KVStore2 store) throws Exception {
-        Field mapField = KVStore2.class.getDeclaredField("map");
+    private KVMap getMap(KVStore store) throws Exception {
+        Field mapField = KVStore.class.getDeclaredField("map");
         mapField.setAccessible(true);
         return (KVMap) mapField.get(store);
     }
@@ -262,7 +261,7 @@ class KVStore2Test {
         snapshotter.snapshot(map);
 
         // Load snapshot
-        KVStore2 restored = new KVStore2.Builder().setLogsFolder(logsFolder).setSnapshotter(snapshotter).build();
+        KVStore restored = new KVStore.Builder().setLogsFolder(logsFolder).setSnapshotter(snapshotter).build();
 
         // Verify restored data
         assertNotNull(restored.get("restoreKey1"), "restoreKey1 should exist in restored store");
@@ -293,7 +292,7 @@ class KVStore2Test {
         snapshotter.snapshot(map);
 
         // Load snapshot
-        KVStore2 restored = new KVStore2.Builder().setLogsFolder(logsFolder).setSnapshotter(snapshotter).build();
+        KVStore restored = new KVStore.Builder().setLogsFolder(logsFolder).setSnapshotter(snapshotter).build();
 
         // Verify all entries
         for (int i = 0; i < 10; i++) {
@@ -367,7 +366,7 @@ class KVStore2Test {
         assertEquals(0, snapshotFilesBeforeLoad.length, "Zero snapshot should exist before load");
 
         // Load the store using the same logsFolder
-        KVStore2 restored = new KVStore2.Builder()
+        KVStore restored = new KVStore.Builder()
                 .setLogsFolder(logsFolder)
                 .setSnapshotter(snapshotter)
                 .setSnapshotEnabled(true)

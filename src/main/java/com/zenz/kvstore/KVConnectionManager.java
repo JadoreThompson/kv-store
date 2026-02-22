@@ -23,14 +23,14 @@ public class KVConnectionManager {
     private ServerSocketChannel serverChannel;
     private volatile boolean running = true;
 
-    private final KVStore2 store;
+    private final KVStore store;
     private final String host;
     private final int port;
 
     // Track pending writes per channel
     private final Map<SocketChannel, Queue<ByteBuffer>> pendingWrites = new HashMap<>();
 
-    public KVConnectionManager(String host, int port, KVStore2 store) {
+    public KVConnectionManager(String host, int port, KVStore store) {
         this.store = store;
         this.host = host;
         this.port = port;
@@ -304,7 +304,7 @@ public class KVConnectionManager {
         }
     }
 
-    public KVStore2 getStore() {
+    public KVStore getStore() {
         return store;
     }
 

@@ -9,7 +9,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Random;
 
-public class KVStore2 {
+public class KVStore {
     // Default settings
     private static final Path DEFAULT_LOGS_FOLDER = Path.of("logs");
     public static final int DEFAULT_LOGS_PER_SNAPSHOT = 100_000;
@@ -26,7 +26,7 @@ public class KVStore2 {
     private final KVMap map;
     private final Random random;
 
-    private KVStore2(Builder builder) throws IOException {
+    private KVStore(Builder builder) throws IOException {
         snapshotter = builder.snapshotter;
         snapshotEnabled = builder.snapshotEnabled;
         logsFolder = (builder.logsFolder == null) ? DEFAULT_LOGS_FOLDER : builder.logsFolder;
@@ -37,7 +37,7 @@ public class KVStore2 {
         configureLogger();
     }
 
-    private static KVStore2 load(Builder builder) throws IOException {
+    private static KVStore load(Builder builder) throws IOException {
         KVMapSnapshotter snapshotter = (builder.snapshotter != null) ? builder.snapshotter : new KVMapSnapshotter();
         KVMap map = snapshotter.loadSnapshot();
 
@@ -45,14 +45,14 @@ public class KVStore2 {
             builder.setMap(map);
         }
 
-        KVStore2 store = new KVStore2(builder);
+        KVStore store = new KVStore(builder);
         store.setLoggingEnabled(false);
         restoreState(store, snapshotter);
         store.setLoggingEnabled(true);
         return store;
     }
 
-    private static void restoreState(KVStore2 store, KVMapSnapshotter snapshotter) throws IOException {
+    private static void restoreState(KVStore store, KVMapSnapshotter snapshotter) throws IOException {
         Path snapshotFolderPath = snapshotter.getFolderPath();
 
         File[] files = snapshotFolderPath.toFile().listFiles();
@@ -79,7 +79,7 @@ public class KVStore2 {
         }
     }
 
-    private static int applyLogs(File file, KVStore2 store) throws IOException {
+    private static int applyLogs(File file, KVStore store) throws IOException {
         String contents = Files.readString(file.toPath());
         if (contents.length() == 0) return 0;
 
@@ -251,7 +251,7 @@ public class KVStore2 {
             return this;
         }
 
-        public KVStore2 build() throws IOException {
+        public KVStore build() throws IOException {
             return load(this);
         }
     }
