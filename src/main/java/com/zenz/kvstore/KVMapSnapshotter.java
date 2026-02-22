@@ -58,16 +58,6 @@ public class KVMapSnapshotter {
      * Creates a snapshot of the map
      */
     public void snapshot(KVMap map) throws IOException {
-//        Kryo kryo = new Kryo();
-//
-//        kryo.register(KVMap.class);
-//        kryo.register(KVArray.class);
-//        kryo.register(KVMap.NodeList[].class);
-//        kryo.register(KVMap.NodeList.class);
-//        kryo.register(KVMap.Node.class);
-//        kryo.register(String.class);
-//        kryo.register(byte[].class);
-
         Kryo kryo = getKryo();
 
         Path fpath = Files.createTempFile("tmp-snapshot-", ".snapshot");

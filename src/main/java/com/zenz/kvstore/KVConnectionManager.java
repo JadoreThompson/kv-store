@@ -30,14 +30,6 @@ public class KVConnectionManager {
     // Track pending writes per channel
     private final Map<SocketChannel, Queue<ByteBuffer>> pendingWrites = new HashMap<>();
 
-    public KVConnectionManager(String host, int port) throws IOException {
-//        this.store = new KVStore(false);  // Snapshots disabled for network server
-        this.store = KVStore2.load();  // Snapshots disabled for network server
-        this.host = host;
-        this.port = port;
-    }
-
-    //    public KVConnectionManager(String host, int port, KVStore store) {
     public KVConnectionManager(String host, int port, KVStore2 store) {
         this.store = store;
         this.host = host;

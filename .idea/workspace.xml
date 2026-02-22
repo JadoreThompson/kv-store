@@ -4,9 +4,13 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="113ca11e-a295-4741-aad7-90962967a262" name="Changes" comment="Modified KVStore2.Builder to return self&#10;for each method; Updated KVStore2Test">
+    <list default="true" id="113ca11e-a295-4741-aad7-90962967a262" name="Changes" comment="Updated KVConnectionManagerTest">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/test/java/main/java/com/zenz/kvstore/KVConnectionManagerTest.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/test/java/main/java/com/zenz/kvstore/KVConnectionManagerTest.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/zenz/kvstore/KVConnectionManager.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/zenz/kvstore/KVConnectionManager.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/zenz/kvstore/KVMapSnapshotter.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/zenz/kvstore/KVMapSnapshotter.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/zenz/kvstore/KVStore2.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/zenz/kvstore/KVStore2.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/zenz/kvstore/Main.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/zenz/kvstore/Main.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/test/java/main/java/com/zenz/kvstore/KVStore2Test.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/test/java/main/java/com/zenz/kvstore/KVStore2Test.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -157,7 +161,7 @@
       <workItem from="1771596985810" duration="2698000" />
       <workItem from="1771676280362" duration="25473000" />
       <workItem from="1771752462930" duration="562000" />
-      <workItem from="1771753155052" duration="5407000" />
+      <workItem from="1771753155052" duration="6164000" />
     </task>
     <task id="LOCAL-00001" summary="Added content length check in KVMapSnapshotter.applyLogs">
       <option name="closed" value="true" />
@@ -191,7 +195,15 @@
       <option name="project" value="LOCAL" />
       <updated>1771758481818</updated>
     </task>
-    <option name="localTasksCounter" value="5" />
+    <task id="LOCAL-00005" summary="Updated KVConnectionManagerTest">
+      <option name="closed" value="true" />
+      <created>1771758640629</created>
+      <option name="number" value="00005" />
+      <option name="presentableId" value="LOCAL-00005" />
+      <option name="project" value="LOCAL" />
+      <updated>1771758640629</updated>
+    </task>
+    <option name="localTasksCounter" value="6" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -213,6 +225,7 @@
     <MESSAGE value="Disabled snapshotting in KVConnectionManagerTest" />
     <MESSAGE value="Added builder class to KVStore2" />
     <MESSAGE value="Modified KVStore2.Builder to return self&#10;for each method; Updated KVStore2Test" />
-    <option name="LAST_COMMIT_MESSAGE" value="Modified KVStore2.Builder to return self&#10;for each method; Updated KVStore2Test" />
+    <MESSAGE value="Updated KVConnectionManagerTest" />
+    <option name="LAST_COMMIT_MESSAGE" value="Updated KVConnectionManagerTest" />
   </component>
 </project>

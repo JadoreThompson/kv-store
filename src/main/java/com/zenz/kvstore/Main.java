@@ -46,7 +46,8 @@ public class Main {
         }
 
         System.out.println("Starting KV Connection Manager on " + host + ":" + port);
-        KVConnectionManager connManager = new KVConnectionManager(host, port);
+        KVStore2 store = new KVStore2.Builder().build();
+        KVConnectionManager connManager = new KVConnectionManager(host, port, store);
         connManager.start();
     }
 

@@ -31,7 +31,6 @@ class KVStore2Test {
     void setUp() throws Exception {
         logsFolder = Files.createTempDirectory("tmp-logs-");
         snapshotsFolder = Files.createTempDirectory("tmp-snapshots-");
-//        store = createKVStore2(logsFolder);
         snapshotter = new KVMapSnapshotter(snapshotsFolder);
         store = new KVStore2.Builder().setLogsFolder(logsFolder).setSnapshotter(snapshotter).build();
         logger = getLogger(store);
@@ -63,41 +62,16 @@ class KVStore2Test {
 
     // --- Reflection helpers for private constructor and fields ---
 
-    private KVStore2 createKVStore2(Path logsFolder) throws Exception {
-        Constructor<KVStore2> constructor = KVStore2.class.getDeclaredConstructor(Path.class, KVMap.class);
-        constructor.setAccessible(true);
-        return constructor.newInstance(logsFolder, new KVMap());
-    }
-
-    private KVStore2 createKVStore2(Path logsFolder, KVMap map) throws Exception {
-        Constructor<KVStore2> constructor = KVStore2.class.getDeclaredConstructor(Path.class, KVMap.class);
-        constructor.setAccessible(true);
-        return constructor.newInstance(logsFolder, map);
-//        return new KVStore2(map);
-    }
-
     private WALogger getLogger(KVStore2 store) throws Exception {
         Field loggerField = KVStore2.class.getDeclaredField("logger");
         loggerField.setAccessible(true);
         return (WALogger) loggerField.get(store);
     }
 
-    private void setLoggingEnabled(KVStore2 store, boolean enabled) throws Exception {
-        Field loggingEnabledField = KVStore2.class.getDeclaredField("loggingEnabled");
-        loggingEnabledField.setAccessible(true);
-        loggingEnabledField.set(store, enabled);
-    }
-
     private KVMap getMap(KVStore2 store) throws Exception {
         Field mapField = KVStore2.class.getDeclaredField("map");
         mapField.setAccessible(true);
         return (KVMap) mapField.get(store);
-    }
-
-    private void setLogsPerSnapshot(KVStore2 store, int value) throws Exception {
-        Field logsPerSnapshotField = KVStore2.class.getDeclaredField("logsPerSnapshot");
-        logsPerSnapshotField.setAccessible(true);
-        logsPerSnapshotField.set(store, value);
     }
 
     // --- put / get ---
@@ -185,7 +159,6 @@ class KVStore2Test {
 
     @Test
     void put_logsOperationToWAL() throws Exception {
-//        setLoggingEnabled(store, true);
         store.setLoggingEnabled(true);
         store.put("walKey", "walValue".getBytes(StandardCharsets.UTF_8));
         logger.close();
@@ -199,7 +172,6 @@ class KVStore2Test {
 
     @Test
     void get_logsOperationToWAL() throws Exception {
-//        setLoggingEnabled(store, true);
         store.setLoggingEnabled(true);
         store.put("walKey", "walValue".getBytes(StandardCharsets.UTF_8));
         store.get("walKey");
@@ -214,7 +186,6 @@ class KVStore2Test {
 
     @Test
     void put_andGet_bothLoggedToWAL() throws Exception {
-//        setLoggingEnabled(store, true);
         store.setLoggingEnabled(true);
         store.put("name", "alice".getBytes(StandardCharsets.UTF_8));
         store.get("name");
@@ -231,7 +202,6 @@ class KVStore2Test {
 
     @Test
     void multipleOperations_allLoggedToWAL() throws Exception {
-//        setLoggingEnabled(store, true);
         store.setLoggingEnabled(true);
         store.put("k1", "v1".getBytes(StandardCharsets.UTF_8));
         store.put("k2", "v2".getBytes(StandardCharsets.UTF_8));
@@ -254,7 +224,6 @@ class KVStore2Test {
 
     @Test
     void snapshotter_createsSnapshotFromWAL() throws Exception {
-//        setLoggingEnabled(store, true);
         store.setLoggingEnabled(true);
 
         // Add some data
@@ -263,7 +232,6 @@ class KVStore2Test {
         logger.close();
 
         // Create snapshotter and snapshot
-//        KVMapSnapshotter snapshotter = new KVMapSnapshotter(snapshotsFolder);
         snapshotter.setMultiThreadingEnabled(false);
 
         Path logFile = logsFolder.resolve("0.log");
@@ -279,15 +247,14 @@ class KVStore2Test {
 
     @Test
     void snapshotter_restoresDataFromSnapshot() throws Exception {
-//        setLoggingEnabled(store, true);
         store.setLoggingEnabled(true);
+
         // Add some data
         store.put("restoreKey1", "restoreValue1".getBytes(StandardCharsets.UTF_8));
         store.put("restoreKey2", "restoreValue2".getBytes(StandardCharsets.UTF_8));
         logger.close();
 
         // Create snapshot using KVMapSnapshotter
-//        KVMapSnapshotter snapshotter = new KVMapSnapshotter(snapshotsFolder);
         snapshotter.setMultiThreadingEnabled(false);
         store.setSnapshotter(snapshotter);
 
@@ -295,9 +262,6 @@ class KVStore2Test {
         snapshotter.snapshot(map);
 
         // Load snapshot
-        KVMap restoredMap = snapshotter.loadSnapshot();
-//        KVStore2 restored = createKVStore2(logsFolder, restoredMap);
-//        KVStore2 restored = KVStore2.load(logsFolder, snapshotter);
         KVStore2 restored = new KVStore2.Builder().setLogsFolder(logsFolder).setSnapshotter(snapshotter).build();
 
         // Verify restored data
@@ -314,8 +278,8 @@ class KVStore2Test {
 
     @Test
     void snapshotter_roundTrip_preservesData() throws Exception {
-//        setLoggingEnabled(store, true);
         store.setLoggingEnabled(true);
+
         // Add multiple entries
         for (int i = 0; i < 10; i++) {
             store.put("roundtripKey" + i, ("value" + i).getBytes(StandardCharsets.UTF_8));
@@ -323,18 +287,12 @@ class KVStore2Test {
         logger.close();
 
         // Create snapshot using KVMapSnapshotter
-//        KVMapSnapshotter snapshotter = new KVMapSnapshotter(snapshotsFolder);
         snapshotter.setMultiThreadingEnabled(false);
-
         store.setSnapshotter(snapshotter);
-
         KVMap map = getMap(store);
         snapshotter.snapshot(map);
 
         // Load snapshot
-        KVMap restoredMap = snapshotter.loadSnapshot();
-//        KVStore2 restored = createKVStore2(logsFolder, restoredMap);
-//        KVStore2 restored = KVStore2.load(logsFolder, snapshotter);
         KVStore2 restored = new KVStore2.Builder().setLogsFolder(logsFolder).setSnapshotter(snapshotter).build();
 
         // Verify all entries
@@ -352,15 +310,11 @@ class KVStore2Test {
 
     @Test
     void snapshotDuringOperations_triggersWhenThresholdReached() throws Exception {
-        // Set up snapshotter with custom folder
-//        KVMapSnapshotter snapshotter = new KVMapSnapshotter(snapshotsFolder);
         snapshotter.setMultiThreadingEnabled(false);
         store.setSnapshotter(snapshotter);
 
         // Enable snapshotting and set logs per snapshot to a small number
         store.setSnapshotEnabled(true);
-//        setLogsPerSnapshot(store, 10);
-//        setLoggingEnabled(store, true);
         store.setLogsPerSnapshot(10);
         store.setLoggingEnabled(true);
 
@@ -413,8 +367,6 @@ class KVStore2Test {
         assertEquals(0, snapshotFilesBeforeLoad.length, "Zero snapshot should exist before load");
 
         // Load the store using the same logsFolder
-//        KVStore2 restored = KVStore2.load(logsFolder, snapshotter);
-        System.out.println("Restoring store");
         KVStore2 restored = new KVStore2.Builder()
                 .setLogsFolder(logsFolder)
                 .setSnapshotter(snapshotter)

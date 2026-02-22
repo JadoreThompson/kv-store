@@ -26,70 +26,10 @@ public class KVStore2 {
     private final KVMap map;
     private final Random random;
 
-
-    private KVStore2() throws IOException {
-        logsFolder = DEFAULT_LOGS_FOLDER;
-        snapshotter = new KVMapSnapshotter();
-        snapshotEnabled = false;
-        logCount = 0;
-        map = new KVMap();
-        random = new Random();
-        logsPerSnapshot = DEFAULT_LOGS_PER_SNAPSHOT;
-        loggingEnabled = true;
-        configureLogger();
-    }
-
-//
-//    private KVStore2(Path logsFolder) throws IOException {
-//        this.logsFolder = logsFolder;
-//        snapshotter = new KVMapSnapshotter();
-//        snapshotEnabled = false;
-//        logCount = 0;
-//        map = new KVMap();
-//        random = new Random();
-//        configureLogger();
-//    }
-
-    private KVStore2(KVMap map) throws IOException {
-        logsFolder = DEFAULT_LOGS_FOLDER;
-        snapshotter = new KVMapSnapshotter();
-        snapshotEnabled = true;
-        logCount = 0;
-        this.map = map;
-        random = new Random();
-        logsPerSnapshot = DEFAULT_LOGS_PER_SNAPSHOT;
-        loggingEnabled = true;
-
-        configureLogger();
-    }
-
-    private KVStore2(Path logsFolder) throws IOException {
-        this.logsFolder = logsFolder;
-        snapshotter = new KVMapSnapshotter();
-        snapshotEnabled = true;
-        logCount = 0;
-        map = new KVMap();
-        random = new Random();
-        logsPerSnapshot = DEFAULT_LOGS_PER_SNAPSHOT;
-        loggingEnabled = true;
-        configureLogger();
-    }
-
-    private KVStore2(Path logsFolder, KVMap map) throws IOException {
-        this.logsFolder = logsFolder;
-        snapshotter = new KVMapSnapshotter();
-        snapshotEnabled = true;
-        logCount = 0;
-        this.map = map;
-        random = new Random();
-        logsPerSnapshot = DEFAULT_LOGS_PER_SNAPSHOT;
-        configureLogger();
-    }
-
     private KVStore2(Builder builder) throws IOException {
         snapshotter = builder.snapshotter;
         snapshotEnabled = builder.snapshotEnabled;
-        logsFolder = builder.logsFolder;
+        logsFolder = (builder.logsFolder == null) ? DEFAULT_LOGS_FOLDER : builder.logsFolder;
         logsPerSnapshot = (builder.logsPerSnapshot <= 0) ? DEFAULT_LOGS_PER_SNAPSHOT : builder.logsPerSnapshot;
         loggingEnabled = builder.loggingEnabled;
         map = (builder.map == null) ? new KVMap() : builder.map;
@@ -97,118 +37,8 @@ public class KVStore2 {
         configureLogger();
     }
 
-//    public KVStore2 load(Path logsFolderPath) throws IOException {
-//        KVMap map = snapshotter.loadSnapshot();
-//        Path snapshotFolderPath = snapshotter.getFolderPath();
-//
-//        File[] files = snapshotFolderPath.toFile().listFiles();
-//        if (files == null || files.length == 0) return new KVStore2();
-//
-//        Path recentSnapshotFpath = null;
-//        for (File f : files) {
-//            recentSnapshotFpath = f.toPath();
-//        }
-//
-//
-//        // Applying each batch of logs. If a log needs snapshotting
-//        // the store will trigger the snapshot
-//        KVStore2 store = new KVStore2(map);
-//
-//        files = logsFolderPath.toFile().listFiles();
-//        String recentSnapshotFname = recentSnapshotFpath.toFile().getName();
-//        boolean reached = false;
-//
-//        for (File file : files) {
-//            if (!reached) {
-//                if (file.getName().equals(recentSnapshotFname)) {
-//                    reached = true;
-//                }
-//            } else {
-//                applyLogs(file, store);
-//            }
-//        }
-//
-//        return store;
-//    }
-
-//    public KVStore2 load() throws IOException {
-//        KVStore2 store = new KVStore2();
-//        handleLoadStore(store);
-//        return store;
-//    }
-
-    public static KVStore2 load() throws IOException {
-        KVMapSnapshotter snapshotter = new KVMapSnapshotter();
-        KVMap map = snapshotter.loadSnapshot();
-
-        KVStore2 store;
-        if (map != null) {
-            store = new KVStore2(map);
-        } else {
-            store = new KVStore2();
-        }
-
-        store.setLoggingEnabled(false);
-        restoreState(store, snapshotter);
-        return store;
-    }
-
-//    public KVStore2 load(Path logsFolder) throws IOException {
-//        KVStore2 store = new KVStore2(logsFolder);
-//        handleLoadStore(store);
-//        return store;
-//    }
-
-    public static KVStore2 load(Path logsFolder) throws IOException {
-        KVMapSnapshotter snapshotter = new KVMapSnapshotter();
-        KVMap map = snapshotter.loadSnapshot();
-
-        KVStore2 store;
-        if (map != null) {
-            store = new KVStore2(logsFolder, map);
-        } else {
-            store = new KVStore2(logsFolder);
-        }
-
-        store.setLoggingEnabled(false);
-        restoreState(store, snapshotter);
-        return store;
-    }
-
-    public static KVStore2 load(Path logsFolder, KVMapSnapshotter snapshotter) throws IOException {
-        KVMap map = snapshotter.loadSnapshot();
-
-        KVStore2 store;
-        if (map != null) {
-            store = new KVStore2(logsFolder, map);
-        } else {
-            store = new KVStore2(logsFolder);
-        }
-
-        store.setSnapshotter(snapshotter);
-        store.setLoggingEnabled(false);
-        restoreState(store, snapshotter);
-        store.setLoggingEnabled(true);
-        return store;
-    }
-
-//    public static KVStore2 load(String logsFolder) throws IOException {}
-
-//    public KVStore2 load(KVMap map) throws IOException {
-//        KVStore2 store = new KVStore2(map);
-//        handleLoadStore(store);
-//        return store;
-//    }
-//
-//    public KVStore2 load(Path logsFolder, KVMap map) throws IOException {
-//        KVStore2 store = new KVStore2(logsFolder, map);
-//        handleLoadStore(store);
-//        return store;
-//    }
-
     private static KVStore2 load(Builder builder) throws IOException {
         KVMapSnapshotter snapshotter = (builder.snapshotter != null) ? builder.snapshotter : new KVMapSnapshotter();
-//        KVMapSnapshotter snapshotter = (builder.snapshotter != null) ? builder.snapshotter : getSnapshotterTmp();
         KVMap map = snapshotter.loadSnapshot();
 
         if (map != null) {
@@ -222,38 +52,7 @@ public class KVStore2 {
         return store;
     }
 
-    private void handleLoadStore(KVStore2 store) throws IOException {
-        KVMap map = snapshotter.loadSnapshot();
-        Path snapshotFolderPath = snapshotter.getFolderPath();
-
-        File[] files = snapshotFolderPath.toFile().listFiles();
-        if (files == null || files.length == 0) return;
-
-        Path recentSnapshotFpath = null;
-        for (File f : files) {
-            recentSnapshotFpath = f.toPath();
-        }
-
-
-        // Applying each batch of logs. If a log needs snapshotting
-        // the store will trigger the snapshot
-        files = store.getLogsFolder().toFile().listFiles();
-        String recentSnapshotFname = recentSnapshotFpath.toFile().getName();
-        boolean reached = false;
-
-        for (File file : files) {
-            if (!reached) {
-                if (file.getName().equals(recentSnapshotFname)) {
-                    reached = true;
-                }
-            } else {
-                applyLogs(file, store);
-            }
-        }
-    }
-
     private static void restoreState(KVStore2 store, KVMapSnapshotter snapshotter) throws IOException {
-        System.out.println("Commencing restoration process");
         Path snapshotFolderPath = snapshotter.getFolderPath();
 
         File[] files = snapshotFolderPath.toFile().listFiles();
@@ -358,7 +157,6 @@ public class KVStore2 {
                 File[] logFiles = logsFolder.toFile().listFiles();
                 long numFiles = logFiles.length;
                 Path fpath = Path.of(numFiles + ".log");
-//                Path fpath = logsFolder.resolve(numFiles + ".log");
                 File file = fpath.toFile();
                 if (!file.exists()) file.createNewFile();
                 logger = new WALogger(fpath.toString());
@@ -454,7 +252,6 @@ public class KVStore2 {
         }
 
         public KVStore2 build() throws IOException {
-//            return new KVStore2(this);
             return load(this);
         }
     }
