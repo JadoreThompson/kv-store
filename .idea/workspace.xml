@@ -4,113 +4,10 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="113ca11e-a295-4741-aad7-90962967a262" name="Changes" comment="">
+    <list default="true" id="113ca11e-a295-4741-aad7-90962967a262" name="Changes" comment="Added content length check in KVMapSnapshotter.applyLogs">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/snapshots/0.snapshot" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/snapshots/1.snapshot" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/snapshots/10.snapshot" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/snapshots/100.snapshot" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/snapshots/11.snapshot" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/snapshots/12.snapshot" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/snapshots/13.snapshot" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/snapshots/14.snapshot" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/snapshots/15.snapshot" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/snapshots/16.snapshot" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/snapshots/17.snapshot" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/snapshots/18.snapshot" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/snapshots/19.snapshot" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/snapshots/2.snapshot" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/snapshots/20.snapshot" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/snapshots/21.snapshot" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/snapshots/22.snapshot" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/snapshots/23.snapshot" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/snapshots/24.snapshot" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/snapshots/25.snapshot" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/snapshots/26.snapshot" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/snapshots/27.snapshot" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/snapshots/28.snapshot" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/snapshots/29.snapshot" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/snapshots/3.snapshot" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/snapshots/30.snapshot" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/snapshots/31.snapshot" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/snapshots/32.snapshot" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/snapshots/33.snapshot" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/snapshots/34.snapshot" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/snapshots/35.snapshot" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/snapshots/36.snapshot" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/snapshots/37.snapshot" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/snapshots/38.snapshot" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/snapshots/39.snapshot" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/snapshots/4.snapshot" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/snapshots/40.snapshot" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/snapshots/41.snapshot" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/snapshots/42.snapshot" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/snapshots/43.snapshot" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/snapshots/44.snapshot" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/snapshots/45.snapshot" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/snapshots/46.snapshot" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/snapshots/47.snapshot" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/snapshots/48.snapshot" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/snapshots/49.snapshot" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/snapshots/5.snapshot" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/snapshots/50.snapshot" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/snapshots/51.snapshot" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/snapshots/52.snapshot" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/snapshots/53.snapshot" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/snapshots/54.snapshot" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/snapshots/55.snapshot" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/snapshots/56.snapshot" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/snapshots/57.snapshot" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/snapshots/58.snapshot" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/snapshots/59.snapshot" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/snapshots/6.snapshot" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/snapshots/60.snapshot" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/snapshots/61.snapshot" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/snapshots/62.snapshot" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/snapshots/63.snapshot" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/snapshots/64.snapshot" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/snapshots/65.snapshot" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/snapshots/66.snapshot" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/snapshots/67.snapshot" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/snapshots/68.snapshot" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/snapshots/69.snapshot" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/snapshots/7.snapshot" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/snapshots/70.snapshot" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/snapshots/71.snapshot" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/snapshots/72.snapshot" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/snapshots/73.snapshot" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/snapshots/74.snapshot" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/snapshots/75.snapshot" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/snapshots/76.snapshot" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/snapshots/77.snapshot" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/snapshots/78.snapshot" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/snapshots/79.snapshot" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/snapshots/8.snapshot" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/snapshots/80.snapshot" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/snapshots/81.snapshot" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/snapshots/82.snapshot" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/snapshots/83.snapshot" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/snapshots/84.snapshot" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/snapshots/85.snapshot" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/snapshots/86.snapshot" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/snapshots/87.snapshot" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/snapshots/88.snapshot" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/snapshots/89.snapshot" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/snapshots/9.snapshot" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/snapshots/90.snapshot" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/snapshots/91.snapshot" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/snapshots/92.snapshot" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/snapshots/93.snapshot" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/snapshots/94.snapshot" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/snapshots/95.snapshot" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/snapshots/96.snapshot" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/snapshots/97.snapshot" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/snapshots/98.snapshot" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/snapshots/99.snapshot" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/com/zenz/kvstore/KVMapSnapshotter.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/zenz/kvstore/KVMapSnapshotter.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/com/zenz/kvstore/KVStore2.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/zenz/kvstore/KVStore2.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/com/zenz/kvstore/Main.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/zenz/kvstore/Main.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/com/zenz/kvstore/operations/Operation.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/zenz/kvstore/operations/Operation.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/test/java/main/java/com/zenz/kvstore/KVConnectionManagerTest.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/test/java/main/java/com/zenz/kvstore/KVConnectionManagerTest.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -236,8 +133,8 @@
   <component name="SharedIndexes">
     <attachedChunks>
       <set>
-        <option value="bundled-jdk-30f59d01ecdd-2fc7cc6b9a17-intellij.indexing.shared.core-IU-253.30387.90" />
-        <option value="bundled-js-predefined-d6986cc7102b-9b0f141eb926-JavaScript-IU-253.30387.90" />
+        <option value="bundled-jdk-30f59d01ecdd-2fc7cc6b9a17-intellij.indexing.shared.core-IU-253.31033.145" />
+        <option value="bundled-js-predefined-d6986cc7102b-9b0f141eb926-JavaScript-IU-253.31033.145" />
       </set>
     </attachedChunks>
   </component>
@@ -259,8 +156,19 @@
       <workItem from="1771595680701" duration="34000" />
       <workItem from="1771596336989" duration="140000" />
       <workItem from="1771596985810" duration="2698000" />
-      <workItem from="1771676280362" duration="25320000" />
+      <workItem from="1771676280362" duration="25473000" />
+      <workItem from="1771752462930" duration="562000" />
+      <workItem from="1771753155052" duration="1656000" />
     </task>
+    <task id="LOCAL-00001" summary="Added content length check in KVMapSnapshotter.applyLogs">
+      <option name="closed" value="true" />
+      <created>1771705393595</created>
+      <option name="number" value="00001" />
+      <option name="presentableId" value="LOCAL-00001" />
+      <option name="project" value="LOCAL" />
+      <updated>1771705393595</updated>
+    </task>
+    <option name="localTasksCounter" value="2" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -276,5 +184,9 @@
         </entry>
       </map>
     </option>
+  </component>
+  <component name="VcsManagerConfiguration">
+    <MESSAGE value="Added content length check in KVMapSnapshotter.applyLogs" />
+    <option name="LAST_COMMIT_MESSAGE" value="Added content length check in KVMapSnapshotter.applyLogs" />
   </component>
 </project>
