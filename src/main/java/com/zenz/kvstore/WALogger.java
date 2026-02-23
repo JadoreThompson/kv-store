@@ -55,6 +55,15 @@ public class WALogger {
         }
 
         channel.write(ByteBuffer.wrap("\n".getBytes(StandardCharsets.UTF_8)));
+
+//        ByteBuffer buffer = ByteBuffer.wrap(src.array());
+//        buffer.put("\n".getBytes(StandardCharsets.UTF_8));
+//
+//        buffer.flip();
+//        while (buffer.hasRemaining()) {
+//            channel.write(buffer);
+//        }
+
         channel.force(true);
     }
 

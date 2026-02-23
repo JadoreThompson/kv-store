@@ -31,7 +31,12 @@ class KVConnectionManagerTest {
         Path snapshotFolderPath = tempDir.resolve("snapshots");
 
         KVMapSnapshotter snapshotter = new KVMapSnapshotter(snapshotFolderPath);
-        KVStore store = new KVStore.Builder()
+//        KVStore store = new KVStore.Builder()
+//                .setLogsFolder(logsFolderPath)
+//                .setSnapshotter(snapshotter)
+//                .setSnapshotEnabled(false)
+//                .build();
+        KVRaftStore store = new KVRaftStore.Builder()
                 .setLogsFolder(logsFolderPath)
                 .setSnapshotter(snapshotter)
                 .setSnapshotEnabled(false)

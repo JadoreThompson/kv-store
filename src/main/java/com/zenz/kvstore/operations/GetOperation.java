@@ -18,10 +18,12 @@ public record GetOperation(int id, String key) implements Operation {
         // id(4) + type(4) + keyLength(4) + key
         int totalSize = 4 + 4 + 4 + keyBytes.length;
         ByteBuffer buffer = ByteBuffer.allocate(totalSize);
+
         buffer.putInt(id);
         buffer.putInt(type().getValue());
         buffer.putInt(keyBytes.length);
         buffer.put(keyBytes);
+
         return buffer.array();
     }
 

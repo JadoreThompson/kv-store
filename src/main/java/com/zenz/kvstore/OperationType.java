@@ -1,8 +1,8 @@
 package com.zenz.kvstore;
 
 public enum OperationType {
-    GET(0),
-    PUT(1);
+    GET(1),
+    PUT(2);
 
     private final int value;
 

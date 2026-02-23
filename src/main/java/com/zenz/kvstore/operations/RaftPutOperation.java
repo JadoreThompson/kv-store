@@ -15,7 +15,7 @@ public record RaftPutOperation(long id, long term, String key, byte[] value) imp
     @Override
     public byte[] serialize() {
         byte[] keyBytes = key.getBytes(StandardCharsets.UTF_8);
-        ByteBuffer buffer = ByteBuffer.allocate(1024);
+        ByteBuffer buffer = ByteBuffer.allocate(8 + 8 + 4 + 4 + keyBytes.length + 4 + value.length);
 
         buffer.putLong(id);
         buffer.putLong(term);
@@ -25,10 +25,11 @@ public record RaftPutOperation(long id, long term, String key, byte[] value) imp
         buffer.putInt(value.length);
         buffer.put(value);
 
-        return buffer.compact().array();
+        return buffer.array();
     }
 
     public static RaftPutOperation deserialize(ByteBuffer buffer) {
+        System.out.println("Deserializing a buffer of length " + buffer.array().length);
         long id = buffer.getLong();
         long term = buffer.getLong();
         buffer.getInt(); // Skipping the type

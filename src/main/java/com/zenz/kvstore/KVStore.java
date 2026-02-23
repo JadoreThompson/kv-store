@@ -204,7 +204,8 @@ public class KVStore {
         return map;
     }
 
-    public static class Builder {
+
+    public static class Builder<T extends Builder<T>> {
         protected KVMapSnapshotter snapshotter;
         protected boolean snapshotEnabled;
         protected Path logsFolder;
@@ -221,34 +222,38 @@ public class KVStore {
             map = null;
         }
 
-        public Builder setSnapshotter(KVMapSnapshotter snapshotter) {
+        public T self() {
+            return (T) this;
+        }
+
+        public T setSnapshotter(KVMapSnapshotter snapshotter) {
             this.snapshotter = snapshotter;
-            return this;
+            return self();
         }
 
-        public Builder setSnapshotEnabled(boolean snapshotEnabled) {
+        public T setSnapshotEnabled(boolean snapshotEnabled) {
             this.snapshotEnabled = snapshotEnabled;
-            return this;
+            return self();
         }
 
-        public Builder setLogsFolder(Path logsFolder) {
+        public T setLogsFolder(Path logsFolder) {
             this.logsFolder = logsFolder;
-            return this;
+            return self();
         }
 
-        public Builder setLoggingEnabled(boolean loggingEnabled) {
+        public T setLoggingEnabled(boolean loggingEnabled) {
             this.loggingEnabled = loggingEnabled;
-            return this;
+            return self();
         }
 
-        public Builder setLogsPerSnapshot(int logsPerSnapshot) {
+        public T setLogsPerSnapshot(int logsPerSnapshot) {
             this.logsPerSnapshot = logsPerSnapshot;
-            return this;
+            return self();
         }
 
-        public Builder setMap(KVMap map) {
+        public T setMap(KVMap map) {
             this.map = map;
-            return this;
+            return self();
         }
 
         public KVStore build() throws IOException {

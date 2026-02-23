@@ -13,12 +13,14 @@ public record RaftGetOperation(long id, long term, String key) implements RaftOp
 
     @Override
     public byte[] serialize() {
-        ByteBuffer buffer = ByteBuffer.allocate(1024);
+        byte[] keyBytes = key.getBytes();
+        ByteBuffer buffer = ByteBuffer.allocate(8 + 8 + 4 + 4 + keyBytes.length);
 
         buffer.putLong(id);
         buffer.putLong(term);
-        buffer.put(key.getBytes());
-        buffer.compact();
+        buffer.putInt(type().getValue());
+        buffer.putInt(keyBytes.length);
+        buffer.put(keyBytes);
 
         return buffer.array();
     }
@@ -26,6 +28,7 @@ public record RaftGetOperation(long id, long term, String key) implements RaftOp
     public static RaftGetOperation deserialize(ByteBuffer buffer) {
         long id = buffer.getLong();
         long term = buffer.getLong();
+        buffer.getInt(); // Skipping the type
         byte[] keyBytes = new byte[buffer.remaining()];
         buffer.get(keyBytes);
         String key = new String(keyBytes);

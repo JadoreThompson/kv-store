@@ -4,14 +4,18 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="113ca11e-a295-4741-aad7-90962967a262" name="Changes" comment="Updated Operation serialisers to put id first and type second.">
-      <change afterPath="$PROJECT_DIR$/src/main/java/com/zenz/kvstore/KVRaftStore.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/java/com/zenz/kvstore/operations/RaftGetOperation.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/java/com/zenz/kvstore/operations/RaftOperation.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/java/com/zenz/kvstore/operations/RaftPutOperation.java" afterDir="false" />
+    <list default="true" id="113ca11e-a295-4741-aad7-90962967a262" name="Changes" comment="Created KVRaftStore using Operation.serialise method as log message">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/zenz/kvstore/KVRaftStore.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/zenz/kvstore/KVRaftStore.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/com/zenz/kvstore/KVStore.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/zenz/kvstore/KVStore.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/zenz/kvstore/Main.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/zenz/kvstore/Main.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/zenz/kvstore/OperationType.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/zenz/kvstore/OperationType.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/com/zenz/kvstore/WALogger.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/zenz/kvstore/WALogger.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/zenz/kvstore/operations/GetOperation.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/zenz/kvstore/operations/GetOperation.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/zenz/kvstore/operations/RaftGetOperation.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/zenz/kvstore/operations/RaftGetOperation.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/zenz/kvstore/operations/RaftOperation.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/zenz/kvstore/operations/RaftOperation.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/zenz/kvstore/operations/RaftPutOperation.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/zenz/kvstore/operations/RaftPutOperation.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/test/java/main/java/com/zenz/kvstore/KVConnectionManagerTest.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/test/java/main/java/com/zenz/kvstore/KVConnectionManagerTest.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -238,7 +242,15 @@
       <option name="project" value="LOCAL" />
       <updated>1771856935901</updated>
     </task>
-    <option name="localTasksCounter" value="10" />
+    <task id="LOCAL-00010" summary="Created KVRaftStore using Operation.serialise method as log message">
+      <option name="closed" value="true" />
+      <created>1771859538151</created>
+      <option name="number" value="00010" />
+      <option name="presentableId" value="LOCAL-00010" />
+      <option name="project" value="LOCAL" />
+      <updated>1771859538151</updated>
+    </task>
+    <option name="localTasksCounter" value="11" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -265,6 +277,7 @@
     <MESSAGE value="Renamed KVStore2 to KVStore" />
     <MESSAGE value="Created KVRaftController; Added support for PING requests" />
     <MESSAGE value="Updated Operation serialisers to put id first and type second." />
-    <option name="LAST_COMMIT_MESSAGE" value="Updated Operation serialisers to put id first and type second." />
+    <MESSAGE value="Created KVRaftStore using Operation.serialise method as log message" />
+    <option name="LAST_COMMIT_MESSAGE" value="Created KVRaftStore using Operation.serialise method as log message" />
   </component>
 </project>

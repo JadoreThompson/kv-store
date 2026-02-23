@@ -3,6 +3,7 @@ package com.zenz.kvstore.operations;
 import com.zenz.kvstore.OperationType;
 
 import java.nio.ByteBuffer;
+import java.nio.charset.StandardCharsets;
 
 public interface RaftOperation {
 
@@ -28,11 +29,17 @@ public interface RaftOperation {
 //    }
 
     static RaftOperation deserialize(ByteBuffer buffer) {
-        buffer.getLong(); // Skipping the term
         buffer.getLong(); // Skipping the id
+        buffer.getLong(); // Skipping the term
         int typeValue = buffer.getInt();
         OperationType type = OperationType.fromValue(typeValue);
         buffer.rewind();
+
+        System.out.println(new String(buffer.array(), StandardCharsets.UTF_8));
+//        for (byte b : buffer.array()) {
+//            if (b == 0) continue;
+//            System.out.print((char) b);
+//        }
 
         return switch (type) {
             case PUT -> RaftPutOperation.deserialize(buffer);
@@ -43,5 +50,4 @@ public interface RaftOperation {
 
     @Override
     public String toString();
-
 }
