@@ -26,6 +26,7 @@ public interface Operation {
     static Operation deserialize(ByteBuffer buffer) {
         int typeValue = buffer.getInt();
         OperationType type = OperationType.fromValue(typeValue);
+        buffer.rewind();
 
         return switch (type) {
             case PUT -> PutOperation.deserialize(buffer);

@@ -15,11 +15,11 @@ public record GetOperation(int id, String key) implements Operation {
     @Override
     public byte[] serialize() {
         byte[] keyBytes = key.getBytes(StandardCharsets.UTF_8);
-        // type(4) + id(4) + keyLength(4) + key
+        // id(4) + type(4) + keyLength(4) + key
         int totalSize = 4 + 4 + 4 + keyBytes.length;
         ByteBuffer buffer = ByteBuffer.allocate(totalSize);
-        buffer.putInt(type().getValue());
         buffer.putInt(id);
+        buffer.putInt(type().getValue());
         buffer.putInt(keyBytes.length);
         buffer.put(keyBytes);
         return buffer.array();
@@ -27,6 +27,7 @@ public record GetOperation(int id, String key) implements Operation {
 
     public static GetOperation deserialize(ByteBuffer buffer) {
         int id = buffer.getInt();
+        buffer.getInt(); // Skipping the type
         int keyLength = buffer.getInt();
         byte[] keyBytes = new byte[keyLength];
         buffer.get(keyBytes);

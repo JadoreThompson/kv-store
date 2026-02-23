@@ -15,11 +15,11 @@ public record PutOperation(int id, String key, byte[] value) implements Operatio
     @Override
     public byte[] serialize() {
         byte[] keyBytes = key.getBytes(StandardCharsets.UTF_8);
-        // type(4) + id(4) + keyLength(4) + key + valueLength(4) + value
+        // id(4) + type(4) + keyLength(4) + key + valueLength(4) + value
         int totalSize = 4 + 4 + 4 + keyBytes.length + 4 + value.length;
         ByteBuffer buffer = ByteBuffer.allocate(totalSize);
-        buffer.putInt(type().getValue());
         buffer.putInt(id);
+        buffer.putInt(type().getValue());
         buffer.putInt(keyBytes.length);
         buffer.put(keyBytes);
         buffer.putInt(value.length);
@@ -29,6 +29,7 @@ public record PutOperation(int id, String key, byte[] value) implements Operatio
 
     public static PutOperation deserialize(ByteBuffer buffer) {
         int id = buffer.getInt();
+        buffer.getInt(); // Skipping the type
         int keyLength = buffer.getInt();
         byte[] keyBytes = new byte[keyLength];
         buffer.get(keyBytes);
