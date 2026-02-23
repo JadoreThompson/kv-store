@@ -4,10 +4,14 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="113ca11e-a295-4741-aad7-90962967a262" name="Changes" comment="Created KVRaftController; Added support for PING requests">
-      <change beforePath="$PROJECT_DIR$/src/main/java/com/zenz/kvstore/operations/GetOperation.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/zenz/kvstore/operations/GetOperation.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/com/zenz/kvstore/operations/Operation.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/zenz/kvstore/operations/Operation.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/com/zenz/kvstore/operations/PutOperation.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/zenz/kvstore/operations/PutOperation.java" afterDir="false" />
+    <list default="true" id="113ca11e-a295-4741-aad7-90962967a262" name="Changes" comment="Updated Operation serialisers to put id first and type second.">
+      <change afterPath="$PROJECT_DIR$/src/main/java/com/zenz/kvstore/KVRaftStore.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/com/zenz/kvstore/operations/RaftGetOperation.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/com/zenz/kvstore/operations/RaftOperation.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/com/zenz/kvstore/operations/RaftPutOperation.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/zenz/kvstore/KVStore.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/zenz/kvstore/KVStore.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/zenz/kvstore/WALogger.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/zenz/kvstore/WALogger.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -226,7 +230,15 @@
       <option name="project" value="LOCAL" />
       <updated>1771850415119</updated>
     </task>
-    <option name="localTasksCounter" value="9" />
+    <task id="LOCAL-00009" summary="Updated Operation serialisers to put id first and type second.">
+      <option name="closed" value="true" />
+      <created>1771856935901</created>
+      <option name="number" value="00009" />
+      <option name="presentableId" value="LOCAL-00009" />
+      <option name="project" value="LOCAL" />
+      <updated>1771856935901</updated>
+    </task>
+    <option name="localTasksCounter" value="10" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -252,6 +264,7 @@
     <MESSAGE value="Removed debug comments; Removed unused methods and constructors; Updated Main to use new Builder" />
     <MESSAGE value="Renamed KVStore2 to KVStore" />
     <MESSAGE value="Created KVRaftController; Added support for PING requests" />
-    <option name="LAST_COMMIT_MESSAGE" value="Created KVRaftController; Added support for PING requests" />
+    <MESSAGE value="Updated Operation serialisers to put id first and type second." />
+    <option name="LAST_COMMIT_MESSAGE" value="Updated Operation serialisers to put id first and type second." />
   </component>
 </project>

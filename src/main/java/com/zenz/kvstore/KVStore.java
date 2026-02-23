@@ -11,22 +11,22 @@ import java.util.Random;
 
 public class KVStore {
     // Default settings
-    private static final Path DEFAULT_LOGS_FOLDER = Path.of("logs");
-    public static final int DEFAULT_LOGS_PER_SNAPSHOT = 100_000;
+    protected static final Path DEFAULT_LOGS_FOLDER = Path.of("logs");
+    protected static final int DEFAULT_LOGS_PER_SNAPSHOT = 100_000;
 
     // Durability settings
-    private KVMapSnapshotter snapshotter;
-    private boolean snapshotEnabled;
-    private final Path logsFolder;
-    private WALogger logger;
-    private boolean loggingEnabled;
-    private int logCount;
-    private int logsPerSnapshot;
+    protected KVMapSnapshotter snapshotter;
+    protected boolean snapshotEnabled;
+    protected final Path logsFolder;
+    protected WALogger logger;
+    protected boolean loggingEnabled;
+    protected int logCount;
+    protected int logsPerSnapshot;
 
-    private final KVMap map;
-    private final Random random;
+    protected final KVMap map;
+    protected final Random random;
 
-    private KVStore(Builder builder) throws IOException {
+    protected KVStore(Builder builder) throws IOException {
         snapshotter = builder.snapshotter;
         snapshotEnabled = builder.snapshotEnabled;
         logsFolder = (builder.logsFolder == null) ? DEFAULT_LOGS_FOLDER : builder.logsFolder;
@@ -37,7 +37,7 @@ public class KVStore {
         configureLogger();
     }
 
-    private static KVStore load(Builder builder) throws IOException {
+    protected static KVStore load(Builder builder) throws IOException {
         KVMapSnapshotter snapshotter = (builder.snapshotter != null) ? builder.snapshotter : new KVMapSnapshotter();
         KVMap map = snapshotter.loadSnapshot();
 
@@ -52,7 +52,7 @@ public class KVStore {
         return store;
     }
 
-    private static void restoreState(KVStore store, KVMapSnapshotter snapshotter) throws IOException {
+    protected static void restoreState(KVStore store, KVMapSnapshotter snapshotter) throws IOException {
         Path snapshotFolderPath = snapshotter.getFolderPath();
 
         File[] files = snapshotFolderPath.toFile().listFiles();
@@ -79,7 +79,7 @@ public class KVStore {
         }
     }
 
-    private static int applyLogs(File file, KVStore store) throws IOException {
+    protected static int applyLogs(File file, KVStore store) throws IOException {
         String contents = Files.readString(file.toPath());
         if (contents.length() == 0) return 0;
 
@@ -101,7 +101,7 @@ public class KVStore {
         return lines.length;
     }
 
-    private void configureLogger() throws IOException {
+    protected void configureLogger() throws IOException {
         File logsFolderFile = logsFolder.toFile();
         if (!logsFolderFile.exists()) {
             logsFolderFile.mkdirs();
@@ -143,11 +143,11 @@ public class KVStore {
         return result;
     }
 
-    private int generateId() {
+    protected int generateId() {
         return random.nextInt();
     }
 
-    private void snapshot() throws IOException {
+    protected void snapshot() throws IOException {
         if (logCount >= logsPerSnapshot) {
             logCount = 0;
 
@@ -205,14 +205,14 @@ public class KVStore {
     }
 
     public static class Builder {
-        private KVMapSnapshotter snapshotter;
-        private boolean snapshotEnabled;
-        private Path logsFolder;
-        private boolean loggingEnabled;
-        private int logsPerSnapshot;
-        private KVMap map;
+        protected KVMapSnapshotter snapshotter;
+        protected boolean snapshotEnabled;
+        protected Path logsFolder;
+        protected boolean loggingEnabled;
+        protected int logsPerSnapshot;
+        protected KVMap map;
 
-        public Builder() throws IOException {
+        public Builder() {
             snapshotter = null;
             snapshotEnabled = true;
             logsFolder = null;
