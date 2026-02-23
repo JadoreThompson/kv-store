@@ -2,6 +2,9 @@ package com.zenz.kvstore.messages;
 
 import com.zenz.kvstore.MessageType;
 
+import java.io.InputStream;
+import java.nio.ByteBuffer;
+
 public abstract class Message {
     public abstract MessageType type();
 
@@ -19,7 +22,13 @@ public abstract class Message {
         throw new UnsupportedOperationException();
     }
 
-    ;
+    public byte[] serialize() {
+        throw new UnsupportedOperationException();
+    }
+
+    public static Message deserialize(ByteBuffer value) {
+        throw new UnsupportedOperationException();
+    }
 
     @Override
     public abstract String toString();

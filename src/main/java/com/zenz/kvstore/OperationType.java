@@ -1,22 +1,31 @@
 package com.zenz.kvstore;
 
 public enum OperationType {
-    GET("GET"),
-    PUT("PUT");
+    GET(0),
+    PUT(1);
 
-    private final String value;
+    private final int value;
 
-    private OperationType(String value) {
+    private OperationType(int value) {
         this.value = value;
     }
 
-    public String getValue() {
+    public int getValue() {
         return value;
+    }
+
+    public static OperationType fromValue(int value) {
+        for (OperationType type : values()) {
+            if (type.value == value) {
+                return type;
+            }
+        }
+        throw new IllegalArgumentException("Unknown operation type value: " + value);
     }
 
     @Override
     public String toString() {
-        return value;
+        return name();
     }
 }
 
