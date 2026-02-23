@@ -274,7 +274,7 @@ public class KVConnectionManager {
             }
 
             if (!buffer.hasRemaining()) {
-                queue.poll();
+                queue.poll(); // Advanced head to next element
                 buffer = queue.peek();
             }
         }
