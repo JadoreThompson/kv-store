@@ -5,8 +5,8 @@ import com.zenz.kvstore.operations.*;
 import java.io.File;
 import java.io.IOException;
 import java.nio.ByteBuffer;
-import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.List;
 
 public class KVRaftStore extends KVStore {
     protected static final Path DEFAULT_LOGS_FOLDER = Path.of("raft-logs");
@@ -20,8 +20,8 @@ public class KVRaftStore extends KVStore {
 
     public void put(String key, byte[] value) throws IOException {
         if (loggingEnabled) {
-            ByteBuffer src = ByteBuffer.wrap(new RaftPutOperation(logId++, term, key, value).serialize());
-            System.out.println("Within the put command we have " + src.remaining() + " bytes remaining");
+            logId++;
+            ByteBuffer src = ByteBuffer.wrap(new RaftPutOperation(logId, term, key, value).serialize());
             logger.log(src);
         }
 
@@ -31,7 +31,12 @@ public class KVRaftStore extends KVStore {
     }
 
     public KVMap.Node get(String key) throws IOException {
-        if (loggingEnabled) logger.log(ByteBuffer.wrap(new RaftGetOperation(logId++, term, key).serialize()));
+        if (loggingEnabled) {
+            logId++;
+            ByteBuffer src = ByteBuffer.wrap(new RaftGetOperation(logId, term, key).serialize());
+            logger.log(src);
+        }
+
         logCount++;
         snapshot();
         return map.get(key);
@@ -81,36 +86,21 @@ public class KVRaftStore extends KVStore {
     }
 
     protected static int applyLogs(File file, KVRaftStore store) throws IOException {
-        ByteBuffer bb = ByteBuffer.wrap(Files.readAllBytes(file.toPath()));
-        if (bb.capacity() == 0) return 0;
+        List<RaftOperation> operations = RaftOperation.parseRaftLogs(file);
 
-        ByteBuffer curBuff = ByteBuffer.allocate(1024);
-        for (byte b : bb.array()) {
-            char ch = (char) b;
-
-            if (ch != '\n') {
-                curBuff.put(b);
-                continue;
-            }
-
-            curBuff.flip();
-            RaftOperation operation = RaftOperation.deserialize(curBuff);
-
-            store.setLogId(operation.id());
-            if (operation.term() != store.getTerm()) store.setTerm(operation.term());
-
+        for (RaftOperation operation : operations) {
             if (operation.type().equals(OperationType.PUT)) {
-                RaftPutOperation putOperation = (RaftPutOperation) operation;
-                store.put(putOperation.key(), putOperation.value());
+                RaftPutOperation op = (RaftPutOperation) operation;
+                store.put(op.key(), op.value());
+            } else if (operation.type().equals(OperationType.GET)) {
+                RaftGetOperation op = (RaftGetOperation) operation;
+                store.get(op.key());
             } else {
-                RaftGetOperation getOperation = (RaftGetOperation) operation;
-                store.get(getOperation.key());
+                throw new UnsupportedOperationException("Unsupported operation type: " + operation.type());
             }
-
-            curBuff.clear();
         }
 
-        return 1;
+        return operations.size();
     }
 
     public long getLogId() {

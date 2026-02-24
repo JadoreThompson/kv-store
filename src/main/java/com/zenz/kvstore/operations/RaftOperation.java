@@ -2,8 +2,13 @@ package com.zenz.kvstore.operations;
 
 import com.zenz.kvstore.OperationType;
 
+import java.io.File;
+import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.util.ArrayList;
+import java.util.List;
 
 public interface RaftOperation {
 
@@ -15,19 +20,6 @@ public interface RaftOperation {
 
     byte[] serialize();
 
-//    static com.zenz.kvstore.operations.Operation fromLine(String line) {
-//        String[] components = line.strip().split(" ");
-//        long term = Long.parseLong(components[0]);
-//        long id = Long.parseLong(components[1]);
-//        OperationType type = OperationType.valueOf(components[1]);
-//
-//        return switch (type) {
-//            case PUT -> RaftPutOperation.fromLine(components);
-//            case GET -> RaftGetOperation.fromLine( omponents);
-//            default -> throw new UnsupportedOperationException("Unsupported operation " + type.getValue());
-//        };
-//    }
-
     static RaftOperation deserialize(ByteBuffer buffer) {
         buffer.getLong(); // Skipping the id
         buffer.getLong(); // Skipping the term
@@ -35,17 +27,78 @@ public interface RaftOperation {
         OperationType type = OperationType.fromValue(typeValue);
         buffer.rewind();
 
-        System.out.println(new String(buffer.array(), StandardCharsets.UTF_8));
-//        for (byte b : buffer.array()) {
-//            if (b == 0) continue;
-//            System.out.print((char) b);
-//        }
-
         return switch (type) {
             case PUT -> RaftPutOperation.deserialize(buffer);
             case GET -> RaftGetOperation.deserialize(buffer);
             default -> throw new UnsupportedOperationException("Unsupported operation " + type.getValue());
         };
+    }
+
+    public static List<RaftOperation> parseRaftLogs(File logFile) throws IOException {
+        List<RaftOperation> operations = new ArrayList<>();
+        byte[] allBytes = Files.readAllBytes(logFile.toPath());
+
+        if (allBytes.length == 0) {
+            return operations;
+        }
+
+        ByteBuffer bb = ByteBuffer.wrap(allBytes);
+
+        while (bb.hasRemaining()) {
+            long id = bb.getLong();
+            long term = bb.getLong();
+            int typeValue = bb.getInt();
+            OperationType operationType = OperationType.fromValue(typeValue);
+
+            if (operationType.equals(OperationType.PUT)) {
+                ByteBuffer _buffer = ByteBuffer.allocate(10240);
+
+                _buffer.putLong(id);
+                _buffer.putLong(term);
+                _buffer.putInt(typeValue);
+
+                int keyLength = bb.getInt();
+                _buffer.putInt(keyLength);
+                byte[] key = new byte[keyLength];
+                bb.get(key);
+                _buffer.put(key);
+
+                int valueLength = bb.getInt();
+                _buffer.putInt(valueLength);
+                byte[] value = new byte[valueLength];
+                bb.get(value);
+                _buffer.put(value);
+
+                _buffer.flip();
+                RaftPutOperation operation = RaftPutOperation.deserialize(_buffer);
+
+                // Skipping new line character
+                bb.get();
+                operations.add(operation);
+            } else if (operationType.equals(OperationType.GET)) {
+                ByteBuffer _buffer = ByteBuffer.allocate(10240);
+
+                _buffer.putLong(id);
+                _buffer.putLong(term);
+                _buffer.putInt(typeValue);
+
+                int keyLength = bb.getInt();
+                _buffer.putInt(keyLength);
+                byte[] key = new byte[keyLength];
+                bb.get(key);
+                _buffer.put(key);
+
+                _buffer.flip();
+                RaftGetOperation operation = RaftGetOperation.deserialize(_buffer);
+
+                bb.get(); // Getting the new line character
+                operations.add(operation);
+            } else {
+                throw new UnsupportedOperationException("Unsupported operation type " + operationType.name());
+            }
+        }
+
+        return operations;
     }
 
     @Override

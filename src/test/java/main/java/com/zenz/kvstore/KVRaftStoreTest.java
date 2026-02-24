@@ -38,7 +38,10 @@ class KVRaftStoreTest {
         logsFolder = Files.createTempDirectory("tmp-raft-logs-");
         snapshotsFolder = Files.createTempDirectory("tmp-raft-snapshots-");
         snapshotter = new KVMapSnapshotter(snapshotsFolder);
-        store = new KVRaftStore.Builder().setLogsFolder(logsFolder).setSnapshotter(snapshotter).build();
+        store = new KVRaftStore.Builder()
+                .setLogsFolder(logsFolder)
+                .setSnapshotter(snapshotter)
+                .build();
         logger = getLogger(store);
     }
 
@@ -104,6 +107,7 @@ class KVRaftStoreTest {
             long term = bb.getLong();
             int typeValue = bb.getInt();
             OperationType operationType = OperationType.fromValue(typeValue);
+            System.out.println("Parsing log for operation of type " + operationType.name() + " id=" + id + " type=" + operationType.name());
 
             if (operationType.equals(OperationType.PUT)) {
                 ByteBuffer _buffer = ByteBuffer.allocate(10240);
@@ -123,11 +127,26 @@ class KVRaftStoreTest {
                 byte[] value = new byte[valueLength];
                 bb.get(value);
                 _buffer.put(value);
+                System.out.println(
+                        "id=" + id +
+                                ", term=" + term +
+                                ", type=" + typeValue +
+                                ", keyLength=" + keyLength +
+                                ", key=" + new String(key) +
+                                ", valueLength=" + valueLength +
+                                ", value=" + new String(value)
+                );
 
+                _buffer.flip();
                 RaftPutOperation operation = RaftPutOperation.deserialize(_buffer);
                 System.out.println("Operation: " + operation.toString());
 
-                bb.get(); // Getting the new line character
+                char c = (char) bb.get(); // Getting the new line character
+                System.out.println("Skipping character: " + (c == '\n'));
+//                bb.mark();
+//                long nextId = bb.getLong();
+//                System.out.println("Next id: " + nextId);
+//                bb.reset();
                 operations.add(operation);
             } else if (operationType.equals(OperationType.GET)) {
                 ByteBuffer _buffer = ByteBuffer.allocate(10240);
@@ -140,11 +159,20 @@ class KVRaftStoreTest {
                 byte[] key = new byte[keyLength];
                 bb.get(key);
                 _buffer.put(key);
+                _buffer.rewind();
                 _buffer.compact();
 
-                RaftPutOperation operation = RaftPutOperation.deserialize(_buffer);
+                _buffer.flip();
+                System.out.println(
+                        "Parsing GET operation id=" + id +
+                                ", term=" + term +
+                                ", type=" + typeValue +
+                                ", keyLength=" + keyLength +
+                                ", key=" + new String(key)
+                );
+                RaftGetOperation operation = RaftGetOperation.deserialize(_buffer);
                 System.out.println("Operation: " + operation.toString());
-                bb.get();// Getting the new line character
+                bb.get(); // Getting the new line character
                 operations.add(operation);
             }
 
@@ -340,6 +368,7 @@ class KVRaftStoreTest {
     @Test
     void get_logsOperationToWAL() throws Exception {
         store.setLoggingEnabled(true);
+        store.setTerm(1);
         store.put("walKey", "walValue".getBytes(StandardCharsets.UTF_8));
         store.get("walKey");
         logger.close();
@@ -625,12 +654,12 @@ class KVRaftStoreTest {
 
         // Verify PUT operation has correct id and term
         RaftPutOperation putOp = (RaftPutOperation) operations.get(0);
-        assertEquals(0, putOp.id(), "PUT operation id should be 0");
+        assertEquals(1, putOp.id(), "PUT operation id should be 0");
         assertEquals(3, putOp.term(), "PUT operation term should be 3");
 
         // Verify GET operation has correct id and term
         RaftGetOperation getOp = (RaftGetOperation) operations.get(1);
-        assertEquals(1, getOp.id(), "GET operation id should be 1");
+        assertEquals(2, getOp.id(), "GET operation id should be 1");
         assertEquals(3, getOp.term(), "GET operation term should be 3");
     }
 

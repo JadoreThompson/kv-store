@@ -48,6 +48,6 @@ public record RaftPutOperation(long id, long term, String key, byte[] value) imp
 
     @Override
     public String toString() {
-        return id + " " + type().name() + " " + key + " " + new String(value, StandardCharsets.UTF_8);
+        return id + " " + term + " " + type().name() + " " + key + " " + new String(value, StandardCharsets.UTF_8);
     }
 }

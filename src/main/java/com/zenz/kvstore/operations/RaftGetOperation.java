@@ -29,10 +29,16 @@ public record RaftGetOperation(long id, long term, String key) implements RaftOp
         long id = buffer.getLong();
         long term = buffer.getLong();
         buffer.getInt(); // Skipping the type
-        byte[] keyBytes = new byte[buffer.remaining()];
+        int keyLength = buffer.getInt();
+        byte[] keyBytes = new byte[keyLength];
         buffer.get(keyBytes);
         String key = new String(keyBytes);
 
         return new RaftGetOperation(id, term, key);
+    }
+
+    @Override
+    public String toString() {
+        return id + " " + term + " " + type().name() + " " + key;
     }
 }
