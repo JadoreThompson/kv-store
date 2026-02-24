@@ -1,15 +1,18 @@
 package com.zenz.kvstore;
 
 import com.zenz.kvstore.messages.BrokerLogStateRequest;
+import com.zenz.kvstore.messages.ControllerLogStateResponse;
 import com.zenz.kvstore.messages.Message;
 import com.zenz.kvstore.messages.PingResponse;
 import com.zenz.kvstore.operations.Operation;
 import com.zenz.kvstore.operations.RaftOperation;
 
+import java.io.File;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.channels.*;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
 import java.util.*;
 
 public class KVRaft {
@@ -21,13 +24,22 @@ public class KVRaft {
     private KVRaftRole role;
     private boolean running;
     // log id -> {}
-    private HashMap<Long, InFlightMessage> inFlightMessages;
+//    private HashMap<Long, InFlightMessage> inFlightMessages;
+    // Synonymous for logsPerSnapshot of the store object
+    private int commandsPerFlush;
+    //    private ArrayList<RaftOperation> commands;
+    private Deque<RaftOperation> commands;
+    private KVRaftStore store;
 
-    public KVRaft(KVRaftRole role) throws IOException {
+    public KVRaft(KVRaftRole role, KVRaftStore store) throws IOException {
         this.role = role;
+//        this.commandsPerFlush = operationsPerFlush;
+
         running = false;
         pendingWrites = new HashMap<>();
-        inFlightMessages = new HashMap<>();
+//        inFlightMessages = new HashMap<>();
+        commands = new ArrayDeque<>();
+        this.store = store;
     }
 
     public void start() throws IOException {
@@ -154,12 +166,32 @@ public class KVRaft {
             sessions.put(session.getBrokerId(), session);
         }
 
-        BrokerLogState curLogState = session.getLogState();
-        if (curLogState != null) {
-            if (message.id() > curLogState.id + 1) {
-                return ByteBuffer.wrap(("ERROR Skipping ahead. Last known log id " + curLogState.id).getBytes(StandardCharsets.UTF_8));
+//        BrokerLogState curLogState = session.getLogState();
+//        if (curLogState != null) {
+//            if (message.id() > curLogState.id + 1) {
+//                return ByteBuffer.wrap(("ERROR Skipping ahead. Last known log id " + curLogState.id).getBytes(StandardCharsets.UTF_8));
+//            }
+//        }
+
+        if (message.id() == store.getLogId()) return null;
+
+        if (message.id() == store.getLogId() - 1) {
+            RaftOperation existing = commands.getLast();
+            if (existing != null) {
+                return ByteBuffer.wrap(new ControllerLogStateResponse(ControllerLogStateResponse.Type.LOG, null, existing).serialize());
             }
         }
+
+        RaftOperation existing = commands.getFirst();
+        if (existing == null) {
+            KVMapSnapshotter snapshotter = store.getSnapshotter();
+            File[] files = snapshotter.getFolderPath().toFile().listFiles();
+            File snapshotFile = files[files.length - 1];
+            return ByteBuffer.wrap(new ControllerLogStateResponse(ControllerLogStateResponse.Type.SNAPSHOT, Files.readAllBytes(snapshotFile.toPath()), null).serialize());
+        }
+
+
+        RaftOperation front = commands.getFirst();
 
         session.setLogState(new BrokerLogState(message.id(), message.term(), message.operation()));
 
@@ -196,6 +228,12 @@ public class KVRaft {
     }
 
     public void handleCommand(RaftOperation operation) {
+//        if (commands.size() >= commandsPerFlush) commands.clear();
+        if (commands.size() >= commandsPerFlush) {
+            commands.pollFirst();
+            commands.addLast(operation);
+        }
+
         Collection<ClientSession> s = sessions.values();
         ArrayList<SocketChannel> toSend = new ArrayList<>();
         int count = 0;
@@ -208,8 +246,8 @@ public class KVRaft {
 
         if (count > 0) {
             int majority = count / 2 + 1;
-            InFlightMessage inFlight = new InFlightMessage(majority, 0, operation);
-            inFlightMessages.put(operation.id(), inFlight);
+//            InFlightMessage inFlight = new InFlightMessage(majority, 0, operation);
+//            inFlightMessages.put(operation.id(), inFlight);
 
             for (SocketChannel channel : toSend) {
                 queueWrite(channel, ByteBuffer.wrap(operation.serialize()));

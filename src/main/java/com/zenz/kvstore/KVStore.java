@@ -4,7 +4,9 @@ import com.zenz.kvstore.operations.GetOperation;
 import com.zenz.kvstore.operations.Operation;
 import com.zenz.kvstore.operations.PutOperation;
 
-import java.io.*;
+import java.io.File;
+import java.io.IOException;
+import java.io.UnsupportedEncodingException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Random;
@@ -188,12 +190,12 @@ public class KVStore {
         snapshotEnabled = enabled;
     }
 
-    public void setSnapshotter(KVMapSnapshotter snapshotter) {
-        this.snapshotter = snapshotter;
-    }
-
     public KVMapSnapshotter getSnapshotter() {
         return snapshotter;
+    }
+
+    public void setSnapshotter(KVMapSnapshotter snapshotter) {
+        this.snapshotter = snapshotter;
     }
 
     public void setLogsPerSnapshot(int logsPerSnapshot) {

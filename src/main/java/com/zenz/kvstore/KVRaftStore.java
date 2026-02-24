@@ -1,6 +1,8 @@
 package com.zenz.kvstore;
 
-import com.zenz.kvstore.operations.*;
+import com.zenz.kvstore.operations.RaftGetOperation;
+import com.zenz.kvstore.operations.RaftOperation;
+import com.zenz.kvstore.operations.RaftPutOperation;
 
 import java.io.File;
 import java.io.IOException;
@@ -86,7 +88,6 @@ public class KVRaftStore extends KVStore {
     }
 
     protected static int applyLogs(File file, KVRaftStore store) throws IOException {
-//        List<RaftOperation> operations = RaftOperation.parseRaftLogs(file);
         ByteBuffer fileBuffer = ByteBuffer.wrap(Files.readAllBytes(file.toPath()));
         List<RaftOperation> operations = RaftOperation.parseRaftLogs(fileBuffer);
 
