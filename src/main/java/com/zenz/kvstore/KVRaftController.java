@@ -15,7 +15,7 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.util.*;
 
-public class KVRaft {
+public class KVRaftController {
     private Selector selector;
     private ServerSocketChannel serverSocketChannel;
     private HashMap<SocketChannel, Queue<ByteBuffer>> pendingWrites;
@@ -31,7 +31,7 @@ public class KVRaft {
     private Deque<RaftOperation> commands;
     private KVRaftStore store;
 
-    public KVRaft(KVRaftRole role, KVRaftStore store) throws IOException {
+    public KVRaftController(KVRaftRole role, KVRaftStore store) throws IOException {
         this.role = role;
 //        this.commandsPerFlush = operationsPerFlush;
 
@@ -272,6 +272,7 @@ public class KVRaft {
         return role;
     }
 
+
     private static class ClientSession {
         private static final int BUFFER_SIZE = 8192;
 
@@ -316,34 +317,6 @@ public class KVRaft {
             this.id = id;
             this.term = term;
             this.operation = operation;
-        }
-    }
-
-    private static class InFlightMessage {
-        private final int majority;
-        private final int count;
-        private final RaftOperation operation;
-
-        public InFlightMessage(int majority, int count, RaftOperation operation) {
-            this.majority = majority;
-            this.count = count;
-            this.operation = operation;
-        }
-
-        public int getMajority() {
-            return majority;
-        }
-
-        public int getCount() {
-            return count;
-        }
-
-        public void setCount(int count) {
-            count = count;
-        }
-
-        public RaftOperation getOperation() {
-            return operation;
         }
     }
 }

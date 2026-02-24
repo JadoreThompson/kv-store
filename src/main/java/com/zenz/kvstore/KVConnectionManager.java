@@ -17,7 +17,7 @@ import java.util.*;
  * GET mykey
  * <p>
  * Uses CommandProcessor to handle operations, allowing for both
- * single-node (DirectCommandProcessor) and Raft (KVRaftCommandProcessor) modes.
+ * single-node (DirectCommandProcessor) and Raft (KVRaftControllerCommandProcessor) modes.
  */
 public class KVConnectionManager {
     private static final int BUFFER_SIZE = 8192;
@@ -37,8 +37,8 @@ public class KVConnectionManager {
      * Creates a KVConnectionManager with a CommandProcessor.
      * Use this constructor for flexibility (single-node or Raft mode).
      *
-     * @param host     the host address to bind to
-     * @param port     the port to listen on
+     * @param host      the host address to bind to
+     * @param port      the port to listen on
      * @param processor the CommandProcessor to handle operations
      */
     public KVConnectionManager(String host, int port, CommandProcessor processor) {
@@ -250,22 +250,22 @@ public class KVConnectionManager {
 
         try {
             processor.handlePut(key, value)
-                .thenAccept(responseBuffer -> {
-                    // Add newline and queue for write
-                    byte[] respArr = responseBuffer.array();
-                    ByteBuffer wrapped = ByteBuffer.allocate(respArr.length + 1);
-                    wrapped.put(respArr);
-                    wrapped.put((byte) '\n');
-                    wrapped.flip();
-                    
-                    queueWrite(session.getClient(), wrapped);
-                    System.out.println("Sending response: " + new String(wrapped.array(), StandardCharsets.UTF_8).trim());
-                })
-                .exceptionally(ex -> {
-                    System.err.println("Error processing PUT: " + ex.getMessage());
-                    sendErrorResponse(session, "ERROR: " + ex.getMessage());
-                    return null;
-                });
+                    .thenAccept(responseBuffer -> {
+                        // Add newline and queue for write
+                        byte[] respArr = responseBuffer.array();
+                        ByteBuffer wrapped = ByteBuffer.allocate(respArr.length + 1);
+                        wrapped.put(respArr);
+                        wrapped.put((byte) '\n');
+                        wrapped.flip();
+
+                        queueWrite(session.getClient(), wrapped);
+                        System.out.println("Sending response: " + new String(wrapped.array(), StandardCharsets.UTF_8).trim());
+                    })
+                    .exceptionally(ex -> {
+                        System.err.println("Error processing PUT: " + ex.getMessage());
+                        sendErrorResponse(session, "ERROR: " + ex.getMessage());
+                        return null;
+                    });
         } catch (IOException e) {
             sendErrorResponse(session, "ERROR: " + e.getMessage());
         }
@@ -284,22 +284,22 @@ public class KVConnectionManager {
 
         try {
             processor.handleGet(key)
-                .thenAccept(responseBuffer -> {
-                    // Add newline and queue for write
-                    byte[] respArr = responseBuffer.array();
-                    ByteBuffer wrapped = ByteBuffer.allocate(respArr.length + 1);
-                    wrapped.put(respArr);
-                    wrapped.put((byte) '\n');
-                    wrapped.flip();
-                    
-                    queueWrite(session.getClient(), wrapped);
-                    System.out.println("Sending response: " + new String(wrapped.array(), StandardCharsets.UTF_8).trim());
-                })
-                .exceptionally(ex -> {
-                    System.err.println("Error processing GET: " + ex.getMessage());
-                    sendErrorResponse(session, "ERROR: " + ex.getMessage());
-                    return null;
-                });
+                    .thenAccept(responseBuffer -> {
+                        // Add newline and queue for write
+                        byte[] respArr = responseBuffer.array();
+                        ByteBuffer wrapped = ByteBuffer.allocate(respArr.length + 1);
+                        wrapped.put(respArr);
+                        wrapped.put((byte) '\n');
+                        wrapped.flip();
+
+                        queueWrite(session.getClient(), wrapped);
+                        System.out.println("Sending response: " + new String(wrapped.array(), StandardCharsets.UTF_8).trim());
+                    })
+                    .exceptionally(ex -> {
+                        System.err.println("Error processing GET: " + ex.getMessage());
+                        sendErrorResponse(session, "ERROR: " + ex.getMessage());
+                        return null;
+                    });
         } catch (IOException e) {
             sendErrorResponse(session, "ERROR: " + e.getMessage());
         }

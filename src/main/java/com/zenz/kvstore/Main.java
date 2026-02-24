@@ -55,6 +55,6 @@ public class Main {
         System.out.println("Usage: java -jar kv-store.jar [options]");
         System.out.println("Options:");
         System.out.println("\t-h, --host <host>  Host address to bind to (default: localhost)");
-        System.out.println("\t--p, --port <port>  Port to listen on (default: 6767)");
+        System.out.println("\t-p, --port <port>  Port to listen on (default: 6767)");
     }
 }

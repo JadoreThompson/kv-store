@@ -6,7 +6,11 @@ public enum MessageType {
     LOG_REQUEST(3),
     LOG_RESPONSE(4),
     BROKER_LOG_STATE_REQUEST(5),
-    CONTROLLER_LOG_STATE_RESPONSE(6);
+    CONTROLLER_LOG_STATE_RESPONSE(6),
+    VOTE_REQUEST(7),
+    VOTE_RESPONSE(8),
+    LEADER_ELECTED(9);
+
     private final int value;
 
     private MessageType(int value) {

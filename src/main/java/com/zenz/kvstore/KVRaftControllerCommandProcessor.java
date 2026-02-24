@@ -1,6 +1,8 @@
 package com.zenz.kvstore;
 
-import com.zenz.kvstore.operations.*;
+import com.zenz.kvstore.operations.RaftGetOperation;
+import com.zenz.kvstore.operations.RaftOperation;
+import com.zenz.kvstore.operations.RaftPutOperation;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
@@ -9,12 +11,12 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
 
-public class KVRaftCommandProcessor implements CommandProcessor {
+public class KVRaftControllerCommandProcessor implements CommandProcessor {
     private final Executor executor;
     private final KVRaftStore store;
-    private final KVRaft raft;
+    private final KVRaftController raft;
 
-    public KVRaftCommandProcessor(KVRaftStore store, KVRaft raft) {
+    public KVRaftControllerCommandProcessor(KVRaftStore store, KVRaftController raft) {
         executor = Executors.newFixedThreadPool(3);
         this.store = store;
         this.raft = raft;

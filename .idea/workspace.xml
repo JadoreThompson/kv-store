@@ -4,13 +4,8 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="113ca11e-a295-4741-aad7-90962967a262" name="Changes" comment="Implemented CommandProcessor within KVConnectionManager; Added handleCommandMethod within KVRaft">
-      <change afterPath="$PROJECT_DIR$/src/main/java/com/zenz/kvstore/messages/ControllerLogStateResponse.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/com/zenz/kvstore/KVRaft.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/zenz/kvstore/KVRaft.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/com/zenz/kvstore/KVRaftStore.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/zenz/kvstore/KVRaftStore.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/com/zenz/kvstore/KVStore.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/zenz/kvstore/KVStore.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/com/zenz/kvstore/MessageType.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/zenz/kvstore/MessageType.java" afterDir="false" />
+    <list default="true" id="113ca11e-a295-4741-aad7-90962967a262" name="Changes" comment="Created KVRaftBroker; Handling VoteRequest within KVRaftBroker">
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/zenz/kvstore/KVRaftBroker.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/zenz/kvstore/KVRaftBroker.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -167,7 +162,7 @@
       <workItem from="1771752462930" duration="562000" />
       <workItem from="1771753155052" duration="6690000" />
       <workItem from="1771845709917" duration="9174000" />
-      <workItem from="1771921310778" duration="26213000" />
+      <workItem from="1771921310778" duration="33735000" />
     </task>
     <task id="LOCAL-00001" summary="Added content length check in KVMapSnapshotter.applyLogs">
       <option name="closed" value="true" />
@@ -289,7 +284,23 @@
       <option name="project" value="LOCAL" />
       <updated>1771943326167</updated>
     </task>
-    <option name="localTasksCounter" value="16" />
+    <task id="LOCAL-00016" summary="Implemented Raft sending logs and snapshots to broker">
+      <option name="closed" value="true" />
+      <created>1771949138337</created>
+      <option name="number" value="00016" />
+      <option name="presentableId" value="LOCAL-00016" />
+      <option name="project" value="LOCAL" />
+      <updated>1771949138337</updated>
+    </task>
+    <task id="LOCAL-00017" summary="Created KVRaftBroker; Handling VoteRequest within KVRaftBroker">
+      <option name="closed" value="true" />
+      <created>1771958705734</created>
+      <option name="number" value="00017" />
+      <option name="presentableId" value="LOCAL-00017" />
+      <option name="project" value="LOCAL" />
+      <updated>1771958705734</updated>
+    </task>
+    <option name="localTasksCounter" value="18" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -322,6 +333,8 @@
     <MESSAGE value="Renamed KVRaftController to KVRaft; Added partial message handling within KVRaft" />
     <MESSAGE value="Added getRole method to KVRaft" />
     <MESSAGE value="Implemented CommandProcessor within KVConnectionManager; Added handleCommandMethod within KVRaft" />
-    <option name="LAST_COMMIT_MESSAGE" value="Implemented CommandProcessor within KVConnectionManager; Added handleCommandMethod within KVRaft" />
+    <MESSAGE value="Implemented Raft sending logs and snapshots to broker" />
+    <MESSAGE value="Created KVRaftBroker; Handling VoteRequest within KVRaftBroker" />
+    <option name="LAST_COMMIT_MESSAGE" value="Created KVRaftBroker; Handling VoteRequest within KVRaftBroker" />
   </component>
 </project>

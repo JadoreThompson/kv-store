@@ -6,9 +6,9 @@ import java.nio.ByteBuffer;
 
 //public abstract class Message {
 public interface Message {
-    public abstract MessageType type();
+    MessageType type();
 
-    public static Message fromString(String value) {
+    static Message fromString(String value) {
         String[] components = value.strip().split(" ");
         MessageType type = MessageType.valueOf(components[0]);
 
@@ -18,13 +18,13 @@ public interface Message {
         throw new IllegalArgumentException("Unknown message type: " + value);
     }
 
-    public static Message fromString(String[] components) {
+    static Message fromString(String[] components) {
         throw new UnsupportedOperationException();
     }
 
-    public abstract byte[] serialize();
+    byte[] serialize();
 
-    public static Message deserialize(ByteBuffer buffer) {
+    static Message deserialize(ByteBuffer buffer) {
         int type = buffer.getInt();
         MessageType messageType = MessageType.fromValue(type);
         buffer.rewind();
@@ -37,5 +37,5 @@ public interface Message {
     }
 
     @Override
-    public abstract String toString();
+    String toString();
 }
