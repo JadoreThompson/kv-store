@@ -4,14 +4,9 @@ import com.zenz.kvstore.MessageType;
 
 import java.nio.ByteBuffer;
 
-public class PingRequest extends Message {
-
+public record PingRequest(MessageType type) implements Message {
     public PingRequest() {
-    }
-
-    @Override
-    public MessageType type() {
-        return MessageType.PING_REQUEST;
+        this(MessageType.PING_REQUEST);
     }
 
     @Override
@@ -21,9 +16,7 @@ public class PingRequest extends Message {
         return buffer.array();
     }
 
-    public static PingRequest deserialize(byte[] bytes) {
-        ByteBuffer buffer = ByteBuffer.wrap(bytes);
-
+    public static PingRequest deserialize(ByteBuffer buffer) {
         int type = buffer.getInt();
         MessageType messageType = MessageType.fromValue(type);
         if (!messageType.equals(MessageType.PING_REQUEST))

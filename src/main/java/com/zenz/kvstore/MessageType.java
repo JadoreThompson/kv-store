@@ -1,11 +1,11 @@
 package com.zenz.kvstore;
 
 public enum MessageType {
-    PING_REQUEST(0),
-    PING_RESPONSE(1),
-    LOG_REQUEST(2),
-    LOG_RESPONSE(3);
-
+    PING_REQUEST(1),
+    PING_RESPONSE(2),
+    LOG_REQUEST(3),
+    LOG_RESPONSE(4),
+    BROKER_LOG_STATE_REQUEST(5);
     private final int value;
 
     private MessageType(int value) {

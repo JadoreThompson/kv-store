@@ -5,10 +5,9 @@ import com.zenz.kvstore.MessageType;
 import java.nio.ByteBuffer;
 
 
-public class PingResponse extends Message {
-    @Override
-    public MessageType type() {
-        return MessageType.PING_RESPONSE;
+public record PingResponse(MessageType type) implements Message {
+    public PingResponse() {
+        this(MessageType.PING_RESPONSE);
     }
 
     @Override

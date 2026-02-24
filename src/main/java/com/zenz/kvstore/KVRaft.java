@@ -1,7 +1,10 @@
 package com.zenz.kvstore;
 
+import com.zenz.kvstore.messages.BrokerLogStateRequest;
 import com.zenz.kvstore.messages.Message;
 import com.zenz.kvstore.messages.PingResponse;
+import com.zenz.kvstore.operations.Operation;
+import com.zenz.kvstore.operations.RaftOperation;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
@@ -10,15 +13,21 @@ import java.nio.charset.StandardCharsets;
 import java.util.*;
 
 public class KVRaft {
-    private KVRaftRole role;
     private Selector selector;
     private ServerSocketChannel serverSocketChannel;
     private HashMap<SocketChannel, Queue<ByteBuffer>> pendingWrites;
+    // brokerId -> {}
+    private HashMap<Long, ClientSession> sessions;
+    private KVRaftRole role;
     private boolean running;
+    // log id -> {}
+    private HashMap<Long, InFlightMessage> inFlightMessages;
 
     public KVRaft(KVRaftRole role) throws IOException {
-        pendingWrites = new HashMap<>();
         this.role = role;
+        running = false;
+        pendingWrites = new HashMap<>();
+        inFlightMessages = new HashMap<>();
     }
 
     public void start() throws IOException {
@@ -26,6 +35,8 @@ public class KVRaft {
         serverSocketChannel = ServerSocketChannel.open();
         serverSocketChannel.configureBlocking(false);
         serverSocketChannel.register(selector, SelectionKey.OP_ACCEPT);
+
+        running = true;
 
         while (running) {
             selector.select();
@@ -107,14 +118,19 @@ public class KVRaft {
 
         // Clearing current message from buffer
         buffer.clear();
+        SocketChannel channel = session.getChannel();
         ByteBuffer respBuffer;
+
         if (message.type().equals(MessageType.PING_REQUEST)) {
+//            respBuffer = ByteBuffer.wrap(new PingResponse().serialize());
             respBuffer = ByteBuffer.wrap(new PingResponse().serialize());
+        } else if (message.type().equals(MessageType.BROKER_LOG_STATE_REQUEST)) {
+            respBuffer = handleBrokerLogStateRequest((BrokerLogStateRequest) message, channel);
         } else {
             respBuffer = ByteBuffer.wrap("ERROR: Unknown operation type".getBytes(StandardCharsets.UTF_8));
         }
 
-        queueWrite(session.getChannel(), respBuffer);
+        queueWrite(channel, respBuffer);
     }
 
     private void queueWrite(SocketChannel channel, ByteBuffer data) {
@@ -126,6 +142,28 @@ public class KVRaft {
             key.interestOps(key.interestOps() | SelectionKey.OP_WRITE);
             selector.wakeup();
         }
+    }
+
+    private ByteBuffer handleBrokerLogStateRequest(BrokerLogStateRequest message, SocketChannel channel) throws IOException {
+        SelectionKey key = channel.keyFor(selector);
+
+        ClientSession session = sessions.get(message.brokerId());
+        if (session == null) {
+            session = new ClientSession(channel, message.brokerId());
+            key.attach(session);
+            sessions.put(session.getBrokerId(), session);
+        }
+
+        BrokerLogState curLogState = session.getLogState();
+        if (curLogState != null) {
+            if (message.id() > curLogState.id + 1) {
+                return ByteBuffer.wrap(("ERROR Skipping ahead. Last known log id " + curLogState.id).getBytes(StandardCharsets.UTF_8));
+            }
+        }
+
+        session.setLogState(new BrokerLogState(message.id(), message.term(), message.operation()));
+
+        return ByteBuffer.wrap("OK".getBytes(StandardCharsets.UTF_8));
     }
 
     public void handleWrite(SelectionKey key) throws IOException {
@@ -157,6 +195,28 @@ public class KVRaft {
         }
     }
 
+    public void handleCommand(RaftOperation operation) {
+        Collection<ClientSession> s = sessions.values();
+        ArrayList<SocketChannel> toSend = new ArrayList<>();
+        int count = 0;
+
+        for (ClientSession session : s) {
+            if (session.logState == null || session.logState.id + 1 < operation.id()) continue;
+            count++;
+            toSend.add(session.getChannel());
+        }
+
+        if (count > 0) {
+            int majority = count / 2 + 1;
+            InFlightMessage inFlight = new InFlightMessage(majority, 0, operation);
+            inFlightMessages.put(operation.id(), inFlight);
+
+            for (SocketChannel channel : toSend) {
+                queueWrite(channel, ByteBuffer.wrap(operation.serialize()));
+            }
+        }
+    }
+
     public void cleanup(SelectionKey key) throws IOException {
         if (!key.isValid()) return;
         SelectableChannel channel = key.channel();
@@ -177,12 +237,20 @@ public class KVRaft {
     private static class ClientSession {
         private static final int BUFFER_SIZE = 8192;
 
+        private final long brokerId;
         private final SocketChannel channel;
         private final ByteBuffer readBuffer;
+        private final BrokerLogState logState;
 
-        ClientSession(SocketChannel client) {
+        ClientSession(SocketChannel client, long brokerId) {
             this.channel = client;
+            this.brokerId = brokerId;
             this.readBuffer = ByteBuffer.allocate(BUFFER_SIZE);
+            this.logState = null;
+        }
+
+        long getBrokerId() {
+            return brokerId;
         }
 
         SocketChannel getChannel() {
@@ -191,6 +259,53 @@ public class KVRaft {
 
         ByteBuffer getReadBuffer() {
             return readBuffer;
+        }
+
+        BrokerLogState getLogState() {
+            return logState;
+        }
+
+        void setLogState(BrokerLogState logState) {
+        }
+    }
+
+    private static class BrokerLogState {
+        public long id;
+        public long term;
+        public Operation operation;
+
+        public BrokerLogState(long id, long term, Operation operation) {
+            this.id = id;
+            this.term = term;
+            this.operation = operation;
+        }
+    }
+
+    private static class InFlightMessage {
+        private final int majority;
+        private final int count;
+        private final RaftOperation operation;
+
+        public InFlightMessage(int majority, int count, RaftOperation operation) {
+            this.majority = majority;
+            this.count = count;
+            this.operation = operation;
+        }
+
+        public int getMajority() {
+            return majority;
+        }
+
+        public int getCount() {
+            return count;
+        }
+
+        public void setCount(int count) {
+            count = count;
+        }
+
+        public RaftOperation getOperation() {
+            return operation;
         }
     }
 }

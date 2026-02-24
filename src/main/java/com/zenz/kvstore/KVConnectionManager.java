@@ -15,6 +15,9 @@ import java.util.*;
  * Examples:
  * PUT mykey myvalue
  * GET mykey
+ * <p>
+ * Uses CommandProcessor to handle operations, allowing for both
+ * single-node (DirectCommandProcessor) and Raft (KVRaftCommandProcessor) modes.
  */
 public class KVConnectionManager {
     private static final int BUFFER_SIZE = 8192;
@@ -23,15 +26,37 @@ public class KVConnectionManager {
     private ServerSocketChannel serverChannel;
     private volatile boolean running = true;
 
-    private final KVStore store;
+    private final CommandProcessor processor;
     private final String host;
     private final int port;
 
     // Track pending writes per channel
     private final Map<SocketChannel, Queue<ByteBuffer>> pendingWrites = new HashMap<>();
 
+    /**
+     * Creates a KVConnectionManager with a CommandProcessor.
+     * Use this constructor for flexibility (single-node or Raft mode).
+     *
+     * @param host     the host address to bind to
+     * @param port     the port to listen on
+     * @param processor the CommandProcessor to handle operations
+     */
+    public KVConnectionManager(String host, int port, CommandProcessor processor) {
+        this.processor = processor;
+        this.host = host;
+        this.port = port;
+    }
+
+    /**
+     * Legacy constructor for backward compatibility.
+     * Creates a DirectCommandProcessor wrapping the store.
+     *
+     * @param host  the host address to bind to
+     * @param port  the port to listen on
+     * @param store the KVStore to use
+     */
     public KVConnectionManager(String host, int port, KVStore store) {
-        this.store = store;
+        this.processor = new DirectCommandProcessor(store);
         this.host = host;
         this.port = port;
     }
@@ -144,7 +169,8 @@ public class KVConnectionManager {
     }
 
     /**
-     * Process received data - parse commands and execute operations
+     * Process received data - parse commands and submit to CommandProcessor.
+     * Uses async callbacks to avoid blocking the NIO thread.
      */
     private boolean processData(ClientSession session, ByteBuffer buffer) {
         byte[] bytes = new byte[buffer.remaining()];
@@ -162,51 +188,53 @@ public class KVConnectionManager {
             if (line.isBlank()) continue;
 
             System.out.println("Received command: " + line);
-            String response = processCommand(line.trim());
-            System.out.println("Sending response: " + response);
-            if (response != null) {
-                ByteBuffer responseBuffer = ByteBuffer.wrap((response + "\n").getBytes(StandardCharsets.UTF_8));
-                queueWrite(session.getClient(), responseBuffer);
-            }
+            processCommandAsync(session, line.trim());
         }
 
         return true;
     }
 
     /**
-     * Process a single command and return the response
+     * Process a single command asynchronously using the CommandProcessor.
+     * The response is queued for write when the future completes.
      */
-    private String processCommand(String line) {
+    private void processCommandAsync(ClientSession session, String line) {
         String[] parts = line.split(" ");
 
         if (parts.length == 0) {
-            return "ERROR: Empty command";
+            sendErrorResponse(session, "ERROR: Empty command");
+            return;
         }
 
         String operation = parts[0].toUpperCase();
 
         try {
+            // Handle PING synchronously (no store interaction needed)
             if (operation.equals("PING")) {
-                return "PONG";
+                ByteBuffer responseBuffer = ByteBuffer.wrap("PONG\n".getBytes(StandardCharsets.UTF_8));
+                queueWrite(session.getClient(), responseBuffer);
+                return;
             }
 
             OperationType opType = OperationType.valueOf(operation);
-            return switch (opType) {
-                case PUT -> handlePut(parts);
-                case GET -> handleGet(parts);
-                default -> "ERROR: Unknown operation '" + operation + "'";
-            };
-        } catch (IOException | IllegalArgumentException e) {
-            return "ERROR: " + e.getMessage();
+
+            switch (opType) {
+                case PUT -> handlePutAsync(session, parts);
+                case GET -> handleGetAsync(session, parts);
+                default -> sendErrorResponse(session, "ERROR: Unknown operation '" + operation + "'");
+            }
+        } catch (IllegalArgumentException e) {
+            sendErrorResponse(session, "ERROR: Unknown operation '" + operation + "'");
         }
     }
 
     /**
-     * Handle PUT command: PUT <key> <value>
+     * Handle PUT command asynchronously: PUT <key> <value>
      */
-    private String handlePut(String[] parts) throws IOException {
+    private void handlePutAsync(ClientSession session, String[] parts) {
         if (parts.length < 3) {
-            return "ERROR: PUT requires <key> and <value>";
+            sendErrorResponse(session, "ERROR: PUT requires <key> and <value>");
+            return;
         }
 
         String key = parts[1];
@@ -219,27 +247,70 @@ public class KVConnectionManager {
         }
 
         byte[] value = valueBuilder.toString().getBytes(StandardCharsets.UTF_8);
-        store.put(key, value);
 
-        return "OK";
+        try {
+            processor.handlePut(key, value)
+                .thenAccept(responseBuffer -> {
+                    // Add newline and queue for write
+                    byte[] respArr = responseBuffer.array();
+                    ByteBuffer wrapped = ByteBuffer.allocate(respArr.length + 1);
+                    wrapped.put(respArr);
+                    wrapped.put((byte) '\n');
+                    wrapped.flip();
+                    
+                    queueWrite(session.getClient(), wrapped);
+                    System.out.println("Sending response: " + new String(wrapped.array(), StandardCharsets.UTF_8).trim());
+                })
+                .exceptionally(ex -> {
+                    System.err.println("Error processing PUT: " + ex.getMessage());
+                    sendErrorResponse(session, "ERROR: " + ex.getMessage());
+                    return null;
+                });
+        } catch (IOException e) {
+            sendErrorResponse(session, "ERROR: " + e.getMessage());
+        }
     }
 
     /**
-     * Handle GET command: GET <key>
+     * Handle GET command asynchronously: GET <key>
      */
-    private String handleGet(String[] parts) throws IOException {
+    private void handleGetAsync(ClientSession session, String[] parts) {
         if (parts.length < 2) {
-            return "ERROR: GET requires <key>";
+            sendErrorResponse(session, "ERROR: GET requires <key>");
+            return;
         }
 
         String key = parts[1];
-        KVMap.Node node = store.get(key);
 
-        if (node == null) {
-            return "NULL";
+        try {
+            processor.handleGet(key)
+                .thenAccept(responseBuffer -> {
+                    // Add newline and queue for write
+                    byte[] respArr = responseBuffer.array();
+                    ByteBuffer wrapped = ByteBuffer.allocate(respArr.length + 1);
+                    wrapped.put(respArr);
+                    wrapped.put((byte) '\n');
+                    wrapped.flip();
+                    
+                    queueWrite(session.getClient(), wrapped);
+                    System.out.println("Sending response: " + new String(wrapped.array(), StandardCharsets.UTF_8).trim());
+                })
+                .exceptionally(ex -> {
+                    System.err.println("Error processing GET: " + ex.getMessage());
+                    sendErrorResponse(session, "ERROR: " + ex.getMessage());
+                    return null;
+                });
+        } catch (IOException e) {
+            sendErrorResponse(session, "ERROR: " + e.getMessage());
         }
+    }
 
-        return "OK " + new String(node.value, StandardCharsets.UTF_8);
+    /**
+     * Send an error response to the client
+     */
+    private void sendErrorResponse(ClientSession session, String error) {
+        ByteBuffer responseBuffer = ByteBuffer.wrap((error + "\n").getBytes(StandardCharsets.UTF_8));
+        queueWrite(session.getClient(), responseBuffer);
     }
 
     /**
@@ -302,10 +373,6 @@ public class KVConnectionManager {
         } catch (Exception e) {
             e.printStackTrace();
         }
-    }
-
-    public KVStore getStore() {
-        return store;
     }
 
     /**

@@ -4,7 +4,8 @@ import com.zenz.kvstore.MessageType;
 
 import java.nio.ByteBuffer;
 
-public abstract class Message {
+//public abstract class Message {
+public interface Message {
     public abstract MessageType type();
 
     public static Message fromString(String value) {
@@ -21,18 +22,18 @@ public abstract class Message {
         throw new UnsupportedOperationException();
     }
 
-    public byte[] serialize() {
-        throw new UnsupportedOperationException();
-    }
+    public abstract byte[] serialize();
 
-    public static Message deserialize(ByteBuffer value) {
-        int type = value.getInt();
+    public static Message deserialize(ByteBuffer buffer) {
+        int type = buffer.getInt();
         MessageType messageType = MessageType.fromValue(type);
+        buffer.rewind();
 
-        if (messageType.equals(MessageType.PING_REQUEST)) return PingRequest.deserialize(value);
-        if (messageType.equals(MessageType.PING_RESPONSE)) return PingResponse.deserialize(value);
+        if (messageType.equals(MessageType.PING_REQUEST)) return PingRequest.deserialize(buffer);
+        if (messageType.equals(MessageType.PING_RESPONSE)) return PingResponse.deserialize(buffer);
+        if (messageType.equals(MessageType.BROKER_LOG_STATE_REQUEST)) return BrokerLogStateRequest.deserialize(buffer);
 
-        throw new IllegalArgumentException("Unknown message type: " + value);
+        throw new IllegalArgumentException("Unknown message type " + messageType.name());
     }
 
     @Override
