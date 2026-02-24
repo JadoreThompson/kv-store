@@ -9,16 +9,16 @@ import java.nio.channels.*;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
 
-public class KVRaftController {
-    private final int heartbeatIntervalMs;
+public class KVRaft {
+    private KVRaftRole role;
     private Selector selector;
     private ServerSocketChannel serverSocketChannel;
     private HashMap<SocketChannel, Queue<ByteBuffer>> pendingWrites;
     private boolean running;
 
-    public KVRaftController(int heartbeatIntervalMs) {
-        this.heartbeatIntervalMs = heartbeatIntervalMs;
+    public KVRaft(KVRaftRole role) throws IOException {
         pendingWrites = new HashMap<>();
+        this.role = role;
     }
 
     public void start() throws IOException {
@@ -90,36 +90,31 @@ public class KVRaftController {
     }
 
     private void processData(ClientSession session, ByteBuffer buffer) throws IOException {
-        byte[] bytes = new byte[buffer.remaining()];
-        buffer.get(bytes);
-        String message = new String(bytes, StandardCharsets.UTF_8).trim();
+        int currentPosition = buffer.position();
+        buffer.rewind();
 
-        if (message.isEmpty()) return;
-
-        String[] lines = message.split("\n");
-        for (String line : lines) {
-            if (line.isBlank()) continue;
-
-            System.out.println("Processing message: " + line);
-            String response = processMessage(line.trim());
-            System.out.println("Response: " + response);
-
-            ByteBuffer responseBuffer = ByteBuffer.wrap((response + "\n").getBytes(StandardCharsets.UTF_8));
-            queueWrite(session.getClient(), responseBuffer);
-        }
-    }
-
-    private String processMessage(String line) {
         Message message;
+
         try {
-            message = Message.fromString(line);
+            message = Message.deserialize(buffer);
         } catch (IllegalArgumentException e) {
-            return "ERROR: " + e.getMessage();
+            e.printStackTrace();
+            // Resetting position to original position as we assume there weren't
+            // enough bytes within the buffer to form a coherent message
+            buffer.position(currentPosition);
+            return;
         }
 
-        if (message.type().equals(MessageType.PING_REQUEST)) return new PingResponse().toString();
+        // Clearing current message from buffer
+        buffer.clear();
+        ByteBuffer respBuffer;
+        if (message.type().equals(MessageType.PING_REQUEST)) {
+            respBuffer = ByteBuffer.wrap(new PingResponse().serialize());
+        } else {
+            respBuffer = ByteBuffer.wrap("ERROR: Unknown operation type".getBytes(StandardCharsets.UTF_8));
+        }
 
-        return "ERROR: Unsupported message type " + message.type().toString();
+        queueWrite(session.getChannel(), respBuffer);
     }
 
     private void queueWrite(SocketChannel channel, ByteBuffer data) {
@@ -178,16 +173,16 @@ public class KVRaftController {
     private static class ClientSession {
         private static final int BUFFER_SIZE = 8192;
 
-        private final SocketChannel client;
+        private final SocketChannel channel;
         private final ByteBuffer readBuffer;
 
         ClientSession(SocketChannel client) {
-            this.client = client;
+            this.channel = client;
             this.readBuffer = ByteBuffer.allocate(BUFFER_SIZE);
         }
 
-        SocketChannel getClient() {
-            return client;
+        SocketChannel getChannel() {
+            return channel;
         }
 
         ByteBuffer getReadBuffer() {

@@ -5,6 +5,7 @@ import com.zenz.kvstore.operations.*;
 import java.io.File;
 import java.io.IOException;
 import java.nio.ByteBuffer;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
 
@@ -52,7 +53,6 @@ public class KVRaftStore extends KVStore {
 
         KVRaftStore store = new KVRaftStore(builder);
         store.setLoggingEnabled(false);
-        System.out.println("Initiating the restoration process");
         restoreState(store, snapshotter);
         store.setLoggingEnabled(true);
         return store;
@@ -86,7 +86,9 @@ public class KVRaftStore extends KVStore {
     }
 
     protected static int applyLogs(File file, KVRaftStore store) throws IOException {
-        List<RaftOperation> operations = RaftOperation.parseRaftLogs(file);
+//        List<RaftOperation> operations = RaftOperation.parseRaftLogs(file);
+        ByteBuffer fileBuffer = ByteBuffer.wrap(Files.readAllBytes(file.toPath()));
+        List<RaftOperation> operations = RaftOperation.parseRaftLogs(fileBuffer);
 
         for (RaftOperation operation : operations) {
             if (operation.type().equals(OperationType.PUT)) {

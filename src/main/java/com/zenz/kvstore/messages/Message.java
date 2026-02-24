@@ -2,7 +2,6 @@ package com.zenz.kvstore.messages;
 
 import com.zenz.kvstore.MessageType;
 
-import java.io.InputStream;
 import java.nio.ByteBuffer;
 
 public abstract class Message {
@@ -27,7 +26,13 @@ public abstract class Message {
     }
 
     public static Message deserialize(ByteBuffer value) {
-        throw new UnsupportedOperationException();
+        int type = value.getInt();
+        MessageType messageType = MessageType.fromValue(type);
+
+        if (messageType.equals(MessageType.PING_REQUEST)) return PingRequest.deserialize(value);
+        if (messageType.equals(MessageType.PING_RESPONSE)) return PingResponse.deserialize(value);
+
+        throw new IllegalArgumentException("Unknown message type: " + value);
     }
 
     @Override

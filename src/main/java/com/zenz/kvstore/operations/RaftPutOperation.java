@@ -29,7 +29,6 @@ public record RaftPutOperation(long id, long term, String key, byte[] value) imp
     }
 
     public static RaftPutOperation deserialize(ByteBuffer buffer) {
-        System.out.println("Deserializing a buffer of length " + buffer.array().length);
         long id = buffer.getLong();
         long term = buffer.getLong();
         buffer.getInt(); // Skipping the type

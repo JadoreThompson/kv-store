@@ -2,11 +2,8 @@ package com.zenz.kvstore.operations;
 
 import com.zenz.kvstore.OperationType;
 
-import java.io.File;
 import java.io.IOException;
 import java.nio.ByteBuffer;
-import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -34,15 +31,8 @@ public interface RaftOperation {
         };
     }
 
-    public static List<RaftOperation> parseRaftLogs(File logFile) throws IOException {
+    public static List<RaftOperation> parseRaftLogs(ByteBuffer bb) throws IOException {
         List<RaftOperation> operations = new ArrayList<>();
-        byte[] allBytes = Files.readAllBytes(logFile.toPath());
-
-        if (allBytes.length == 0) {
-            return operations;
-        }
-
-        ByteBuffer bb = ByteBuffer.wrap(allBytes);
 
         while (bb.hasRemaining()) {
             long id = bb.getLong();

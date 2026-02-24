@@ -3,7 +3,6 @@ package com.zenz.kvstore.messages;
 import com.zenz.kvstore.MessageType;
 
 import java.nio.ByteBuffer;
-import java.nio.charset.StandardCharsets;
 
 public class PingRequest extends Message {
 
@@ -17,12 +16,8 @@ public class PingRequest extends Message {
 
     @Override
     public byte[] serialize() {
-        ByteBuffer buffer = ByteBuffer.allocate(1024);
-
+        ByteBuffer buffer = ByteBuffer.allocate(4);
         buffer.putInt(type().getValue());
-        buffer.put("PING".getBytes(StandardCharsets.UTF_8));
-        buffer.compact();
-
         return buffer.array();
     }
 
@@ -30,7 +25,8 @@ public class PingRequest extends Message {
         ByteBuffer buffer = ByteBuffer.wrap(bytes);
 
         int type = buffer.getInt();
-        if (type != MessageType.PING_REQUEST.getValue())
+        MessageType messageType = MessageType.fromValue(type);
+        if (!messageType.equals(MessageType.PING_REQUEST))
             throw new IllegalArgumentException(
                     "Invalid type "
                             + type

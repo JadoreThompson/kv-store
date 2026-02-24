@@ -107,7 +107,6 @@ class KVRaftStoreTest {
             long term = bb.getLong();
             int typeValue = bb.getInt();
             OperationType operationType = OperationType.fromValue(typeValue);
-            System.out.println("Parsing log for operation of type " + operationType.name() + " id=" + id + " type=" + operationType.name());
 
             if (operationType.equals(OperationType.PUT)) {
                 ByteBuffer _buffer = ByteBuffer.allocate(10240);
@@ -127,26 +126,16 @@ class KVRaftStoreTest {
                 byte[] value = new byte[valueLength];
                 bb.get(value);
                 _buffer.put(value);
-                System.out.println(
-                        "id=" + id +
-                                ", term=" + term +
-                                ", type=" + typeValue +
-                                ", keyLength=" + keyLength +
-                                ", key=" + new String(key) +
-                                ", valueLength=" + valueLength +
-                                ", value=" + new String(value)
-                );
 
                 _buffer.flip();
                 RaftPutOperation operation = RaftPutOperation.deserialize(_buffer);
-                System.out.println("Operation: " + operation.toString());
 
-                char c = (char) bb.get(); // Getting the new line character
-                System.out.println("Skipping character: " + (c == '\n'));
 //                bb.mark();
 //                long nextId = bb.getLong();
 //                System.out.println("Next id: " + nextId);
 //                bb.reset();
+                // Skipping the new line character
+                bb.get();
                 operations.add(operation);
             } else if (operationType.equals(OperationType.GET)) {
                 ByteBuffer _buffer = ByteBuffer.allocate(10240);
@@ -163,15 +152,8 @@ class KVRaftStoreTest {
                 _buffer.compact();
 
                 _buffer.flip();
-                System.out.println(
-                        "Parsing GET operation id=" + id +
-                                ", term=" + term +
-                                ", type=" + typeValue +
-                                ", keyLength=" + keyLength +
-                                ", key=" + new String(key)
-                );
+
                 RaftGetOperation operation = RaftGetOperation.deserialize(_buffer);
-                System.out.println("Operation: " + operation.toString());
                 bb.get(); // Getting the new line character
                 operations.add(operation);
             }
@@ -409,10 +391,6 @@ class KVRaftStoreTest {
         List<RaftOperation> operations = parseRaftLogs(logFile);
 
         assertEquals(4, operations.size(), "WAL should have exactly 4 entries");
-
-        for (RaftOperation operation : operations) {
-            System.out.println(operation);
-        }
 
         // Verify each operation
         assertEquals(OperationType.PUT, operations.get(0).type(), "Line 1 should be PUT");

@@ -1,49 +1,12 @@
 package com.zenz.kvstore;
 
-import javax.print.DocFlavor;
 import java.io.IOException;
-import java.nio.ByteBuffer;
-import java.nio.channels.FileChannel;
-import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.StandardOpenOption;
 
 public class Main {
     private static final String DEFAULT_HOST = "localhost";
     private static final int DEFAULT_PORT = 6767;
 
     public static void main(String[] args) throws IOException {
-        Path fpath = Path.of("test");
-        if (!Files.exists(fpath)) fpath.toFile().createNewFile();
-        FileChannel channel = FileChannel.open(fpath, StandardOpenOption.APPEND);
-        ByteBuffer src = ByteBuffer.wrap("Hello".getBytes());
-        channel.write(src);
-        channel.write(ByteBuffer.wrap("\n".getBytes(StandardCharsets.UTF_8)));
-        src = ByteBuffer.wrap("Hello".getBytes());
-        channel.write(src);
-        channel.force(true);
-
-        byte[] bytes = Files.readAllBytes(fpath);
-        for (byte b : bytes) {
-            System.out.println((char) b);
-        }
-
-//        byte[] arr = Files.readAllBytes(fpath);
-//        ByteBuffer bb = ByteBuffer.wrap(arr);
-//
-//        StringBuilder builder = new StringBuilder();
-//        bb.position(0);
-//        bb.limit(bb.capacity());
-//
-//        for (byte b : bb.array()) {
-//            System.out.print((char) b == 'l');
-//            builder.append((char) b);
-//        }
-//
-//        System.out.println(builder.toString());
-
-
         String host = DEFAULT_HOST;
         int port = DEFAULT_PORT;
 

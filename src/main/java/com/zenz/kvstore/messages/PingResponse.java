@@ -20,6 +20,10 @@ public class PingResponse extends Message {
 
     public static PingResponse deserialize(ByteBuffer buffer) {
         // Type is already read by the caller
+        int type = buffer.getInt();
+        MessageType messageType = MessageType.fromValue(type);
+        if (!messageType.equals(MessageType.PING_RESPONSE))
+            throw new IllegalArgumentException("Invalid message type " + messageType.name());
         return new PingResponse();
     }
 
