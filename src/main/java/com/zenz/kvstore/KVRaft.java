@@ -170,6 +170,10 @@ public class KVRaft {
         }
     }
 
+    public KVRaftRole getRole() {
+        return role;
+    }
+
     private static class ClientSession {
         private static final int BUFFER_SIZE = 8192;
 
