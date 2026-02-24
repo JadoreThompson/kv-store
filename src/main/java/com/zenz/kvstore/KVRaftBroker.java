@@ -1,9 +1,6 @@
 package com.zenz.kvstore;
 
-import com.zenz.kvstore.messages.LeaderElected;
-import com.zenz.kvstore.messages.Message;
-import com.zenz.kvstore.messages.VoteRequest;
-import com.zenz.kvstore.messages.VoteResponse;
+import com.zenz.kvstore.messages.*;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
@@ -14,6 +11,9 @@ import java.nio.channels.ServerSocketChannel;
 import java.nio.channels.SocketChannel;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Brokers are both servers and clients. They must be servers
@@ -27,9 +27,14 @@ public class KVRaftBroker {
     private ArrayList<InetSocketAddress> peerAddrs = new ArrayList<>();
     private InetSocketAddress controllerAddr;
 
+    // Server
     private ServerSocketChannel serverSocketChannel;
     private Selector serverSelector;
     private HashMap<SocketChannel, Queue<ByteBuffer>> pendingWrites;
+    // Controller Client
+    private SocketChannel clientSocketChannel;
+    private Selector clientSelector;
+
     private boolean running = false;
 
     // -1: Not looking for votes
@@ -256,12 +261,115 @@ public class KVRaftBroker {
         }
     }
 
+    public void sendVoteRequest(VoteRequest request) {
+        int count = 0;
+        for (SelectionKey key : serverSelector.keys()) {
+            count++;
+            SocketChannel channel = (SocketChannel) key.channel();
+            queueWrite(channel, ByteBuffer.wrap(request.serialize()));
+        }
+
+        majority = count / 2 + 1;
+    }
+
     private void connectToController() throws IOException {
-        Selector selector = Selector.open();
-        SocketChannel channel = SocketChannel.open(controllerAddr);
+//        Selector selector = Selector.open();
+//        SocketChannel channel = SocketChannel.open(controllerAddr);
+        clientSelector = Selector.open();
+        clientSocketChannel = SocketChannel.open(controllerAddr);
+
+//        channel.configureBlocking(false);
+//        channel.register(selector, SelectionKey.OP_CONNECT);
+        clientSocketChannel.configureBlocking(false);
+        clientSocketChannel.register(clientSelector, SelectionKey.OP_CONNECT);
+
+        ScheduledExecutorService scheduledExecutorService = Executors.newSingleThreadScheduledExecutor();
+        scheduledExecutorService.scheduleAtFixedRate(
+                () -> {
+                    try {
+                        sendHeartbeat();
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+                }, 0, 1000, TimeUnit.MILLISECONDS
+        );
+
+        while (running) {
+            int readyCount = clientSelector.select();
+            if (readyCount == 0) continue;
+
+            Iterator<SelectionKey> iterator = clientSelector.selectedKeys().iterator();
+            while (iterator.hasNext()) {
+                SelectionKey key = iterator.next();
+                iterator.remove();
+
+                if (!key.isValid()) continue;
+
+                try {
+                    if (key.isConnectable()) handleClientConnect(key);
+                    else if (key.isReadable()) handleClientRead(key);
+                    else if (key.isWritable()) handleClientWrite(key);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                    cleanup(key);
+                }
+            }
+        }
+    }
+
+    /**
+     * Periodically ends heartbeat messages to a controller
+     */
+    private void sendHeartbeat() throws InterruptedException {
+        Random random = new Random();
+        int duration = random.nextInt(2000);
+        Thread.sleep(duration);
+
+        PingRequest request = new PingRequest();
+        byte[] requestBytes = request.serialize();
+        queueClientWrite(clientSocketChannel, ByteBuffer.wrap(requestBytes));
+    }
+
+    private void queueClientWrite(SocketChannel channel, ByteBuffer data) {
+        Queue<ByteBuffer> queue = pendingWrites.computeIfAbsent(channel, k -> new LinkedList<>());
+        queue.offer(data.duplicate());
+
+        SelectionKey key = channel.keyFor(clientSelector);
+        if (key != null && key.isValid()) {
+            key.interestOps(key.interestOps() | SelectionKey.OP_WRITE);
+            clientSelector.wakeup();
+        }
+    }
+
+    private void handleClientConnect(SelectionKey key) throws IOException {
+        SocketChannel channel = (SocketChannel) key.channel();
 
         channel.configureBlocking(false);
-        channel.register(selector, SelectionKey.OP_CONNECT);
+        channel.socket().setKeepAlive(true);
+        channel.socket().setTcpNoDelay(true);
+
+        key.attach(new ClientSession(channel));
+    }
+
+    private void handleClientRead(SelectionKey key) throws IOException {
+        SocketChannel channel = (SocketChannel) key.channel();
+        ClientSession session = (ClientSession) key.attachment();
+
+        ByteBuffer readBuffer = session.getReadBuffer();
+        int readCount = channel.read(readBuffer);
+        readBuffer.clear();
+
+        if (readCount == -1) {
+            // Start the election process.
+            long nextTerm = store.getTerm() + 1;
+            long logId = store.getLogId();
+            VoteRequest request = new VoteRequest(nextTerm, logId, brokerId);
+            sendVoteRequest(request);
+            cleanup(key); // Close the connection to the dead controller
+        }
+    }
+
+    private void handleClientWrite(SelectionKey key) throws IOException {
     }
 
     public void cleanup(SelectionKey key) throws IOException {
