@@ -15,12 +15,12 @@ import java.util.concurrent.Executors;
 public class KVRaftControllerCommandProcessor implements CommandProcessor {
     private final Executor executor;
     private final KVRaftStore store;
-    private final KVRaftController raft;
+    private final KVRaftController controller;
 
-    public KVRaftControllerCommandProcessor(KVRaftStore store, KVRaftController raft) {
+    public KVRaftControllerCommandProcessor(KVRaftStore store, KVRaftController controller) {
         executor = Executors.newFixedThreadPool(3);
         this.store = store;
-        this.raft = raft;
+        this.controller = controller;
     }
 
     @Override
@@ -29,7 +29,7 @@ public class KVRaftControllerCommandProcessor implements CommandProcessor {
 
         long nextId = store.getLogId() + 1;
         RaftOperation raftOperation = new RaftPutOperation(nextId, store.getTerm(), key, value);
-        executor.execute(() -> raft.handleCommand(raftOperation));
+        executor.execute(() -> controller.handleCommand(raftOperation));
 
         CompletableFuture<ByteBuffer> future = new CompletableFuture<>();
         future.complete(ByteBuffer.wrap("OK".getBytes(StandardCharsets.UTF_8)));
@@ -42,7 +42,7 @@ public class KVRaftControllerCommandProcessor implements CommandProcessor {
 
         long nextId = store.getLogId() + 1;
         RaftOperation raftOperation = new RaftGetOperation(nextId, store.getTerm(), key);
-        executor.execute(() -> raft.handleCommand(raftOperation));
+        executor.execute(() -> controller.handleCommand(raftOperation));
 
         CompletableFuture<ByteBuffer> future = new CompletableFuture<>();
 

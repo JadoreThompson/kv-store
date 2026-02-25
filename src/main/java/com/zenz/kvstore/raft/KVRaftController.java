@@ -25,9 +25,9 @@ public class KVRaftController {
     private final int port;
     private Selector selector;
     private ServerSocketChannel serverSocketChannel;
-    private HashMap<SocketChannel, Queue<ByteBuffer>> pendingWrites;
-    private HashMap<Long, ClientSession> sessions;
-    private Deque<RaftOperation> commands;
+    private HashMap<SocketChannel, Queue<ByteBuffer>> pendingWrites = new HashMap<>();
+    private HashMap<Long, ClientSession> sessions = new HashMap<>();
+    private Deque<RaftOperation> commands = new ArrayDeque<>();
     private int commandsPerFlush;
     private boolean running = false;
 

@@ -1,11 +1,6 @@
 package main.java.com.zenz.kvstore;
 
-import com.zenz.kvstore.KVMap;
-import com.zenz.kvstore.KVRaftStore;
-import com.zenz.kvstore.KVStore;
-import com.zenz.kvstore.KVMapSnapshotter;
-import com.zenz.kvstore.OperationType;
-import com.zenz.kvstore.WALogger;
+import com.zenz.kvstore.*;
 import com.zenz.kvstore.operations.RaftGetOperation;
 import com.zenz.kvstore.operations.RaftOperation;
 import com.zenz.kvstore.operations.RaftPutOperation;
@@ -53,23 +48,8 @@ class KVRaftStoreTest {
 
         logsFolder.toFile().delete();
         snapshotsFolder.toFile().delete();
-//        deleteDirectory(logsFolder.toFile());
-//        deleteDirectory(snapshotsFolder.toFile());
     }
 
-    private void deleteDirectory(File directory) {
-        File[] files = directory.listFiles();
-        if (files != null) {
-            for (File file : files) {
-                if (file.isDirectory()) {
-                    deleteDirectory(file);
-                } else {
-                    file.delete();
-                }
-            }
-        }
-        directory.delete();
-    }
 
     // --- Reflection helpers for private constructor and fields ---
 
