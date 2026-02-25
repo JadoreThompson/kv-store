@@ -143,6 +143,16 @@ public class KVMap {
         return ht2;
     }
 
+    /**
+     * Clears all entries from the map.
+     */
+    public void clear() {
+        ht1 = new KVArray(INITIAL_CAPACITY);
+        ht2 = null;
+        rehashIdx = -1;
+        capacity = INITIAL_CAPACITY;
+    }
+
     public static class Node {
         //        public final String key;
         public String key;

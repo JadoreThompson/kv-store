@@ -100,7 +100,7 @@ public class KVRaftController {
         SocketChannel socketChannel = channel.accept();
 
         socketChannel.configureBlocking(false);
-        channel.register(selector, SelectionKey.OP_READ);
+        socketChannel.register(selector, SelectionKey.OP_READ);
     }
 
     public void handleRead(SelectionKey key) throws IOException {
@@ -193,7 +193,6 @@ public class KVRaftController {
             File snapshotFile = files[files.length - 1];
             return ByteBuffer.wrap(new ControllerLogStateResponse(ControllerLogStateResponse.Type.SNAPSHOT, Files.readAllBytes(snapshotFile.toPath()), null).serialize());
         }
-
 
         RaftOperation front = commands.getFirst();
 

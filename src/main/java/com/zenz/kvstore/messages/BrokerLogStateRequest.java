@@ -5,8 +5,13 @@ import com.zenz.kvstore.operations.Operation;
 
 import java.nio.ByteBuffer;
 
-public record BrokerLogStateRequest(MessageType type, long brokerId, long id, long term,
-                                    Operation operation) implements Message {
+public record BrokerLogStateRequest(
+        MessageType type,
+        long brokerId,
+        long id,
+        long term,
+        Operation operation
+) implements Message {
     public BrokerLogStateRequest(long brokerId, long index, long term, Operation operation) {
         this(MessageType.BROKER_LOG_STATE_REQUEST, brokerId, index, term, operation);
     }
@@ -17,7 +22,7 @@ public record BrokerLogStateRequest(MessageType type, long brokerId, long id, lo
     }
 
     public byte[] serialize() {
-        byte[] opBytes = operation.serialize();
+        byte[] opBytes = operation != null ? operation.serialize() : new byte[0];
         ByteBuffer buffer = ByteBuffer.allocate(4 + 8 + 8 + 8 + 4 + opBytes.length);
 
         buffer.putInt(type().getValue());

@@ -110,7 +110,7 @@ public class KVRaftStore extends KVStore {
         return logId;
     }
 
-    protected void setLogId(long logId) {
+    public void setLogId(long logId) {
         this.logId = logId;
     }
 
@@ -120,6 +120,10 @@ public class KVRaftStore extends KVStore {
 
     public void setTerm(long term) {
         this.term = term;
+    }
+
+    public WALogger getLogger() {
+        return logger;
     }
 
     public static class Builder extends KVStore.Builder<Builder> {
@@ -136,6 +140,4 @@ public class KVRaftStore extends KVStore {
             return load(this);
         }
     }
-
-
 }

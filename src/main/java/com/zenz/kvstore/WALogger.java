@@ -10,8 +10,10 @@ import java.nio.file.StandardOpenOption;
 
 public class WALogger {
     private FileChannel channel;
+    private Path path;
 
     public WALogger(String fPath) throws IOException {
+        path = Path.of(fPath);
         File file = new File(fPath);
 
         if (!file.exists()) {
@@ -69,5 +71,13 @@ public class WALogger {
 
     public void close() throws IOException {
         channel.close();
+    }
+
+    public FileChannel getChannel() {
+        return channel;
+    }
+
+    public Path getPath() {
+        return path;
     }
 }

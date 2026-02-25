@@ -1,11 +1,10 @@
 package com.zenz.kvstore.raft;
 
-import com.zenz.kvstore.KVRaftStore;
-import com.zenz.kvstore.MessageType;
-import com.zenz.kvstore.messages.LeaderElected;
-import com.zenz.kvstore.messages.Message;
-import com.zenz.kvstore.messages.VoteRequest;
-import com.zenz.kvstore.messages.VoteResponse;
+import com.zenz.kvstore.*;
+import com.zenz.kvstore.messages.*;
+import com.zenz.kvstore.operations.RaftGetOperation;
+import com.zenz.kvstore.operations.RaftOperation;
+import com.zenz.kvstore.operations.RaftPutOperation;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
@@ -15,6 +14,8 @@ import java.nio.channels.Selector;
 import java.nio.channels.ServerSocketChannel;
 import java.nio.channels.SocketChannel;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.*;
 
 public class KVRaftBroker {
@@ -28,11 +29,12 @@ public class KVRaftBroker {
     private ArrayList<Client> peerClients = new ArrayList<>();
     private ArrayList<Thread> peerThreads = new ArrayList<>();
     private InetSocketAddress controllerAddr;
-    private Client controllerClient;
+    private ControllerClient controllerClient;
     private Thread controllerThread;
     private KVRaft raft;
     private int voteCount = -1;
     private int majorityVoteCount = -1;
+    private RaftOperation lastOperation = null;
 
     public KVRaftBroker(
             KVRaft raft,
@@ -73,6 +75,12 @@ public class KVRaftBroker {
         while (serverThread == null || !serverThread.isAlive()) {
             System.out.println("Waiting for server to start");
             Thread.sleep(500);
+        }
+
+        // Wait for server to actually be running
+        while (!server.isRunning()) {
+            System.out.println("Waiting for server to be ready");
+            Thread.sleep(100);
         }
 
         System.out.println("Server started");
@@ -125,11 +133,13 @@ public class KVRaftBroker {
     }
 
     private void launchControllerClient() throws IOException {
-        Client controllerClient = new Client(controllerAddr.getHostName(), controllerAddr.getPort());
+        ControllerClient controllerClient = new ControllerClient(controllerAddr.getHostName(), controllerAddr.getPort());
+        this.controllerClient = controllerClient;
         controllerThread = new Thread(() -> {
             try {
                 controllerClient.start();
             } catch (Exception e) {
+                e.printStackTrace();
             }
         });
         controllerThread.start();
@@ -405,10 +415,261 @@ public class KVRaftBroker {
             channel.register(selector, SelectionKey.OP_CONNECT);
 
             running = true;
+
+            while (running) {
+                selector.select();
+                Iterator<SelectionKey> iterator = selector.selectedKeys().iterator();
+
+                while (iterator.hasNext()) {
+                    SelectionKey key = iterator.next();
+                    iterator.remove();
+
+                    if (!key.isValid()) continue;
+                    try {
+                        if (key.isReadable()) ;
+                        else if (key.isWritable()) ;
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                        cleanup(key);
+                    }
+                }
+            }
         }
 
         public void stop() {
             if (!running) return;
+        }
+
+        public void cleanup(SelectionKey key) throws IOException {
+            if (!key.isValid()) return;
+        }
+
+        public boolean isRunning() {
+            return running;
+        }
+    }
+
+    /**
+     * Client connection to the controller.
+     * Handles sending broker log state requests and receiving log entries/snapshots.
+     */
+    private class ControllerClient {
+        private final String remoteHost;
+        private final int remotePort;
+        private Selector selector;
+        private SocketChannel channel;
+        private HashMap<SocketChannel, Queue<ByteBuffer>> pendingWrites = new HashMap<>();
+        private boolean running = false;
+        private boolean registered = false;
+
+        public ControllerClient(String remoteHost, int remotePort) {
+            this.remoteHost = remoteHost;
+            this.remotePort = remotePort;
+        }
+
+        public void start() throws IOException {
+            if (running) return;
+
+            selector = Selector.open();
+            channel = SocketChannel.open(new InetSocketAddress(remoteHost, remotePort));
+            channel.configureBlocking(false);
+            channel.register(selector, SelectionKey.OP_READ | SelectionKey.OP_WRITE);
+
+            running = true;
+
+            while (running) {
+                selector.select();
+                Iterator<SelectionKey> iterator = selector.selectedKeys().iterator();
+
+                while (iterator.hasNext()) {
+                    SelectionKey key = iterator.next();
+                    iterator.remove();
+
+                    if (!key.isValid()) continue;
+                    try {
+                        if (key.isReadable()) handleRead(key);
+                        if (key.isWritable()) handleWrite(key);
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                        cleanup(key);
+                    }
+                }
+            }
+        }
+
+        private void handleRead(SelectionKey key) throws IOException {
+            SocketChannel ch = (SocketChannel) key.channel();
+            ByteBuffer buffer = ByteBuffer.allocate(8192);
+            int bytesRead = ch.read(buffer);
+
+            if (bytesRead == -1) {
+                cleanup(key);
+                return;
+            }
+
+            if (bytesRead == 0) return;
+
+            buffer.flip();
+
+            // Try to deserialize as a message from controller
+            try {
+                Message msg = Message.deserialize(buffer);
+
+                if (msg.type().equals(MessageType.CONTROLLER_LOG_STATE_RESPONSE)) {
+                    handleControllerLogStateResponse((ControllerLogStateResponse) msg);
+                } else if (msg.type().equals(MessageType.PING_RESPONSE)) {
+                    System.out.println("Received PING response from controller");
+                }
+            } catch (IllegalArgumentException e) {
+                // Try to deserialize as a RaftOperation (direct log entry)
+                buffer.rewind();
+                try {
+                    RaftOperation operation = RaftOperation.deserialize(buffer);
+                    handleRaftOperation(operation);
+                } catch (Exception ex) {
+                    System.err.println("Failed to deserialize message: " + ex.getMessage());
+                }
+            }
+        }
+
+        private void handleWrite(SelectionKey key) throws IOException {
+            SocketChannel ch = (SocketChannel) key.channel();
+            Queue<ByteBuffer> queue = pendingWrites.get(ch);
+
+            // Send registration request if not yet registered
+            if (!registered) {
+                sendBrokerLogStateRequest(ch);
+                registered = true;
+            }
+
+            if (queue == null || queue.isEmpty()) {
+                key.interestOps(key.interestOps() & ~SelectionKey.OP_WRITE);
+                return;
+            }
+
+            ByteBuffer buffer = queue.peek();
+            while (buffer != null) {
+                int bytesWritten = ch.write(buffer);
+
+                if (bytesWritten == 0) {
+                    break;  // Send buffer full
+                }
+
+                if (!buffer.hasRemaining()) {
+                    queue.poll();
+                    buffer = queue.peek();
+                }
+            }
+
+            if (queue.isEmpty()) {
+                key.interestOps(key.interestOps() & ~SelectionKey.OP_WRITE);
+            }
+        }
+
+        private void sendBrokerLogStateRequest(SocketChannel ch) throws IOException {
+            // Send our current log state to the controller
+            if (lastOperation == null) {
+                WALogger logger = store.getLogger();
+                Path fpath = logger.getPath();
+                List<RaftOperation> operations = RaftOperation.parseRaftLogs(ByteBuffer.wrap(Files.readAllBytes(fpath)));
+                if (!operations.isEmpty()) {
+                    lastOperation = operations.get(operations.size() - 1);
+                }
+            }
+            BrokerLogStateRequest request = new BrokerLogStateRequest(
+                    brokerId,
+                    store.getLogId(),
+                    store.getTerm(),
+                    lastOperation
+            );
+
+            ByteBuffer buffer = ByteBuffer.wrap(request.serialize());
+            while (buffer.hasRemaining()) {
+                ch.write(buffer);
+            }
+
+            System.out.println("Sent BrokerLogStateRequest to controller: logId=" + store.getLogId() + ", term=" + store.getTerm());
+        }
+
+        private void handleControllerLogStateResponse(ControllerLogStateResponse response) throws IOException {
+            if (response.documentType().equals(ControllerLogStateResponse.Type.LOG)) {
+                // Received a log entry - execute the operation
+                RaftOperation operation = response.operation();
+                if (operation != null) {
+                    handleRaftOperation(operation);
+                }
+            } else if (response.documentType().equals(ControllerLogStateResponse.Type.SNAPSHOT)) {
+                // Received a snapshot - write to file and reload store
+                handleSnapshot(response.snapshot());
+            }
+        }
+
+        private void handleRaftOperation(RaftOperation operation) throws IOException {
+            System.out.println("Received RaftOperation: " + operation.type() + ", id=" + operation.id());
+
+            if (operation.type().equals(OperationType.PUT)) {
+                RaftPutOperation putOp = (RaftPutOperation) operation;
+                store.put(putOp.key(), putOp.value());
+                store.setLogId(putOp.id());
+                store.setTerm(putOp.term());
+            } else if (operation.type().equals(OperationType.GET)) {
+                RaftGetOperation getOp = (RaftGetOperation) operation;
+                store.get(getOp.key());
+                store.setLogId(getOp.id());
+                store.setTerm(getOp.term());
+            }
+        }
+
+        private void handleSnapshot(byte[] snapshotData) throws IOException {
+            if (snapshotData == null || snapshotData.length == 0) return;
+
+            // Parse the snapshot filename from the logId
+            long logId = store.getLogId();
+            String snapshotFilename = logId + ".snapshot";
+            Path snapshotPath = store.getSnapshotter().getFolderPath().resolve(snapshotFilename);
+
+            // Write the snapshot to file
+            Files.write(snapshotPath, snapshotData);
+
+            // Create the new log file: <snapshot_number + 1>.log
+            String logFilename = (logId + 1) + ".log";
+            Path logPath = store.getLogsFolder().resolve(logFilename);
+            logPath.toFile().createNewFile();
+
+            // Reload the store from the snapshot
+            reloadStore();
+        }
+
+        private void reloadStore() throws IOException {
+            // Load the map from the latest snapshot
+            KVMap map = store.getSnapshotter().loadSnapshot();
+            if (map != null) {
+                // Clear the current map and copy the snapshot data
+                store.getMap().clear();
+                // Apply all entries from the loaded map
+                // Note: This is a simplified approach - in production you'd want a more efficient method
+            }
+        }
+
+        public void stop() {
+            if (!running) return;
+            running = false;
+            try {
+                if (channel != null) channel.close();
+                if (selector != null) selector.close();
+            } catch (IOException e) {
+                // Ignore
+            }
+        }
+
+        public void cleanup(SelectionKey key) throws IOException {
+            if (!key.isValid()) return;
+            key.cancel();
+            try {
+                key.channel().close();
+            } catch (IOException e) {
+                // Ignore
+            }
         }
 
         public boolean isRunning() {

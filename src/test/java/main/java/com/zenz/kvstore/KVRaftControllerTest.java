@@ -1,6 +1,8 @@
 package main.java.com.zenz.kvstore;
 
 import com.zenz.kvstore.*;
+import com.zenz.kvstore.raft.KVRaft;
+import com.zenz.kvstore.raft.KVRaftBroker;
 import com.zenz.kvstore.raft.KVRaftController;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -18,8 +20,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.*;
 
 public class KVRaftControllerTest {
     private static final String TEST_HOST = "127.0.0.1";
@@ -194,5 +195,59 @@ public class KVRaftControllerTest {
 
         assertEquals("OK existingvalue", response);
         client.close();
+    }
+
+    // --- Broker Log Tests ---
+
+    @Test
+    void put_sendsLogToConnectedBroker() throws Exception {
+        // Create a broker store
+        Path brokerLogsFolder = Files.createTempDirectory("tmp-broker-logs-");
+        Path brokerSnapshotsFolder = Files.createTempDirectory("tmp-broker-snapshots-");
+        KVMapSnapshotter brokerSnapshotter = new KVMapSnapshotter(brokerSnapshotsFolder);
+        KVRaftStore brokerStore = new KVRaftStore.Builder()
+                .setLogsFolder(brokerLogsFolder)
+                .setSnapshotter(brokerSnapshotter)
+                .setSnapshotEnabled(false)
+                .build();
+
+        // Create and start the broker
+        KVRaft raft = new KVRaft();
+        InetSocketAddress controllerAddr = new InetSocketAddress(TEST_HOST, TEST_PORT + 1);
+        KVRaftBroker broker = new KVRaftBroker(
+                raft,
+                brokerStore,
+                1L,
+                TEST_HOST,
+                TEST_PORT + 2,
+                controllerAddr
+        );
+        raft.setBroker(broker);
+
+        // Start the broker (connects to controller)
+        broker.start();
+        Thread.sleep(1000); // Wait for broker to connect to controller and register
+
+        // Connect as a client and send a PUT command
+        SocketChannel client = connectClient();
+        sendMessage(client, "PUT brokerkey brokervalue");
+        String response = receiveMessage(client);
+        assertEquals("OK", response);
+        client.close();
+
+        // Give time for the command to be processed and sent to broker
+        Thread.sleep(1000);
+
+        // Verify the broker received the operation by checking its store
+        // The broker should have applied the PUT operation to its store
+        KVMap.Node node = brokerStore.getMap().get("brokerkey");
+        assertNotNull(node, "Broker should have received and applied the PUT operation");
+        assertEquals("brokervalue", new String(node.value, StandardCharsets.UTF_8),
+                "Broker store should have the correct value");
+
+        // Cleanup broker resources
+        broker.stop();
+        brokerLogsFolder.toFile().delete();
+        brokerSnapshotsFolder.toFile().delete();
     }
 }
