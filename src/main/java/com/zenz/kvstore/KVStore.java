@@ -4,6 +4,7 @@ import com.zenz.kvstore.commands.GetCommand;
 import com.zenz.kvstore.commands.Command;
 import com.zenz.kvstore.commands.PutCommand;
 import com.zenz.kvstore.log_handlers.BaseLogHandler;
+import com.zenz.kvstore.log_handlers.LogHandler;
 
 import java.io.*;
 import java.nio.file.Files;
@@ -12,14 +13,12 @@ import java.util.Random;
 
 public class KVStore {
     // Default settings
-    private static final Path DEFAULT_LOGS_FOLDER = Path.of("logs");
     public static final int DEFAULT_LOGS_PER_SNAPSHOT = 100_000;
 
     // Durability settings
     private KVMapSnapshotter snapshotter;
     private boolean snapshotEnabled;
-    private final Path logsFolder;
-    private WALogger logger;
+    private BaseLogHandler logHandler;
     private boolean loggingEnabled;
     private int logCount;
     private int logsPerSnapshot;
@@ -30,8 +29,8 @@ public class KVStore {
     public KVStore(Builder builder) throws IOException {
         snapshotter = builder.snapshotter;
         snapshotEnabled = builder.snapshotEnabled;
-        logsFolder = (builder.logsFolder == null) ? DEFAULT_LOGS_FOLDER : builder.logsFolder;
-        logsPerSnapshot = (builder.logsPerSnapshot <= 0) ? DEFAULT_LOGS_PER_SNAPSHOT : builder.logsPerSnapshot;
+        logHandler = builder.logHandler;
+        logsPerSnapshot = builder.logsPerSnapshot;
         loggingEnabled = builder.loggingEnabled;
         map = (builder.map == null) ? new KVMap() : builder.map;
         configureLogger();
@@ -207,9 +206,8 @@ public class KVStore {
     public static class Builder {
         private KVMapSnapshotter snapshotter = null;
         private boolean snapshotEnabled = true;
-        private Path logsFolder = null;
         private boolean loggingEnabled = true;
-        private int logsPerSnapshot = 0;
+        private int logsPerSnapshot = DEFAULT_LOGS_PER_SNAPSHOT;
         private KVMap map = null;
         private BaseLogHandler logHandler = null;
 
@@ -234,22 +232,13 @@ public class KVStore {
             return this;
         }
 
-        public Path getLogsFolder() {
-            return logsFolder;
-        }
-
-        public Builder setLogsFolder(Path logsFolder) {
-            this.logsFolder = logsFolder;
-            return this;
+        public BaseLogHandler getLogHandler() {
+            return logHandler;
         }
 
         public Builder setLogHandler(BaseLogHandler logHandler) {
             this.logHandler = logHandler;
             return this;
-        }
-
-        public BaseLogHandler getLogHandler() {
-            return logHandler;
         }
 
         public boolean getLoggingEnabled() {
@@ -279,9 +268,9 @@ public class KVStore {
             return this;
         }
 
-        public KVStore build() throws IOException {
-            return load(this);
-        }
+//        public KVStore build() throws IOException {
+//            return load(this);
+//        }
     }
 }
 

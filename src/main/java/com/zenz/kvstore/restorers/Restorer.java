@@ -40,8 +40,7 @@ public class Restorer implements BaseRestorer {
     }
 
     /**
-     * Applies logs from each log file created after the snapshot
-     * file was created
+     * Applies logs from each log file created after the snapshot file was created
      *
      * @param store
      * @param snapshotter
@@ -72,8 +71,7 @@ public class Restorer implements BaseRestorer {
     }
 
     /**
-     * Deserialise each line within the log file
-     * and performs the command with the store
+     * Deserialize each line within the log file and performs the command with the store
      *
      * @param fpath
      * @param store
@@ -87,6 +85,7 @@ public class Restorer implements BaseRestorer {
 
         for (LogHandler.Log log : logs) {
             Command command = log.command();
+
             if (command.type().equals(CommandType.PUT)) {
                 PutCommand comm = (PutCommand) command;
                 store.put(comm.key(), comm.value());

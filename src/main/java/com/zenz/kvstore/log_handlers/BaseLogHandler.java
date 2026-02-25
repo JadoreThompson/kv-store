@@ -12,6 +12,8 @@ public interface BaseLogHandler {
 
     ArrayList<LogHandler.Log> deserialize(Path fpath) throws IOException;
 
+//    WALogger createNewLogger();
+
     Path getLogDir();
 
     WALogger getLogger();
