@@ -3,6 +3,7 @@ package com.zenz.kvstore;
 import com.zenz.kvstore.operations.RaftGetOperation;
 import com.zenz.kvstore.operations.RaftOperation;
 import com.zenz.kvstore.operations.RaftPutOperation;
+import com.zenz.kvstore.raft.KVRaftController;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;

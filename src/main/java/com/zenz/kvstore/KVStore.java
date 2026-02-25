@@ -206,6 +206,9 @@ public class KVStore {
         return map;
     }
 
+    public int getLogsPerSnapshot() {
+        return logsPerSnapshot;
+    }
 
     public static class Builder<T extends Builder<T>> {
         protected KVMapSnapshotter snapshotter;

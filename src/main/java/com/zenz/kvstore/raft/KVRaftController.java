@@ -1,5 +1,8 @@
-package com.zenz.kvstore;
+package com.zenz.kvstore.raft;
 
+import com.zenz.kvstore.KVMapSnapshotter;
+import com.zenz.kvstore.KVRaftStore;
+import com.zenz.kvstore.MessageType;
 import com.zenz.kvstore.messages.BrokerLogStateRequest;
 import com.zenz.kvstore.messages.ControllerLogStateResponse;
 import com.zenz.kvstore.messages.Message;
@@ -9,6 +12,7 @@ import com.zenz.kvstore.operations.RaftOperation;
 
 import java.io.File;
 import java.io.IOException;
+import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
 import java.nio.channels.*;
 import java.nio.charset.StandardCharsets;
@@ -16,37 +20,44 @@ import java.nio.file.Files;
 import java.util.*;
 
 public class KVRaftController {
+    private final KVRaftStore store;
+    private final String host;
+    private final int port;
     private Selector selector;
     private ServerSocketChannel serverSocketChannel;
     private HashMap<SocketChannel, Queue<ByteBuffer>> pendingWrites;
-    // brokerId -> {}
     private HashMap<Long, ClientSession> sessions;
-    private KVRaftRole role;
-    private boolean running;
-    // log id -> {}
-//    private HashMap<Long, InFlightMessage> inFlightMessages;
-    // Synonymous for logsPerSnapshot of the store object
-    private int commandsPerFlush;
-    //    private ArrayList<RaftOperation> commands;
     private Deque<RaftOperation> commands;
-    private KVRaftStore store;
+    private int commandsPerFlush;
+    private boolean running = false;
 
-    public KVRaftController(KVRaftRole role, KVRaftStore store) throws IOException {
-        this.role = role;
-//        this.commandsPerFlush = operationsPerFlush;
-
-        running = false;
-        pendingWrites = new HashMap<>();
-//        inFlightMessages = new HashMap<>();
-        commands = new ArrayDeque<>();
+    public KVRaftController(KVRaftStore store, String host, int port) {
         this.store = store;
+        this.host = host;
+        this.port = port;
+        commandsPerFlush = store.getLogsPerSnapshot();
+    }
+
+    public KVRaftController(KVRaftBroker broker) {
+        store = broker.getStore();
+        selector = broker.getSelector();
+        serverSocketChannel = broker.getServerSocketChannel();
+        host = serverSocketChannel.socket().getInetAddress().getHostAddress();
+        port = serverSocketChannel.socket().getLocalPort();
+        commandsPerFlush = store.getLogsPerSnapshot();
+        running = false;
     }
 
     public void start() throws IOException {
-        selector = Selector.open();
-        serverSocketChannel = ServerSocketChannel.open();
-        serverSocketChannel.configureBlocking(false);
-        serverSocketChannel.register(selector, SelectionKey.OP_ACCEPT);
+        if (running) return;
+
+        if (selector == null) {
+            selector = Selector.open();
+            serverSocketChannel = ServerSocketChannel.open();
+            serverSocketChannel.configureBlocking(false);
+            serverSocketChannel.register(selector, SelectionKey.OP_ACCEPT);
+            serverSocketChannel.socket().bind(new InetSocketAddress(host, port));
+        }
 
         running = true;
 
@@ -166,13 +177,6 @@ public class KVRaftController {
             sessions.put(session.getBrokerId(), session);
         }
 
-//        BrokerLogState curLogState = session.getLogState();
-//        if (curLogState != null) {
-//            if (message.id() > curLogState.id + 1) {
-//                return ByteBuffer.wrap(("ERROR Skipping ahead. Last known log id " + curLogState.id).getBytes(StandardCharsets.UTF_8));
-//            }
-//        }
-
         if (message.id() == store.getLogId()) return null;
 
         if (message.id() == store.getLogId() - 1) {
@@ -228,7 +232,6 @@ public class KVRaftController {
     }
 
     public void handleCommand(RaftOperation operation) {
-//        if (commands.size() >= commandsPerFlush) commands.clear();
         if (commands.size() >= commandsPerFlush) {
             commands.pollFirst();
             commands.addLast(operation);
@@ -245,10 +248,6 @@ public class KVRaftController {
         }
 
         if (count > 0) {
-            int majority = count / 2 + 1;
-//            InFlightMessage inFlight = new InFlightMessage(majority, 0, operation);
-//            inFlightMessages.put(operation.id(), inFlight);
-
             for (SocketChannel channel : toSend) {
                 queueWrite(channel, ByteBuffer.wrap(operation.serialize()));
             }
@@ -267,11 +266,6 @@ public class KVRaftController {
         } catch (IOException e) {
         }
     }
-
-    public KVRaftRole getRole() {
-        return role;
-    }
-
 
     private static class ClientSession {
         private static final int BUFFER_SIZE = 8192;
