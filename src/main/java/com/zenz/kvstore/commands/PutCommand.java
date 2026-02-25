@@ -11,7 +11,7 @@ public record PutCommand(int id, String key, byte[] value) implements Command {
         return CommandType.PUT;
     }
 
-    public static PutCommand fromLine(int id, String[] components) {
+    public static PutCommand deserialize(int id, String[] components) {
         String key = components[2];
         String valueStr = components[3];
         return new PutCommand(id, key, valueStr.getBytes(StandardCharsets.UTF_8));

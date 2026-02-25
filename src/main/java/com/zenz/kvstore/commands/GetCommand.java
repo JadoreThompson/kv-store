@@ -9,7 +9,7 @@ public record GetCommand(int id, String key) implements Command {
         return CommandType.GET;
     }
 
-    public static GetCommand fromLine(int id, String[] components) {
+    public static GetCommand deserialize(int id, String[] components) {
         String key = components[2];
         return new GetCommand(id, key);
     }

@@ -24,7 +24,7 @@ public class KVStore {
     private int logsPerSnapshot;
 
     private final KVMap map;
-    private final Random random;
+    private final Random random = new Random();
 
     private KVStore(Builder builder) throws IOException {
         snapshotter = builder.snapshotter;
@@ -33,7 +33,6 @@ public class KVStore {
         logsPerSnapshot = (builder.logsPerSnapshot <= 0) ? DEFAULT_LOGS_PER_SNAPSHOT : builder.logsPerSnapshot;
         loggingEnabled = builder.loggingEnabled;
         map = (builder.map == null) ? new KVMap() : builder.map;
-        random = new Random();
         configureLogger();
     }
 
@@ -86,7 +85,7 @@ public class KVStore {
         String[] lines = contents.strip().split("\n");
 
         for (String line : lines) {
-            Command operation = Command.fromLine(line);
+            Command operation = Command.deserialize(line);
             if (operation.type().equals(CommandType.PUT)) {
                 PutCommand putOperation = (PutCommand) operation;
                 store.put(putOperation.key(), putOperation.value());
