@@ -2,20 +2,21 @@ package com.zenz.kvstore.commands;
 
 import com.zenz.kvstore.CommandType;
 
-public interface Command {
-    int id();
+import java.nio.ByteBuffer;
 
+public interface Command {
     CommandType type();
 
-    static Command deserialize(String line) {
-        String[] components = line.strip().split(" ");
-        int id = Integer.parseInt(components[0]);
-        CommandType type = CommandType.valueOf(components[1]);
+    byte[] serialize();
 
-        return switch (type) {
-            case PUT -> PutCommand.deserialize(id, components);
-            case GET -> GetCommand.deserialize(id, components);
-            default -> throw new UnsupportedOperationException("Unsupported command " + type.getValue());
-        };
+    static Command deserialize(byte[] bytes) {
+        ByteBuffer buffer = ByteBuffer.wrap(bytes);
+        int typeValue = buffer.getInt();
+        CommandType type = CommandType.fromValue(typeValue);
+
+        if (type.equals(CommandType.PUT)) return PutCommand.deserialize(bytes);
+        if (type.equals(CommandType.GET)) return GetCommand.deserialize(bytes);
+
+        throw new IllegalArgumentException("Unknown command type: " + typeValue);
     }
 }

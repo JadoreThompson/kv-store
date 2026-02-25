@@ -1,22 +1,30 @@
 package com.zenz.kvstore;
 
 public enum CommandType {
-    GET("GET"),
-    PUT("PUT");
+    GET(1),
+    PUT(2);
 
-    private final String value;
+    private final int value;
 
-    private CommandType(String value) {
+    private CommandType(int value) {
         this.value = value;
     }
 
-    public String getValue() {
+    public int getValue() {
         return value;
+    }
+
+    public static CommandType fromValue(int value) {
+        for (CommandType type : CommandType.values()) {
+            if (type.value == value) return type;
+        }
+
+        throw new IllegalArgumentException("Unknown command type: " + value);
     }
 
     @Override
     public String toString() {
-        return value;
+        return name();
     }
 }
 
