@@ -21,7 +21,7 @@ class KVConnectionManagerTest {
     private static final int TEST_PORT = 9999;
 
     private static ExecutorService serverExecutor;
-    private static KVConnectionManager server;
+    private static KVServer server;
     private static Path tempDir;
 
     @BeforeAll
@@ -36,7 +36,7 @@ class KVConnectionManagerTest {
                 .setSnapshotter(snapshotter)
                 .setSnapshotEnabled(false)
                 .build();
-        server = new KVConnectionManager(TEST_HOST, TEST_PORT, store);
+        server = new KVServer(TEST_HOST, TEST_PORT, store);
 
         serverExecutor = Executors.newSingleThreadExecutor();
         serverExecutor.submit(() -> {
@@ -228,7 +228,7 @@ class KVConnectionManagerTest {
         client.close();
     }
 
-    // --- Unknown Operation Tests ---
+    // --- Unknown Command Tests ---
 
     @Test
     void unknownOperation_returnsError() throws IOException {

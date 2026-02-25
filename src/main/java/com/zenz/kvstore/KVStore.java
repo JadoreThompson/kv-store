@@ -1,8 +1,8 @@
 package com.zenz.kvstore;
 
-import com.zenz.kvstore.operations.GetOperation;
-import com.zenz.kvstore.operations.Operation;
-import com.zenz.kvstore.operations.PutOperation;
+import com.zenz.kvstore.commands.GetCommand;
+import com.zenz.kvstore.commands.Command;
+import com.zenz.kvstore.commands.PutCommand;
 
 import java.io.*;
 import java.nio.file.Files;
@@ -86,12 +86,12 @@ public class KVStore {
         String[] lines = contents.strip().split("\n");
 
         for (String line : lines) {
-            Operation operation = Operation.fromLine(line);
-            if (operation.type().equals(OperationType.PUT)) {
-                PutOperation putOperation = (PutOperation) operation;
+            Command operation = Command.fromLine(line);
+            if (operation.type().equals(CommandType.PUT)) {
+                PutCommand putOperation = (PutCommand) operation;
                 store.put(putOperation.key(), putOperation.value());
-            } else if (operation.type().equals(OperationType.GET)) {
-                GetOperation getOperation = (GetOperation) operation;
+            } else if (operation.type().equals(CommandType.GET)) {
+                GetCommand getOperation = (GetCommand) operation;
                 store.get(getOperation.key());
             } else {
                 throw new UnsupportedEncodingException("Unsupported operation " + operation.type().getValue());
@@ -125,7 +125,7 @@ public class KVStore {
     }
 
     public void put(String key, byte[] value) throws IOException {
-        if (loggingEnabled) logger.logPut(generateId(), OperationType.PUT, key, value);
+        if (loggingEnabled) logger.logPut(generateId(), CommandType.PUT, key, value);
         logCount++;
 
         snapshot();
@@ -134,7 +134,7 @@ public class KVStore {
     }
 
     public KVMap.Node get(String key) throws IOException {
-        if (loggingEnabled) logger.logGet(generateId(), OperationType.GET, key);
+        if (loggingEnabled) logger.logGet(generateId(), CommandType.GET, key);
         logCount++;
 
         snapshot();

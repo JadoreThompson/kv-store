@@ -21,7 +21,7 @@ public class WALogger {
         channel = FileChannel.open(Path.of(fPath), StandardOpenOption.APPEND);
     }
 
-    public void logPut(int id, OperationType opType, String key, byte[] value) throws IOException {
+    public void logPut(int id, CommandType opType, String key, byte[] value) throws IOException {
         ByteBuffer buffer = ByteBuffer.allocate(1024);
         buffer.put((id + " " + opType.getValue() + " " + key + " ").getBytes(StandardCharsets.UTF_8));
         buffer.put(value);
@@ -36,7 +36,7 @@ public class WALogger {
         channel.force(true);
     }
 
-    public void logGet(int id, OperationType opType, String key) throws IOException {
+    public void logGet(int id, CommandType opType, String key) throws IOException {
         ByteBuffer buffer = ByteBuffer.allocate(1024);
         buffer.put((id + " " + opType.getValue() + " " + key + "\n").getBytes(StandardCharsets.UTF_8));
 

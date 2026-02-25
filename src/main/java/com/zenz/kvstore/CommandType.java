@@ -1,12 +1,12 @@
 package com.zenz.kvstore;
 
-public enum OperationType {
+public enum CommandType {
     GET("GET"),
     PUT("PUT");
 
     private final String value;
 
-    private OperationType(String value) {
+    private CommandType(String value) {
         this.value = value;
     }
 

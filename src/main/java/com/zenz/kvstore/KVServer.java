@@ -11,12 +11,12 @@ import java.util.*;
  * Non-blocking TCP server for KVStore.
  * Handles multiple concurrent connections using NIO Selector.
  * <p>
- * Protocol format: <operationType> <arg1> <arg2> <argN>
+ * Protocol format: <commandType> <arg1> <arg2> <argN>
  * Examples:
  * PUT mykey myvalue
  * GET mykey
  */
-public class KVConnectionManager {
+public class KVServer {
     private static final int BUFFER_SIZE = 8192;
 
     private Selector selector;
@@ -30,7 +30,7 @@ public class KVConnectionManager {
     // Track pending writes per channel
     private final Map<SocketChannel, Queue<ByteBuffer>> pendingWrites = new HashMap<>();
 
-    public KVConnectionManager(String host, int port, KVStore store) {
+    public KVServer(String host, int port, KVStore store) {
         this.store = store;
         this.host = host;
         this.port = port;
@@ -48,7 +48,7 @@ public class KVConnectionManager {
         // Register for ACCEPT events
         serverChannel.register(selector, SelectionKey.OP_ACCEPT);
 
-        System.out.println("KV Connection Manager server started on " + host + ":" + port);
+        System.out.println("KV Server started on " + host + ":" + port);
 
         // Main event loop
         while (running) {
@@ -190,11 +190,11 @@ public class KVConnectionManager {
                 return "PONG";
             }
 
-            OperationType opType = OperationType.valueOf(operation);
+            CommandType opType = CommandType.valueOf(operation);
             return switch (opType) {
                 case PUT -> handlePut(parts);
                 case GET -> handleGet(parts);
-                default -> "ERROR: Unknown operation '" + operation + "'";
+                default -> "ERROR: Unknown command '" + operation + "'";
             };
         } catch (IOException | IllegalArgumentException e) {
             return "ERROR: " + e.getMessage();
