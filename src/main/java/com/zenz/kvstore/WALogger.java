@@ -49,6 +49,12 @@ public class WALogger {
         channel.force(true);
     }
 
+    public void log(ByteBuffer buffer) throws IOException {
+        channel.write(buffer);
+        channel.write(ByteBuffer.wrap("\n".getBytes(StandardCharsets.UTF_8)));
+        channel.force(true);
+    }
+
     public void close() throws IOException {
         channel.close();
     }

@@ -3,6 +3,7 @@ package com.zenz.kvstore;
 import com.zenz.kvstore.commands.GetCommand;
 import com.zenz.kvstore.commands.Command;
 import com.zenz.kvstore.commands.PutCommand;
+import com.zenz.kvstore.log_handlers.BaseLogHandler;
 
 import java.io.*;
 import java.nio.file.Files;
@@ -26,7 +27,7 @@ public class KVStore {
     private final KVMap map;
     private final Random random = new Random();
 
-    private KVStore(Builder builder) throws IOException {
+    public KVStore(Builder builder) throws IOException {
         snapshotter = builder.snapshotter;
         snapshotEnabled = builder.snapshotEnabled;
         logsFolder = (builder.logsFolder == null) ? DEFAULT_LOGS_FOLDER : builder.logsFolder;
@@ -204,20 +205,19 @@ public class KVStore {
     }
 
     public static class Builder {
-        private KVMapSnapshotter snapshotter;
-        private boolean snapshotEnabled;
-        private Path logsFolder;
-        private boolean loggingEnabled;
-        private int logsPerSnapshot;
-        private KVMap map;
+        private KVMapSnapshotter snapshotter = null;
+        private boolean snapshotEnabled = true;
+        private Path logsFolder = null;
+        private boolean loggingEnabled = true;
+        private int logsPerSnapshot = 0;
+        private KVMap map = null;
+        private BaseLogHandler logHandler = null;
 
-        public Builder() throws IOException {
-            snapshotter = null;
-            snapshotEnabled = true;
-            logsFolder = null;
-            loggingEnabled = true;
-            logsPerSnapshot = 0;
-            map = null;
+        public Builder() {
+        }
+
+        public KVMapSnapshotter getSnapshotter() {
+            return snapshotter;
         }
 
         public Builder setSnapshotter(KVMapSnapshotter snapshotter) {
@@ -225,9 +225,17 @@ public class KVStore {
             return this;
         }
 
+        public boolean getSnapshotEnabled() {
+            return snapshotEnabled;
+        }
+
         public Builder setSnapshotEnabled(boolean snapshotEnabled) {
             this.snapshotEnabled = snapshotEnabled;
             return this;
+        }
+
+        public Path getLogsFolder() {
+            return logsFolder;
         }
 
         public Builder setLogsFolder(Path logsFolder) {
@@ -235,14 +243,35 @@ public class KVStore {
             return this;
         }
 
+        public Builder setLogHandler(BaseLogHandler logHandler) {
+            this.logHandler = logHandler;
+            return this;
+        }
+
+        public BaseLogHandler getLogHandler() {
+            return logHandler;
+        }
+
+        public boolean getLoggingEnabled() {
+            return loggingEnabled;
+        }
+
         public Builder setLoggingEnabled(boolean loggingEnabled) {
             this.loggingEnabled = loggingEnabled;
             return this;
         }
 
+        public int getLogsPerSnapshot() {
+            return logsPerSnapshot;
+        }
+
         public Builder setLogsPerSnapshot(int logsPerSnapshot) {
             this.logsPerSnapshot = logsPerSnapshot;
             return this;
+        }
+
+        public KVMap getMap() {
+            return map;
         }
 
         public Builder setMap(KVMap map) {
