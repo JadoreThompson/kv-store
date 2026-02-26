@@ -1,5 +1,8 @@
 package com.zenz.kvstore;
 
+import com.zenz.kvstore.command_handlers.BaseCommandHandler;
+import com.zenz.kvstore.commands.Command;
+
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
@@ -23,15 +26,16 @@ public class KVServer {
     private ServerSocketChannel serverChannel;
     private volatile boolean running = true;
 
-    private final KVStore store;
     private final String host;
     private final int port;
 
     // Track pending writes per channel
     private final Map<SocketChannel, Queue<ByteBuffer>> pendingWrites = new HashMap<>();
 
-    public KVServer(String host, int port, KVStore store) {
-        this.store = store;
+    private final BaseCommandHandler commandHandler;
+
+    public KVServer(String host, int port, BaseCommandHandler commandHandler) {
+        this.commandHandler = commandHandler;
         this.host = host;
         this.port = port;
     }
@@ -156,90 +160,19 @@ public class KVServer {
         }
 
         // Handle multiple commands separated by newlines
-        String[] lines = message.split("\n");
-
-        for (String line : lines) {
-            if (line.isBlank()) continue;
-
-            System.out.println("Received command: " + line);
-            String response = processCommand(line.trim());
-            System.out.println("Sending response: " + response);
-            if (response != null) {
-                ByteBuffer responseBuffer = ByteBuffer.wrap((response + "\n").getBytes(StandardCharsets.UTF_8));
-                queueWrite(session.getClient(), responseBuffer);
+        try {
+            ArrayList<Command> commands = Command.deserializeList(bytes);
+            for (Command command : commands) {
+                ByteBuffer responseBuffer = commandHandler.handleCommand(command);
+                if (responseBuffer != null) {
+                    queueWrite(session.getClient(), responseBuffer);
+                }
             }
+        } catch (Exception e) {
+            queueWrite(session.getClient(), ByteBuffer.wrap(("ERROR " + e.getMessage()).getBytes(StandardCharsets.UTF_8)));
         }
 
         return true;
-    }
-
-    /**
-     * Process a single command and return the response
-     */
-    private String processCommand(String line) {
-        String[] parts = line.split(" ");
-
-        if (parts.length == 0) {
-            return "ERROR: Empty command";
-        }
-
-        String operation = parts[0].toUpperCase();
-
-        try {
-            if (operation.equals("PING")) {
-                return "PONG";
-            }
-
-            CommandType opType = CommandType.valueOf(operation);
-            return switch (opType) {
-                case PUT -> handlePut(parts);
-                case GET -> handleGet(parts);
-                default -> "ERROR: Unknown command '" + operation + "'";
-            };
-        } catch (IOException | IllegalArgumentException e) {
-            return "ERROR: " + e.getMessage();
-        }
-    }
-
-    /**
-     * Handle PUT command: PUT <key> <value>
-     */
-    private String handlePut(String[] parts) throws IOException {
-        if (parts.length < 3) {
-            return "ERROR: PUT requires <key> and <value>";
-        }
-
-        String key = parts[1];
-
-        // Join remaining parts as value (in case value contains spaces)
-        StringBuilder valueBuilder = new StringBuilder();
-        for (int i = 2; i < parts.length; i++) {
-            if (i > 2) valueBuilder.append(" ");
-            valueBuilder.append(parts[i]);
-        }
-
-        byte[] value = valueBuilder.toString().getBytes(StandardCharsets.UTF_8);
-        store.put(key, value);
-
-        return "OK";
-    }
-
-    /**
-     * Handle GET command: GET <key>
-     */
-    private String handleGet(String[] parts) throws IOException {
-        if (parts.length < 2) {
-            return "ERROR: GET requires <key>";
-        }
-
-        String key = parts[1];
-        KVMap.Node node = store.get(key);
-
-        if (node == null) {
-            return "NULL";
-        }
-
-        return "OK " + new String(node.value, StandardCharsets.UTF_8);
     }
 
     /**
@@ -304,8 +237,8 @@ public class KVServer {
         }
     }
 
-    public KVStore getStore() {
-        return store;
+    public BaseCommandHandler getCommandHandler() {
+        return commandHandler;
     }
 
     /**
