@@ -2,6 +2,7 @@ package com.zenz.kvstore.messages;
 
 import com.zenz.kvstore.MessageType;
 
+import javax.print.attribute.standard.JobMediaSheetsSupported;
 import java.nio.ByteBuffer;
 
 public interface Message {
@@ -18,6 +19,8 @@ public interface Message {
         if (type.equals(MessageType.LOG_REQUEST)) return LogRequest.deserialize(bytes);
         if (type.equals(MessageType.LOG_RESPONSE)) return LogResponse.deserialize(bytes);
         if (type.equals(MessageType.LOG_BROADCAST)) return LogBroadcast.deserialize(bytes);
+        if (type.equals(MessageType.HEARTBEAT_REQUEST)) return HeartbeatRequest.deserialize(bytes);
+        if (type.equals(MessageType.HEARTBEAT_RESPONSE)) return HeartbeatResponse.deserialize(bytes);
 
         throw new IllegalArgumentException("Invalid message type " + type);
     }

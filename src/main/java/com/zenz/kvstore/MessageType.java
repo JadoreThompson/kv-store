@@ -3,7 +3,9 @@ package com.zenz.kvstore;
 public enum MessageType {
     LOG_REQUEST(1),
     LOG_RESPONSE(2),
-    LOG_BROADCAST(3);
+    LOG_BROADCAST(3),
+    HEARTBEAT_REQUEST(4),
+    HEARTBEAT_RESPONSE(5);
 
     private final int value;
 

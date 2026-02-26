@@ -4,13 +4,12 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="113ca11e-a295-4741-aad7-90962967a262" name="Changes" comment="saving - Implemented CommandHandler abstraction within KVServer">
-      <change afterPath="$PROJECT_DIR$/src/main/java/com/zenz/kvstore/MessageType.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/java/com/zenz/kvstore/messages/LogBroadcast.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/java/com/zenz/kvstore/messages/LogRequest.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/java/com/zenz/kvstore/messages/LogResponse.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/java/com/zenz/kvstore/messages/Message.java" afterDir="false" />
+    <list default="true" id="113ca11e-a295-4741-aad7-90962967a262" name="Changes" comment="wip: Implementing raft controller - Exported ClientSession to top of package">
+      <change afterPath="$PROJECT_DIR$/src/main/java/com/zenz/kvstore/messages/HeartbeatRequest.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/com/zenz/kvstore/messages/HeartbeatResponse.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/com/zenz/kvstore/raft/RaftController.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/zenz/kvstore/MessageType.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/zenz/kvstore/MessageType.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -165,7 +164,8 @@
       <workItem from="1771752462930" duration="562000" />
       <workItem from="1771753155052" duration="6690000" />
       <workItem from="1772052812379" duration="5905000" />
-      <workItem from="1772092857125" duration="21766000" />
+      <workItem from="1772092857125" duration="21824000" />
+      <workItem from="1772119388022" duration="1813000" />
     </task>
     <task id="LOCAL-00001" summary="Added content length check in KVMapSnapshotter.applyLogs">
       <option name="closed" value="true" />
@@ -287,7 +287,23 @@
       <option name="project" value="LOCAL" />
       <updated>1772109373205</updated>
     </task>
-    <option name="localTasksCounter" value="16" />
+    <task id="LOCAL-00016" summary="wip: Implementing raft controller - Created Message interface, subclasses and MessageType">
+      <option name="closed" value="true" />
+      <created>1772116967409</created>
+      <option name="number" value="00016" />
+      <option name="presentableId" value="LOCAL-00016" />
+      <option name="project" value="LOCAL" />
+      <updated>1772116967409</updated>
+    </task>
+    <task id="LOCAL-00017" summary="wip: Implementing raft controller - Exported ClientSession to top of package">
+      <option name="closed" value="true" />
+      <created>1772121214954</created>
+      <option name="number" value="00017" />
+      <option name="presentableId" value="LOCAL-00017" />
+      <option name="project" value="LOCAL" />
+      <updated>1772121214954</updated>
+    </task>
+    <option name="localTasksCounter" value="18" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -320,6 +336,8 @@
     <MESSAGE value="Removed redundant properties from KVStore" />
     <MESSAGE value="Implemented single threaded snapshotting; Refactored snapshotting implementation to snapshot in bytes; Implemented LogHandler class for log abstraction; Added tests for Restorer" />
     <MESSAGE value="saving - Implemented CommandHandler abstraction within KVServer" />
-    <option name="LAST_COMMIT_MESSAGE" value="saving - Implemented CommandHandler abstraction within KVServer" />
+    <MESSAGE value="wip: Implementing raft controller - Created Message interface, subclasses and MessageType" />
+    <MESSAGE value="wip: Implementing raft controller - Exported ClientSession to top of package" />
+    <option name="LAST_COMMIT_MESSAGE" value="wip: Implementing raft controller - Exported ClientSession to top of package" />
   </component>
 </project>
