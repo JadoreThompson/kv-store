@@ -1,11 +1,11 @@
 package main.java.com.zenz.kvstore;
 
 import com.zenz.kvstore.*;
-import com.zenz.kvstore.command_handlers.CommandHandler;
+import com.zenz.kvstore.commandHandlers.CommandHandler;
 import com.zenz.kvstore.commands.Command;
 import com.zenz.kvstore.commands.GetCommand;
 import com.zenz.kvstore.commands.PutCommand;
-import com.zenz.kvstore.log_handlers.LogHandler;
+import com.zenz.kvstore.logHandlers.LogHandler;
 import com.zenz.kvstore.restorers.Restorer;
 import org.junit.jupiter.api.*;
 

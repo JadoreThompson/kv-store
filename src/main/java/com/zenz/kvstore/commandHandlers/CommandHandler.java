@@ -1,4 +1,4 @@
-package com.zenz.kvstore.command_handlers;
+package com.zenz.kvstore.commandHandlers;
 
 import com.zenz.kvstore.CommandType;
 import com.zenz.kvstore.KVMap;

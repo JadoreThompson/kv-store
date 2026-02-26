@@ -2,7 +2,7 @@ package com.zenz.kvstore;
 
 import com.zenz.kvstore.commands.GetCommand;
 import com.zenz.kvstore.commands.PutCommand;
-import com.zenz.kvstore.log_handlers.BaseLogHandler;
+import com.zenz.kvstore.logHandlers.BaseLogHandler;
 
 import java.io.*;
 import java.nio.file.Files;

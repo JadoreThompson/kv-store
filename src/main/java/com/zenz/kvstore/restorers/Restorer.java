@@ -2,14 +2,10 @@ package com.zenz.kvstore.restorers;
 
 import com.zenz.kvstore.*;
 import com.zenz.kvstore.commands.Command;
-import com.zenz.kvstore.commands.GetCommand;
 import com.zenz.kvstore.commands.PutCommand;
-import com.zenz.kvstore.log_handlers.BaseLogHandler;
-import com.zenz.kvstore.log_handlers.LogHandler;
+import com.zenz.kvstore.logHandlers.LogHandler;
 
-import java.io.File;
 import java.io.IOException;
-import java.io.UnsupportedEncodingException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;

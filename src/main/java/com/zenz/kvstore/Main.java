@@ -1,6 +1,6 @@
 package com.zenz.kvstore;
 
-import com.zenz.kvstore.command_handlers.CommandHandler;
+import com.zenz.kvstore.commandHandlers.CommandHandler;
 import com.zenz.kvstore.restorers.Restorer;
 
 public class Main {

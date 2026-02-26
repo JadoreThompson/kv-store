@@ -1,8 +1,7 @@
-package com.zenz.kvstore.command_handlers;
+package com.zenz.kvstore.commandHandlers;
 
 import com.zenz.kvstore.commands.Command;
 
-import java.io.IOException;
 import java.nio.ByteBuffer;
 
 public interface BaseCommandHandler {
