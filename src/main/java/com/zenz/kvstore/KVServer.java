@@ -165,11 +165,11 @@ public class KVServer {
             for (Command command : commands) {
                 ByteBuffer responseBuffer = commandHandler.handleCommand(command);
                 if (responseBuffer != null) {
-                    queueWrite(session.getClient(), responseBuffer);
+                    queueWrite(session.getChannel(), responseBuffer);
                 }
             }
         } catch (Exception e) {
-            queueWrite(session.getClient(), ByteBuffer.wrap(("ERROR " + e.getMessage()).getBytes(StandardCharsets.UTF_8)));
+            queueWrite(session.getChannel(), ByteBuffer.wrap(("ERROR " + e.getMessage()).getBytes(StandardCharsets.UTF_8)));
         }
 
         return true;
@@ -239,26 +239,5 @@ public class KVServer {
 
     public BaseCommandHandler getCommandHandler() {
         return commandHandler;
-    }
-
-    /**
-     * Per-client session state
-     */
-    private static class ClientSession {
-        private final SocketChannel client;
-        private final ByteBuffer readBuffer;
-
-        ClientSession(SocketChannel client) {
-            this.client = client;
-            this.readBuffer = ByteBuffer.allocate(BUFFER_SIZE);
-        }
-
-        SocketChannel getClient() {
-            return client;
-        }
-
-        ByteBuffer getReadBuffer() {
-            return readBuffer;
-        }
     }
 }
