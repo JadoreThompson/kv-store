@@ -4,23 +4,19 @@ import com.zenz.kvstore.WALogger;
 import com.zenz.kvstore.commands.Command;
 
 import java.io.IOException;
-import java.nio.file.Path;
-import java.util.ArrayList;
 
 public interface BaseLogHandler {
     void log(Command command) throws IOException;
-
-    ArrayList<LogHandler.Log> deserialize(Path fpath) throws IOException;
-
-//    WALogger createNewLogger();
-
-    Path getLogDir();
 
     WALogger getLogger();
 
     void setLogger(WALogger logger);
 
-    public long getLogId();
+    long getLogId();
 
-    public void setLogId(long logId);
+    void setLogId(long logId);
+
+    boolean isDisabled();
+
+    void setDisabled(boolean disabled);
 }

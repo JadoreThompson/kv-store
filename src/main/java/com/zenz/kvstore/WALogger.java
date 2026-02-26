@@ -10,43 +10,16 @@ import java.nio.file.StandardOpenOption;
 
 public class WALogger {
     private FileChannel channel;
+    private Path path;
 
-    public WALogger(String fPath) throws IOException {
-        File file = new File(fPath);
-
+    public WALogger(Path fpath) throws IOException {
+        File file = fpath.toFile();
         if (!file.exists()) {
             file.createNewFile();
         }
 
-        channel = FileChannel.open(Path.of(fPath), StandardOpenOption.APPEND);
-    }
-
-    public void logPut(int id, CommandType opType, String key, byte[] value) throws IOException {
-        ByteBuffer buffer = ByteBuffer.allocate(1024);
-        buffer.put((id + " " + opType.getValue() + " " + key + " ").getBytes(StandardCharsets.UTF_8));
-        buffer.put(value);
-        buffer.put("\n".getBytes(StandardCharsets.UTF_8));
-
-        buffer.flip();
-        while (buffer.hasRemaining()) {
-            channel.write(buffer);
-        }
-
-        channel.write(buffer);
-        channel.force(true);
-    }
-
-    public void logGet(int id, CommandType opType, String key) throws IOException {
-        ByteBuffer buffer = ByteBuffer.allocate(1024);
-        buffer.put((id + " " + opType.getValue() + " " + key + "\n").getBytes(StandardCharsets.UTF_8));
-
-        buffer.flip();
-        while (buffer.hasRemaining()) {
-            channel.write(buffer);
-        }
-
-        channel.write(buffer);
-        channel.force(true);
+        this.path = fpath;
+        channel = FileChannel.open(path, StandardOpenOption.APPEND);
     }
 
     public void log(ByteBuffer buffer) throws IOException {
@@ -57,5 +30,9 @@ public class WALogger {
 
     public void close() throws IOException {
         channel.close();
+    }
+
+    public Path getPath() {
+        return path;
     }
 }

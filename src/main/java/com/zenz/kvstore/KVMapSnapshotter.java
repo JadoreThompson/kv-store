@@ -1,243 +1,131 @@
 package com.zenz.kvstore;
 
-import com.esotericsoftware.kryo.Kryo;
-import com.esotericsoftware.kryo.io.Input;
-import com.esotericsoftware.kryo.io.Output;
-
 import java.io.*;
+import java.nio.ByteBuffer;
+import java.nio.channels.FileChannel;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.ArrayList;
+import java.nio.file.StandardOpenOption;
 
 public class KVMapSnapshotter {
-    private static final Path DEFAULT_SNAPSHOT_FOLDER_Path = Path.of("snapshots");
-    private static final String HEADER_START = "===HEADER START===";
-    private static final String HEADER_END = "===HEADER END===";
-    private static final String KV_START = "===KV START===";
-    private static final String KV_END = "===KV END===";
+    private static final Path DEFAULT_SNAPSHOT_DIR = Path.of("snapshots");
 
-    private final Path folderPath;
-    private boolean multiThreadingEnabled;
+    private Path dir = DEFAULT_SNAPSHOT_DIR;
 
     public KVMapSnapshotter() throws IOException {
-        folderPath = DEFAULT_SNAPSHOT_FOLDER_Path;
-        File folder = folderPath.toFile();
+        ensureDir();
+    }
+
+    public KVMapSnapshotter(Path dir) throws IOException {
+        this.dir = dir;
+        ensureDir();
+    }
+
+    private void ensureDir() throws IOException {
+        File folder = dir.toFile();
         if (!folder.exists()) {
             folder.mkdirs();
         }
-
-        multiThreadingEnabled = true;
     }
 
-    public KVMapSnapshotter(Path folderPath) throws IOException {
-        this.folderPath = folderPath;
-        File folder = folderPath.toFile();
-        if (!folder.exists()) {
-            folder.mkdirs();
-        }
+    public void snapshot(KVMap map, Path fpath) throws IOException {
+        if (!Files.exists(fpath)) Files.createFile(fpath);
 
-        multiThreadingEnabled = true;
-    }
-
-    public Kryo getKryo() {
-        Kryo kryo = new Kryo();
-
-        kryo.register(KVMap.class);
-        kryo.register(KVArray.class);
-        kryo.register(KVMap.NodeList[].class);
-        kryo.register(KVMap.NodeList.class);
-        kryo.register(KVMap.Node.class);
-        kryo.register(String.class);
-        kryo.register(byte[].class);
-
-        return kryo;
-    }
-
-    /**
-     * Creates a snapshot of the map
-     */
-    public void snapshot(KVMap map) throws IOException {
-        Kryo kryo = getKryo();
-
-        Path fpath = Files.createTempFile("tmp-snapshot-", ".snapshot");
-        try (Output output = new Output(new FileOutputStream(fpath.toString()))) {
-            kryo.writeObject(output, map);
-        }
-
-        Path snapshotFpath = getSnapshotFpath();
-        if (snapshotFpath == null) throw new RuntimeException("Failed to find path for snapshot file");
-
-        if (multiThreadingEnabled) {
-            Thread th = new Thread(() -> {
-                try {
-                    saveSnapshot(fpath, snapshotFpath);
-                } catch (IOException e) {
-                    throw new RuntimeException(e);
-                }
-            });
-            th.start();
-        } else {
-            saveSnapshot(fpath, snapshotFpath);
+        try (FileChannel channel = FileChannel.open(fpath, StandardOpenOption.WRITE)) {
+            writeNodes(channel, map);
+            channel.force(true);
         }
     }
 
-    private Path getSnapshotFpath() throws IOException {
-        File[] files = folderPath.toFile().listFiles();
-        Path fpath;
-        if (files == null || files.length == 0) {
-            fpath = folderPath.resolve("0.snapshot");
-            fpath.toFile().createNewFile();
-            return fpath;
-        }
-        ;
-
-        for (int i = 0; i < files.length; i++) {
-            if (i + 1 >= files.length || files[i + 1] == null) {
-                fpath = folderPath.resolve(i + 1 + ".snapshot");
-                fpath.toFile().createNewFile();
-                return fpath;
-            }
-        }
-
-        return null;
-    }
-
-    private void saveSnapshot(Path serialisedMapPath, Path snapshotFpath) throws IOException {
-        try (Input input = new Input(new FileInputStream(serialisedMapPath.toString()))) {
-            Kryo kryo = getKryo();
-            KVMap map = kryo.readObject(input, KVMap.class);
-
-            try (FileWriter writer = new FileWriter(snapshotFpath.toString())) {
-                writeHeader(writer, map);
-                writeNodes(writer, map);
-                writer.flush();
-            }
-        }
-    }
-
-    private void writeHeader(FileWriter writer, KVMap map) throws IOException {
-        writer.write(HEADER_START + "\n");
-        writer.write("1\n");  // version
-        writer.write(HEADER_END + "\n");
-    }
-
-    private void writeNodes(FileWriter writer, KVMap map) throws IOException {
-        writer.write(KV_START + "\n");
-
-        if (map.getHt2() != null) {
-            for (int i = 0; i < map.getHt2().length(); i++) {
-                KVMap.NodeList nodeList = map.getHt2().get(i);
+    public void writeNodes(FileChannel channel, KVMap map) throws IOException {
+        KVArray arr = map.getHt2();
+        if (arr != null) {
+            for (int i = 0; i < arr.length(); i++) {
+                KVMap.NodeList nodeList = arr.get(i);
                 if (nodeList != null) {
                     KVMap.Node node = nodeList.head;
                     while (node != null) {
-                        writer.write(node.key + " " + new String(node.value, StandardCharsets.UTF_8) + "\n");
+                        serializeNode(channel, node);
                         node = node.next;
                     }
                 }
             }
         }
 
-        if (map.getHt1() != null) {
-            for (int i = 0; i < map.getHt1().length(); i++) {
-                KVMap.NodeList nodeList = map.getHt1().get(i);
+        arr = map.getHt1();
+        if (arr != null) {
+            for (int i = 0; i < arr.length(); i++) {
+                KVMap.NodeList nodeList = arr.get(i);
                 if (nodeList != null) {
                     KVMap.Node node = nodeList.head;
                     while (node != null) {
-                        writer.write(node.key + " " + new String(node.value, StandardCharsets.UTF_8) + "\n");
+                        serializeNode(channel, node);
                         node = node.next;
                     }
                 }
             }
         }
+    }
 
-        writer.write(KV_END + "\n");
+    private void serializeNode(FileChannel channel, KVMap.Node node) throws IOException {
+        byte[] keyBytes = node.key.getBytes(StandardCharsets.UTF_8);
+        ByteBuffer buffer = ByteBuffer.allocate(4 + 4 + keyBytes.length + 4 + node.value.length + 1);
+
+        buffer.putInt(buffer.capacity());
+        buffer.putInt(keyBytes.length);
+        buffer.put(keyBytes);
+        buffer.putInt(node.value.length);
+        buffer.put(node.value);
+        buffer.put(ByteBuffer.wrap("\n".getBytes(StandardCharsets.UTF_8)));
+
+        buffer.flip();
+        channel.write(buffer);
     }
 
     public KVMap loadSnapshot() throws IOException {
-        File[] files = folderPath.toFile().listFiles();
+        File[] files = dir.toFile().listFiles();
         if (files == null || files.length == 0) return null;
-
-        for (int i = 0; i < files.length; i++) {
-            if (i + 1 >= files.length || files[i + 1] == null) {
-                return loadSnapshot(files[i].getAbsolutePath());
-            }
-        }
-
-        return null;
+        return loadSnapshot(files[0].toPath());
     }
 
-    private KVMap loadSnapshot(String fpath) throws IOException {
+    public KVMap loadSnapshot(Path fpath) throws IOException {
+        if (!Files.exists(fpath)) return null;
+
         KVMap map = new KVMap();
 
-        try (BufferedReader reader = new BufferedReader(new FileReader(fpath))) {
-            Header header = loadHeader(reader);
-            ArrayList<KVPair> pairs = loadKVPairs(reader);
+        byte[] fBytes = Files.readAllBytes(fpath);
+        ByteBuffer buffer = ByteBuffer.wrap(fBytes);
 
-            if (pairs == null) return null;
-            for (KVPair pair : pairs) {
-                map.put(pair.key, pair.value);
-            }
+        while (buffer.hasRemaining()) {
+            KVPair pair = deserializeNode(buffer);
+            map.put(pair.key, pair.value);
         }
 
         return map;
     }
 
-    private Header loadHeader(BufferedReader reader) throws IOException {
-        String line = reader.readLine();
-        if (line == null || !line.equals(HEADER_START)) {
-            return null;
-        }
+    private KVPair deserializeNode(ByteBuffer buffer) throws IOException {
+        int bufferLength = buffer.getInt();
+        byte[] nodeBytes = new byte[bufferLength - 4];
+        buffer.get(nodeBytes);
+        ByteBuffer nodeBuffer = ByteBuffer.wrap(nodeBytes);
 
-        line = reader.readLine();
-        if (line == null) return null;
+        int keyLength = nodeBuffer.getInt();
+        byte[] keyBytes = new byte[keyLength];
+        nodeBuffer.get(keyBytes);
 
-        int version = Integer.parseInt(line.strip());
-        Header header = new Header(version);
+        int valueLength = nodeBuffer.getInt();
+        byte[] valueBytes = new byte[valueLength];
+        nodeBuffer.get(valueBytes);
 
-        line = reader.readLine();
-        if (line == null || !line.equals(HEADER_END)) {
-            return null;
-        }
-
-        return header;
+        return new KVPair(new String(keyBytes, StandardCharsets.UTF_8), valueBytes);
     }
 
-    private ArrayList<KVPair> loadKVPairs(BufferedReader reader) throws IOException {
-        String line = reader.readLine();
-        if (line == null || !line.equals(KV_START)) {
-            return null;
-        }
-
-        ArrayList<KVPair> pairs = new ArrayList<>();
-
-        while (true) {
-            line = reader.readLine();
-
-            if (line == null) return null;
-            if (line.equals(KV_END)) return pairs;
-
-            String[] components = line.strip().split(" ");
-            KVPair pair = new KVPair(components[0], components[1].getBytes(StandardCharsets.UTF_8));
-            pairs.add(pair);
-        }
+    public Path getDir() {
+        return dir;
     }
 
-    public Path getFolderPath() {
-        return folderPath;
-    }
-
-    public boolean isMultiThreadingEnabled() {
-        return multiThreadingEnabled;
-    }
-
-    public void setMultiThreadingEnabled(boolean multiThreadingEnabled) {
-        this.multiThreadingEnabled = multiThreadingEnabled;
-    }
-
-    public static record Header(int version) {
-    }
-
-    private static record KVPair(String key, byte[] value) {
+    public static record KVPair(String key, byte[] value) {
     }
 }

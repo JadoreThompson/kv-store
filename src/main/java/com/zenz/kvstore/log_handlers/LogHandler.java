@@ -11,29 +11,26 @@ import java.nio.file.Path;
 import java.util.ArrayList;
 
 public class LogHandler implements BaseLogHandler {
-    private static Path DEFAULT_LOG_DIR = Path.of("logs");
-    private final Path logDir;
     private WALogger logger;
-    private long logId;
+    private long logId = 0;
+    private boolean disabled = false;
 
-    public LogHandler() {
-        this(DEFAULT_LOG_DIR);
-    }
-
-    public LogHandler(Path logDir) {
-        this.logDir = logDir;
+    public LogHandler(WALogger logger) {
+        this.logger = logger;
     }
 
     @Override
     public void log(Command command) throws IOException {
         logId++;
-        Log log = new Log(logId, command);
-        byte[] logBytes = log.serialize();
-        ByteBuffer buffer = ByteBuffer.wrap(logBytes);
-        logger.log(buffer);
+        if (!disabled) {
+            Log log = new Log(logId, command);
+            byte[] logBytes = log.serialize();
+            ByteBuffer buffer = ByteBuffer.wrap(logBytes);
+            logger.log(buffer);
+        }
     }
 
-    public ArrayList<Log> deserialize(Path fpath) throws IOException {
+    public static ArrayList<Log> deserialize(Path fpath) throws IOException {
         byte[] bytes = Files.readAllBytes(fpath);
         if (bytes == null || bytes.length == 0) return null;
 
@@ -53,9 +50,12 @@ public class LogHandler implements BaseLogHandler {
         return logs;
     }
 
-    @Override
-    public Path getLogDir() {
-        return logDir;
+    public boolean isDisabled() {
+        return disabled;
+    }
+
+    public void setDisabled(boolean disabled) {
+        this.disabled = disabled;
     }
 
     @Override

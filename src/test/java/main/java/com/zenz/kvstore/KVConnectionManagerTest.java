@@ -1,5 +1,7 @@
 package com.zenz.kvstore;
 
+import com.zenz.kvstore.log_handlers.LogHandler;
+import com.zenz.kvstore.restorers.Restorer;
 import org.junit.jupiter.api.*;
 
 import java.io.IOException;
@@ -25,17 +27,23 @@ class KVConnectionManagerTest {
     private static Path tempDir;
 
     @BeforeAll
-    static void startServer() throws IOException, InterruptedException {
+    static void startServer() throws Exception {
         tempDir = Files.createTempDirectory("kvstore-test-");
         Path logsFolderPath = tempDir.resolve("logs");
         Path snapshotFolderPath = tempDir.resolve("snapshots");
 
+        logsFolderPath.toFile().mkdir();
+        snapshotFolderPath.toFile().mkdir();
+
         KVMapSnapshotter snapshotter = new KVMapSnapshotter(snapshotFolderPath);
-        KVStore store = new KVStore.Builder()
-                .setLogsFolder(logsFolderPath)
+        Path path = logsFolderPath.resolve("app.log");
+        if (!Files.exists(path)) Files.createFile(path);
+        WALogger logger = new WALogger(path);
+        KVStore.Builder builder = new KVStore.Builder()
+                .setLogHandler(new LogHandler(logger))
                 .setSnapshotter(snapshotter)
-                .setSnapshotEnabled(false)
-                .build();
+                .setSnapshotEnabled(false);
+        KVStore store = new Restorer().restore(builder);
         server = new KVServer(TEST_HOST, TEST_PORT, store);
 
         serverExecutor = Executors.newSingleThreadExecutor();

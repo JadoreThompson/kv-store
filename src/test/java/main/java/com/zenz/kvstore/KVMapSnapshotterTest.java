@@ -1,17 +1,16 @@
 package com.zenz.kvstore;
 
-import com.zenz.kvstore.KVMap;
-import com.zenz.kvstore.KVMapSnapshotter;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.io.File;
-import java.io.FileWriter;
 import java.io.IOException;
+import java.nio.channels.FileChannel;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.StandardOpenOption;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -24,7 +23,6 @@ class KVMapSnapshotterTest {
     void setUp() throws IOException {
         snapshotFolder = Files.createTempDirectory("tmp-snapshots-");
         snapshotter = new KVMapSnapshotter(snapshotFolder);
-        snapshotter.setMultiThreadingEnabled(false);
     }
 
     @AfterEach
@@ -55,7 +53,7 @@ class KVMapSnapshotterTest {
         map.put("testkey", "testvalue".getBytes(StandardCharsets.UTF_8));
 
         // Run snapshot
-        snapshotter.snapshot(map);
+        snapshotter.snapshot(map, snapshotter.getDir().resolve("snapshot"));
 
         // Verify snapshot file was created
         java.io.File[] files = snapshotFolder.toFile().listFiles();
@@ -70,7 +68,7 @@ class KVMapSnapshotterTest {
         map.put("mykey", "myvalue".getBytes(StandardCharsets.UTF_8));
 
         // Run snapshot
-        snapshotter.snapshot(map);
+        snapshotter.snapshot(map, snapshotter.getDir().resolve("snapshot"));
 
         // Read snapshot file
         File[] files = snapshotFolder.toFile().listFiles();
@@ -85,22 +83,22 @@ class KVMapSnapshotterTest {
     void loadSnapshot_restoresData() throws IOException {
         // Create a snapshot file manually
         Path snapshotFile = snapshotFolder.resolve("0.snapshot");
-        StringBuilder sb = new StringBuilder();
-        sb.append("===HEADER START===\n");
-        sb.append("1\n");
-        sb.append("===HEADER END===\n");
-        sb.append("===KV START===\n");
-        sb.append("key1 value1\n");
-        sb.append("key2 value2\n");
-        sb.append("===KV END===\n");
-        Files.writeString(snapshotFile, sb.toString());
+
+        KVMap map = new KVMap();
+        map.put("key1", "value2".getBytes(StandardCharsets.UTF_8));
+        map.put("key2", "value2".getBytes(StandardCharsets.UTF_8));
+
+        Files.createFile(snapshotFile);
+        try (FileChannel channel = FileChannel.open(snapshotFile, StandardOpenOption.WRITE)) {
+            snapshotter.writeNodes(channel, map);
+        }
 
         // Load the snapshot using the public API
-        KVMap map = snapshotter.loadSnapshot();
+        KVMap restored = snapshotter.loadSnapshot(snapshotFile);
 
         // Verify data was restored
-        assertNotNull(map.get("key1"), "key1 should exist");
-        assertNotNull(map.get("key2"), "key2 should exist");
+        assertNotNull(restored.get("key1"), "key1 should exist");
+        assertNotNull(restored.get("key2"), "key2 should exist");
     }
 
     @Test
@@ -111,10 +109,11 @@ class KVMapSnapshotterTest {
         map.put("gamma", "delta".getBytes(StandardCharsets.UTF_8));
 
         // Create snapshot
-        snapshotter.snapshot(map);
+        Path fpath = snapshotter.getDir().resolve("snapshot");
+        snapshotter.snapshot(map, fpath);
 
         // Load the snapshot
-        KVMap restoredMap = snapshotter.loadSnapshot();
+        KVMap restoredMap = snapshotter.loadSnapshot(fpath);
 
         // Verify data
         assertNotNull(restoredMap.get("alpha"), "alpha key should exist");
@@ -132,10 +131,11 @@ class KVMapSnapshotterTest {
         map.put("k3", "v3".getBytes(StandardCharsets.UTF_8));
 
         // Create snapshot
-        snapshotter.snapshot(map);
+        Path fpath = snapshotter.getDir().resolve("snapshot");
+        snapshotter.snapshot(map, fpath);
 
         // Load the snapshot
-        KVMap restoredMap = snapshotter.loadSnapshot();
+        KVMap restoredMap = snapshotter.loadSnapshot(fpath);
 
         assertNotNull(restoredMap.get("k1"));
         assertNotNull(restoredMap.get("k2"));
@@ -148,30 +148,26 @@ class KVMapSnapshotterTest {
         KVMap map = new KVMap();
 
         // Run snapshot - should not throw
-        assertDoesNotThrow(() -> snapshotter.snapshot(map));
+        Path fpath = snapshotter.getDir().resolve("snapshot");
+        assertDoesNotThrow(() -> snapshotter.snapshot(map, fpath));
     }
 
     @Test
     void loadSnapshot_handlesMultipleEntries() throws IOException {
         // Create a snapshot file with multiple entries
-        Path snapshotFile = snapshotFolder.resolve("0.snapshot");
-        StringBuilder sb = new StringBuilder();
-        sb.append("===HEADER START===\n");
-        sb.append("1\n");
-        sb.append("===HEADER END===\n");
-        sb.append("===KV START===\n");
+        KVMap map = new KVMap();
         for (int i = 0; i < 10; i++) {
-            sb.append("key" + i + " value" + i + "\n");
+            map.put("key" + i, ("value" + i).getBytes(StandardCharsets.UTF_8));
         }
-        sb.append("===KV END===\n");
-        Files.writeString(snapshotFile, sb.toString());
+        Path snapshotFile = snapshotFolder.resolve("0.snapshot");
+        snapshotter.snapshot(map, snapshotFile);
 
         // Load the snapshot using the public API
-        KVMap map = snapshotter.loadSnapshot();
+        KVMap restored = snapshotter.loadSnapshot(snapshotFile);
 
         // Verify all entries
         for (int i = 0; i < 10; i++) {
-            KVMap.Node node = map.get("key" + i);
+            KVMap.Node node = restored.get("key" + i);
             assertNotNull(node, "key" + i + " should exist");
             assertArrayEquals(("value" + i).getBytes(StandardCharsets.UTF_8), node.value);
         }
@@ -180,12 +176,13 @@ class KVMapSnapshotterTest {
     @Test
     void loadSnapshot_returnsNullWhenNoSnapshots() throws IOException {
         // Don't create any snapshot files
-        KVMap map = snapshotter.loadSnapshot();
+        Path fpath = snapshotter.getDir().resolve("snapshot");
+        KVMap map = snapshotter.loadSnapshot(fpath);
         assertNull(map, "Should return null when no snapshots exist");
     }
 
     @Test
     void getFolderPath_returnsCorrectPath() {
-        assertEquals(snapshotFolder, snapshotter.getFolderPath());
+        assertEquals(snapshotFolder, snapshotter.getDir());
     }
 }

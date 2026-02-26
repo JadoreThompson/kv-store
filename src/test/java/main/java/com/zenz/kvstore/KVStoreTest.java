@@ -1,9 +1,9 @@
 package main.java.com.zenz.kvstore;
 
-import com.zenz.kvstore.KVMap;
-import com.zenz.kvstore.KVStore;
-import com.zenz.kvstore.KVMapSnapshotter;
-import com.zenz.kvstore.WALogger;
+import com.zenz.kvstore.*;
+import com.zenz.kvstore.commands.PutCommand;
+import com.zenz.kvstore.log_handlers.LogHandler;
+import com.zenz.kvstore.restorers.Restorer;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -15,6 +15,7 @@ import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.ArrayList;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -25,14 +26,22 @@ class KVStoreTest {
     private KVStore store;
     private KVMapSnapshotter snapshotter;
     private WALogger logger;
+    private KVStore.Builder builder;
 
     @BeforeEach
     void setUp() throws Exception {
         logsFolder = Files.createTempDirectory("tmp-logs-");
         snapshotsFolder = Files.createTempDirectory("tmp-snapshots-");
         snapshotter = new KVMapSnapshotter(snapshotsFolder);
-        store = new KVStore.Builder().setLogsFolder(logsFolder).setSnapshotter(snapshotter).build();
-        logger = getLogger(store);
+
+        logger = new WALogger(logsFolder.resolve("app.log"));
+        LogHandler logHandler = new LogHandler(logger);
+
+        builder = new KVStore.Builder()
+                .setSnapshotter(snapshotter)
+                .setLogHandler(logHandler);
+        Restorer restorer = new Restorer();
+        store = restorer.restore(builder);
     }
 
     @AfterEach
@@ -41,30 +50,8 @@ class KVStoreTest {
             logger.close();
         }
 
-        deleteDirectory(logsFolder.toFile());
-        deleteDirectory(snapshotsFolder.toFile());
-    }
-
-    private void deleteDirectory(File directory) {
-        File[] files = directory.listFiles();
-        if (files != null) {
-            for (File file : files) {
-                if (file.isDirectory()) {
-                    deleteDirectory(file);
-                } else {
-                    file.delete();
-                }
-            }
-        }
-        directory.delete();
-    }
-
-    // --- Reflection helpers for private constructor and fields ---
-
-    private WALogger getLogger(KVStore store) throws Exception {
-        Field loggerField = KVStore.class.getDeclaredField("logger");
-        loggerField.setAccessible(true);
-        return (WALogger) loggerField.get(store);
+        logsFolder.toFile().delete();
+        snapshotsFolder.toFile().delete();
     }
 
     private KVMap getMap(KVStore store) throws Exception {
@@ -158,110 +145,123 @@ class KVStoreTest {
 
     @Test
     void put_logsOperationToWAL() throws Exception {
-        store.setLoggingEnabled(true);
         store.put("walKey", "walValue".getBytes(StandardCharsets.UTF_8));
         logger.close();
 
-        File logFile = logsFolder.resolve("0.log").toFile();
-        String walContents = Files.readString(logFile.toPath());
+        File logFile = logsFolder.resolve("app.log").toFile();
+        ArrayList<LogHandler.Log> logs = LogHandler.deserialize(logFile.toPath());
 
-        assertTrue(walContents.contains("PUT"), "WAL should contain PUT operation");
-        assertTrue(walContents.contains("walKey"), "WAL should contain the key");
+        assertNotNull(logs, "Logs should not be null");
+        assertEquals(1, logs.size(), "WAL should contain one operation");
+        assertEquals(CommandType.PUT, logs.get(0).command().type(), "WAL should contain PUT operation");
+
+        PutCommand putCmd = (PutCommand) logs.get(0).command();
+        assertEquals("walKey", putCmd.key(), "WAL should contain the key");
     }
 
     @Test
     void get_logsOperationToWAL() throws Exception {
-        store.setLoggingEnabled(true);
         store.put("walKey", "walValue".getBytes(StandardCharsets.UTF_8));
         store.get("walKey");
         logger.close();
 
-        File logFile = logsFolder.resolve("0.log").toFile();
-        String walContents = Files.readString(logFile.toPath());
+        File logFile = logsFolder.resolve("app.log").toFile();
+        ArrayList<LogHandler.Log> logs = LogHandler.deserialize(logFile.toPath());
 
-        assertTrue(walContents.contains("GET"), "WAL should contain GET operation");
-        assertTrue(walContents.contains("walKey"), "WAL should contain the key");
+        assertNotNull(logs, "Logs should not be null");
+        assertEquals(2, logs.size(), "Should have 2 log entries");
+        assertEquals(CommandType.GET, logs.get(1).command().type(), "Second entry should be GET");
     }
 
     @Test
     void put_andGet_bothLoggedToWAL() throws Exception {
-        store.setLoggingEnabled(true);
         store.put("name", "alice".getBytes(StandardCharsets.UTF_8));
         store.get("name");
         logger.close();
 
-        File logFile = logsFolder.resolve("0.log").toFile();
-        String walContents = Files.readString(logFile.toPath());
-        String[] lines = walContents.strip().split("\n");
+        File logFile = logsFolder.resolve("app.log").toFile();
+        ArrayList<LogHandler.Log> logs = LogHandler.deserialize(logFile.toPath());
 
-        assertEquals(2, lines.length, "WAL should have exactly 2 entries");
-        assertTrue(lines[0].contains("PUT"), "First entry should be PUT");
-        assertTrue(lines[1].contains("GET"), "Second entry should be GET");
+        assertNotNull(logs, "Logs should not be null");
+        assertEquals(2, logs.size(), "WAL should have exactly 2 entries");
+        assertEquals(CommandType.PUT, logs.get(0).command().type(), "First entry should be PUT");
+        assertEquals(CommandType.GET, logs.get(1).command().type(), "Second entry should be GET");
     }
 
     @Test
     void multipleOperations_allLoggedToWAL() throws Exception {
-        store.setLoggingEnabled(true);
         store.put("k1", "v1".getBytes(StandardCharsets.UTF_8));
         store.put("k2", "v2".getBytes(StandardCharsets.UTF_8));
         store.get("k1");
         store.get("k2");
         logger.close();
 
-        File logFile = logsFolder.resolve("0.log").toFile();
-        String walContents = Files.readString(logFile.toPath());
-        String[] lines = walContents.strip().split("\n");
+        File logFile = logsFolder.resolve("app.log").toFile();
+        ArrayList<LogHandler.Log> logs = LogHandler.deserialize(logFile.toPath());
 
-        assertEquals(4, lines.length, "WAL should have exactly 4 entries");
-        assertTrue(lines[0].contains("PUT") && lines[0].contains("k1"), "Line 1 should be PUT k1");
-        assertTrue(lines[1].contains("PUT") && lines[1].contains("k2"), "Line 2 should be PUT k2");
-        assertTrue(lines[2].contains("GET") && lines[2].contains("k1"), "Line 3 should be GET k1");
-        assertTrue(lines[3].contains("GET") && lines[3].contains("k2"), "Line 4 should be GET k2");
+        assertNotNull(logs, "Logs should not be null");
+        assertEquals(4, logs.size(), "WAL should have exactly 4 entries");
+
+        PutCommand putCmd1 = (PutCommand) logs.get(0).command();
+        assertEquals(CommandType.PUT, putCmd1.type(), "Line 1 should be PUT");
+        assertEquals("k1", putCmd1.key(), "Line 1 should be PUT k1");
+
+        PutCommand putCmd2 = (PutCommand) logs.get(1).command();
+        assertEquals(CommandType.PUT, putCmd2.type(), "Line 2 should be PUT");
+        assertEquals("k2", putCmd2.key(), "Line 2 should be PUT k2");
+
+        assertEquals(CommandType.GET, logs.get(2).command().type(), "Line 3 should be GET k1");
+        assertEquals(CommandType.GET, logs.get(3).command().type(), "Line 4 should be GET k2");
     }
 
     // --- Integration: Snapshotting ---
 
     @Test
     void snapshotter_createsSnapshotFromWAL() throws Exception {
-        store.setLoggingEnabled(true);
-
         // Add some data
         store.put("snapKey1", "snapValue1".getBytes(StandardCharsets.UTF_8));
         store.put("snapKey2", "snapValue2".getBytes(StandardCharsets.UTF_8));
         logger.close();
 
-        // Create snapshotter and snapshot
-        snapshotter.setMultiThreadingEnabled(false);
-
-        Path logFile = logsFolder.resolve("0.log");
-        // Note: KVMapSnapshotter works differently - it snapshots a KVMap directly
-        // For this test, we verify the log file exists and contains the data
+        // Verify log file exists
+        Path logFile = logsFolder.resolve("app.log");
         assertTrue(logFile.toFile().exists(), "Log file should be created");
 
-        // Verify log contents
-        String logContents = Files.readString(logFile);
-        assertTrue(logContents.contains("snapKey1"), "Log should contain snapKey1");
-        assertTrue(logContents.contains("snapKey2"), "Log should contain snapKey2");
+        // Verify log contents using LogHandler
+        ArrayList<LogHandler.Log> logs = LogHandler.deserialize(logFile);
+        assertNotNull(logs, "Logs should not be null");
+        assertEquals(2, logs.size(), "Should have 2 log entries");
+
+        PutCommand cmd1 = (PutCommand) logs.get(0).command();
+        assertEquals("snapKey1", cmd1.key(), "First log should contain snapKey1");
+
+        PutCommand cmd2 = (PutCommand) logs.get(1).command();
+        assertEquals("snapKey2", cmd2.key(), "Second log should contain snapKey2");
     }
 
     @Test
     void snapshotter_restoresDataFromSnapshot() throws Exception {
-        store.setLoggingEnabled(true);
-
         // Add some data
         store.put("restoreKey1", "restoreValue1".getBytes(StandardCharsets.UTF_8));
         store.put("restoreKey2", "restoreValue2".getBytes(StandardCharsets.UTF_8));
         logger.close();
 
         // Create snapshot using KVMapSnapshotter
-        snapshotter.setMultiThreadingEnabled(false);
         store.setSnapshotter(snapshotter);
-
         KVMap map = getMap(store);
-        snapshotter.snapshot(map);
+        Path fpath = snapshotter.getDir().resolve(store.getLogHandler().getLogId() + ".snapshot");
+//        Path fpath = Path.of(store.getLogHandler().getLogId() + ".snapshot");
+        snapshotter.snapshot(map, fpath);
 
-        // Load snapshot
-        KVStore restored = new KVStore.Builder().setLogsFolder(logsFolder).setSnapshotter(snapshotter).build();
+        // Load snapshot - need to create new logger and logHandler for the restored store
+        WALogger newLogger = new WALogger(logsFolder.resolve("app.log"));
+        LogHandler newLogHandler = new LogHandler(newLogger);
+        KVStore.Builder newBuilder = new KVStore.Builder()
+                .setSnapshotter(snapshotter)
+                .setLogHandler(newLogHandler);
+
+        System.out.println("Calling restoration within restores data from snapshot test");
+        KVStore restored = new Restorer().restore(newBuilder);
 
         // Verify restored data
         assertNotNull(restored.get("restoreKey1"), "restoreKey1 should exist in restored store");
@@ -269,16 +269,13 @@ class KVStoreTest {
         assertArrayEquals("restoreValue1".getBytes(StandardCharsets.UTF_8), restored.get("restoreKey1").value);
         assertArrayEquals("restoreValue2".getBytes(StandardCharsets.UTF_8), restored.get("restoreKey2").value);
 
-        WALogger restoredLogger = getLogger(restored);
-        if (restoredLogger != null) {
-            restoredLogger.close();
+        if (newLogger != null) {
+            newLogger.close();
         }
     }
 
     @Test
     void snapshotter_roundTrip_preservesData() throws Exception {
-        store.setLoggingEnabled(true);
-
         // Add multiple entries
         for (int i = 0; i < 10; i++) {
             store.put("roundtripKey" + i, ("value" + i).getBytes(StandardCharsets.UTF_8));
@@ -286,13 +283,19 @@ class KVStoreTest {
         logger.close();
 
         // Create snapshot using KVMapSnapshotter
-        snapshotter.setMultiThreadingEnabled(false);
         store.setSnapshotter(snapshotter);
         KVMap map = getMap(store);
-        snapshotter.snapshot(map);
+        Path fpath = snapshotter.getDir().resolve(store.getLogHandler().getLogId() + ".snapshot");
+        snapshotter.snapshot(map, fpath);
 
-        // Load snapshot
-        KVStore restored = new KVStore.Builder().setLogsFolder(logsFolder).setSnapshotter(snapshotter).build();
+        // Load snapshot - need to create new logger and logHandler for the restored store
+        WALogger newLogger = new WALogger(logsFolder.resolve("app.log"));
+        LogHandler newLogHandler = new LogHandler(newLogger);
+        KVStore.Builder newBuilder = new KVStore.Builder()
+                .setSnapshotter(snapshotter)
+                .setLogHandler(newLogHandler);
+
+        KVStore restored = new Restorer().restore(newBuilder);
 
         // Verify all entries
         for (int i = 0; i < 10; i++) {
@@ -301,21 +304,18 @@ class KVStoreTest {
             assertArrayEquals(("value" + i).getBytes(StandardCharsets.UTF_8), node.value);
         }
 
-        WALogger restoredLogger = getLogger(restored);
-        if (restoredLogger != null) {
-            restoredLogger.close();
+        if (newLogger != null) {
+            newLogger.close();
         }
     }
 
     @Test
     void snapshotDuringOperations_triggersWhenThresholdReached() throws Exception {
-        snapshotter.setMultiThreadingEnabled(false);
         store.setSnapshotter(snapshotter);
 
         // Enable snapshotting and set logs per snapshot to a small number
         store.setSnapshotEnabled(true);
         store.setLogsPerSnapshot(10);
-        store.setLoggingEnabled(true);
 
         // Push more operations than logsPerSnapshot threshold
         int numOperations = 25;
@@ -330,8 +330,9 @@ class KVStoreTest {
         assertNotNull(snapshotFiles, "Snapshot folder should not be empty");
         assertTrue(snapshotFiles.length > 0, "At least one snapshot should have been created");
 
-        // Verify data can be restored from snapshot
-        KVMap restoredMap = snapshotter.loadSnapshot();
+        // Find the snapshot file and load it
+        File snapshotFile = snapshotFiles[0];
+        KVMap restoredMap = snapshotter.loadSnapshot(snapshotFile.toPath());
         assertNotNull(restoredMap, "Restored map should not be null");
 
         // Verify some of the data exists in the restored map
@@ -348,7 +349,6 @@ class KVStoreTest {
         int logsPerSnapshot = 10;
         store.setSnapshotEnabled(false);
         store.setLogsPerSnapshot(logsPerSnapshot);
-        store.setLoggingEnabled(true);
 
         // Perform 10 put operations
         for (int i = 0; i < logsPerSnapshot; i++) {
@@ -357,21 +357,20 @@ class KVStoreTest {
 
         logger.close();
 
-        // Use KVMapSnapshotter to snapshot the underlying map
-        KVMapSnapshotter snapshotter = new KVMapSnapshotter(snapshotsFolder);
-        snapshotter.setMultiThreadingEnabled(false);
-
-        // Verify snapshot was created
+        // Verify no snapshot exists before load
         File[] snapshotFilesBeforeLoad = snapshotsFolder.toFile().listFiles();
         assertEquals(0, snapshotFilesBeforeLoad.length, "Zero snapshot should exist before load");
 
-        // Load the store using the same logsFolder
-        KVStore restored = new KVStore.Builder()
-                .setLogsFolder(logsFolder)
+        // Load the store using Restorer with a new LogHandler
+        WALogger newLogger = new WALogger(logsFolder.resolve("app.log"));
+        LogHandler newLogHandler = new LogHandler(newLogger);
+        KVStore.Builder newBuilder = new KVStore.Builder()
                 .setSnapshotter(snapshotter)
+                .setLogHandler(newLogHandler)
                 .setSnapshotEnabled(true)
-                .setLogsPerSnapshot(logsPerSnapshot)
-                .build();
+                .setLogsPerSnapshot(logsPerSnapshot);
+
+        KVStore restored = new Restorer().restore(newBuilder);
 
         // Check if during load a snapshot was created (should be 1 snapshot file)
         File[] snapshotFilesAfterLoad = snapshotsFolder.toFile().listFiles();
@@ -379,7 +378,6 @@ class KVStoreTest {
 
         // Verify data was restored correctly
         restored.setSnapshotEnabled(false);
-        restored.setLoggingEnabled(false);
 
         for (int i = 0; i < logsPerSnapshot; i++) {
             KVMap.Node node = restored.get("key" + i);
@@ -387,9 +385,8 @@ class KVStoreTest {
             assertArrayEquals(("value" + i).getBytes(StandardCharsets.UTF_8), node.value);
         }
 
-        WALogger restoredLogger = getLogger(restored);
-        if (restoredLogger != null) {
-            restoredLogger.close();
+        if (newLogger != null) {
+            newLogger.close();
         }
     }
 }

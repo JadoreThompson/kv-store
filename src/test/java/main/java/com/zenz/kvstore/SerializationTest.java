@@ -4,6 +4,7 @@ import com.esotericsoftware.kryo.Kryo;
 import com.esotericsoftware.kryo.io.Input;
 import com.esotericsoftware.kryo.io.Output;
 import com.zenz.kvstore.KVMap;
+import com.zenz.kvstore.KVMapSnapshotter;
 import org.junit.jupiter.api.Test;
 
 import java.io.*;
@@ -13,7 +14,7 @@ import java.time.Duration;
 import java.time.Instant;
 
 
-public class MyTest {
+public class SerializationTest {
 
     @Test
     public void serialisationTest() throws IOException, ClassNotFoundException {
@@ -103,5 +104,34 @@ public class MyTest {
         System.out.println("Kryo Deserialisation took " + deserialDuration.toSeconds() + " seconds");
         System.out.println("Kryo Deserialisation took " + deserialDuration.toMillis() + " milliseconds");
         System.out.println("Kryo Deserialisation took " + deserialDuration.toNanos() + " nanoseconds");
+    }
+
+    @Test
+    public void snapshotterSerializationTest() throws IOException {
+        // Build a map with at least 100,000 elements
+        KVMap map = new KVMap();
+        for (int i = 0; i < 100_000; i++) {
+            String key = "key-" + i;
+            byte[] value = ("value-" + i).getBytes();
+            map.put(key, value);
+        }
+
+        // Create snapshotter and temp file for output
+        Path snapshotDir = Files.createTempDirectory("snapshot-test-");
+        KVMapSnapshotter snapshotter = new KVMapSnapshotter(snapshotDir);
+        Path outputFile = snapshotDir.resolve("test-output.snapshot");
+        Files.createFile(outputFile);
+
+        // Time the serialization
+        Instant start = Instant.now();
+
+        snapshotter.snapshot(map, snapshotDir.resolve("test-output.snapshot"));
+
+        Instant end = Instant.now();
+        Duration duration = Duration.between(start, end);
+
+        System.out.println("Snapshotter Serialization took " + duration.toSeconds() + " seconds");
+        System.out.println("Snapshotter Serialization took " + duration.toMillis() + " milliseconds");
+        System.out.println("Snapshotter Serialization took " + duration.toNanos() + " nanoseconds");
     }
 }

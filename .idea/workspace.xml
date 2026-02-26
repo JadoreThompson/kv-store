@@ -4,16 +4,7 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="113ca11e-a295-4741-aad7-90962967a262" name="Changes" comment="Altered CommandType value to type int; Added serialize and deserialize methods to Command interface objects">
-      <change afterPath="$PROJECT_DIR$/src/main/java/com/zenz/kvstore/BaseLog.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/java/com/zenz/kvstore/log_handlers/BaseLogHandler.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/java/com/zenz/kvstore/log_handlers/LogHandler.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/java/com/zenz/kvstore/restorers/BaseRestorer.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/java/com/zenz/kvstore/restorers/Restorer.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/com/zenz/kvstore/KVStore.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/zenz/kvstore/KVStore.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/com/zenz/kvstore/WALogger.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/zenz/kvstore/WALogger.java" afterDir="false" />
-    </list>
+    <list default="true" id="113ca11e-a295-4741-aad7-90962967a262" name="Changes" comment="Implemented single threaded snapshotting; Refactored snapshotting implementation to snapshot in bytes; Implemented LogHandler class for log abstraction; Added tests for Restorer" />
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -66,32 +57,32 @@
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent"><![CDATA[{
-  "keyToString": {
-    "Application.Main.executor": "Run",
-    "Docker.Dockerfile builder.executor": "Run",
-    "ModuleVcsDetector.initialDetectionPerformed": "true",
-    "RunOnceActivity.MCP Project settings loaded": "true",
-    "RunOnceActivity.ShowReadmeOnStart": "true",
-    "RunOnceActivity.TerminalTabsStorage.copyFrom.TerminalArrangementManager.252": "true",
-    "RunOnceActivity.git.unshallow": "true",
-    "RunOnceActivity.typescript.service.memoryLimit.init": "true",
-    "com.intellij.ml.llm.matterhorn.ej.ui.settings.DefaultModelSelectionForGA.v1": "true",
-    "git-widget-placeholder": "feature/raft",
-    "junie.onboarding.icon.badge.shown": "true",
-    "kotlin-language-version-configured": "true",
-    "last_opened_file_path": "C:/Users/ADMIN/MyProjects/kv-store",
-    "node.js.detected.package.eslint": "true",
-    "node.js.detected.package.tslint": "true",
-    "node.js.selected.package.eslint": "(autodetect)",
-    "node.js.selected.package.tslint": "(autodetect)",
-    "nodejs_package_manager_path": "npm",
-    "onboarding.tips.debug.path": "C:/Users/ADMIN/MyProjects/New folder/src/Main.java",
-    "settings.editor.selected.configurable": "actions.on.save",
-    "to.speed.mode.migration.done": "true",
-    "vue.rearranger.settings.migration": "true"
+  <component name="PropertiesComponent">{
+  &quot;keyToString&quot;: {
+    &quot;Application.Main.executor&quot;: &quot;Run&quot;,
+    &quot;Docker.Dockerfile builder.executor&quot;: &quot;Run&quot;,
+    &quot;ModuleVcsDetector.initialDetectionPerformed&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.MCP Project settings loaded&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.TerminalTabsStorage.copyFrom.TerminalArrangementManager.252&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.git.unshallow&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.typescript.service.memoryLimit.init&quot;: &quot;true&quot;,
+    &quot;com.intellij.ml.llm.matterhorn.ej.ui.settings.DefaultModelSelectionForGA.v1&quot;: &quot;true&quot;,
+    &quot;git-widget-placeholder&quot;: &quot;feature/raft&quot;,
+    &quot;junie.onboarding.icon.badge.shown&quot;: &quot;true&quot;,
+    &quot;kotlin-language-version-configured&quot;: &quot;true&quot;,
+    &quot;last_opened_file_path&quot;: &quot;C:/Users/ADMIN/MyProjects/kv-store&quot;,
+    &quot;node.js.detected.package.eslint&quot;: &quot;true&quot;,
+    &quot;node.js.detected.package.tslint&quot;: &quot;true&quot;,
+    &quot;node.js.selected.package.eslint&quot;: &quot;(autodetect)&quot;,
+    &quot;node.js.selected.package.tslint&quot;: &quot;(autodetect)&quot;,
+    &quot;nodejs_package_manager_path&quot;: &quot;npm&quot;,
+    &quot;onboarding.tips.debug.path&quot;: &quot;C:/Users/ADMIN/MyProjects/New folder/src/Main.java&quot;,
+    &quot;settings.editor.selected.configurable&quot;: &quot;actions.on.save&quot;,
+    &quot;to.speed.mode.migration.done&quot;: &quot;true&quot;,
+    &quot;vue.rearranger.settings.migration&quot;: &quot;true&quot;
   }
-}]]></component>
+}</component>
   <component name="RecentsManager">
     <key name="CopyClassDialog.RECENTS_KEY">
       <recent name="main.java.com.zenz.kvstore" />
@@ -164,6 +155,8 @@
       <workItem from="1771676280362" duration="25473000" />
       <workItem from="1771752462930" duration="562000" />
       <workItem from="1771753155052" duration="6690000" />
+      <workItem from="1772052812379" duration="5905000" />
+      <workItem from="1772092857125" duration="14439000" />
     </task>
     <task id="LOCAL-00001" summary="Added content length check in KVMapSnapshotter.applyLogs">
       <option name="closed" value="true" />
@@ -253,7 +246,31 @@
       <option name="project" value="LOCAL" />
       <updated>1772029947159</updated>
     </task>
-    <option name="localTasksCounter" value="12" />
+    <task id="LOCAL-00012" summary="wip - Implemented classes for KVStore restoration">
+      <option name="closed" value="true" />
+      <created>1772032346316</created>
+      <option name="number" value="00012" />
+      <option name="presentableId" value="LOCAL-00012" />
+      <option name="project" value="LOCAL" />
+      <updated>1772032346316</updated>
+    </task>
+    <task id="LOCAL-00013" summary="Removed redundant properties from KVStore">
+      <option name="closed" value="true" />
+      <created>1772054131421</created>
+      <option name="number" value="00013" />
+      <option name="presentableId" value="LOCAL-00013" />
+      <option name="project" value="LOCAL" />
+      <updated>1772054131422</updated>
+    </task>
+    <task id="LOCAL-00014" summary="Implemented single threaded snapshotting; Refactored snapshotting implementation to snapshot in bytes; Implemented LogHandler class for log abstraction; Added tests for Restorer">
+      <option name="closed" value="true" />
+      <created>1772107880502</created>
+      <option name="number" value="00014" />
+      <option name="presentableId" value="LOCAL-00014" />
+      <option name="project" value="LOCAL" />
+      <updated>1772107880502</updated>
+    </task>
+    <option name="localTasksCounter" value="15" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -282,6 +299,9 @@
     <MESSAGE value="Renamed fromLine method in Command.java to deserialize" />
     <MESSAGE value="Added serialise and deserialise interface methods in Command" />
     <MESSAGE value="Altered CommandType value to type int; Added serialize and deserialize methods to Command interface objects" />
-    <option name="LAST_COMMIT_MESSAGE" value="Altered CommandType value to type int; Added serialize and deserialize methods to Command interface objects" />
+    <MESSAGE value="wip - Implemented classes for KVStore restoration" />
+    <MESSAGE value="Removed redundant properties from KVStore" />
+    <MESSAGE value="Implemented single threaded snapshotting; Refactored snapshotting implementation to snapshot in bytes; Implemented LogHandler class for log abstraction; Added tests for Restorer" />
+    <option name="LAST_COMMIT_MESSAGE" value="Implemented single threaded snapshotting; Refactored snapshotting implementation to snapshot in bytes; Implemented LogHandler class for log abstraction; Added tests for Restorer" />
   </component>
 </project>

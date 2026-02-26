@@ -10,6 +10,7 @@ import com.zenz.kvstore.log_handlers.LogHandler;
 import java.io.File;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 
@@ -26,62 +27,37 @@ public class Restorer implements BaseRestorer {
     public KVStore restore(KVStore.Builder builder) throws Exception {
         KVMapSnapshotter snapshotter = (builder.getSnapshotter() != null) ? builder.getSnapshotter() : new KVMapSnapshotter();
         KVMap map = snapshotter.loadSnapshot();
+        LogHandler logHandler = (LogHandler) builder.getLogHandler();
 
         if (map != null) {
             builder.setMap(map);
+
+            Path snapshotDir = snapshotter.getDir();
+            String prefix = snapshotDir.toFile().listFiles()[0].getName().replace(".snapshot", "");
+            long lastLogId = Long.parseLong(prefix);
+            logHandler.setLogId(lastLogId);
+
+            Path path = logHandler.getLogger().getPath();
+            ArrayList<LogHandler.Log> logs = logHandler.deserialize(path);
+            if (logs != null && !logs.isEmpty() && logs.get(logs.size() - 1).id() == lastLogId) {
+                WALogger logger = logHandler.getLogger();
+                path = logger.getPath();
+                Files.deleteIfExists(path);
+                Files.createFile(path);
+                logHandler.setLogger(new WALogger(path));
+            }
         }
 
         KVStore store = new KVStore(builder);
-        store.setLoggingEnabled(false);
-        restoreState(store, snapshotter, builder);
-
-        store.setLoggingEnabled(true);
-        return null;
+        logHandler.setDisabled(true);
+        restoreState(store, logHandler);
+        logHandler.setDisabled(false);
+        return store;
     }
 
-    /**
-     * Applies logs from each log file created after the snapshot file was created
-     *
-     * @param store
-     * @param snapshotter
-     * @param builder
-     * @throws IOException
-     */
-    private void restoreState(KVStore store, KVMapSnapshotter snapshotter, KVStore.Builder builder) throws IOException {
-        Path snapshotFolderPath = snapshotter.getFolderPath();
-        Path recentSnapshotFpath = null;
-        File[] files = snapshotFolderPath.toFile().listFiles();
-        for (File f : files) {
-            recentSnapshotFpath = f.toPath();
-        }
-
-        // Applying each batch of logs. If a log needs snapshotting
-        // the store will trigger the snapshot
-        BaseLogHandler logHandler = builder.getLogHandler();
-        files = logHandler.getLogDir().toFile().listFiles();
-        String recentSnapshotFname = (recentSnapshotFpath != null) ? recentSnapshotFpath.toFile().getName() : null;
-        boolean reached = false;
-        for (File file : files) {
-            if (!reached && recentSnapshotFname != null) {
-                reached = file.getName().equals(recentSnapshotFname);
-            } else {
-                applyLogs(file.toPath(), store, builder);
-            }
-        }
-    }
-
-    /**
-     * Deserialize each line within the log file and performs the command with the store
-     *
-     * @param fpath
-     * @param store
-     * @param builder
-     * @return
-     * @throws IOException
-     */
-    private int applyLogs(Path fpath, KVStore store, KVStore.Builder builder) throws IOException {
-        ArrayList<LogHandler.Log> logs = builder.getLogHandler().deserialize(fpath);
-        if (logs == null || logs.size() == 0) return 0;
+    private void restoreState(KVStore store, LogHandler logHandler) throws IOException {
+        ArrayList<LogHandler.Log> logs = logHandler.deserialize(logHandler.getLogger().getPath());
+        if (logs == null || logs.isEmpty()) return;
 
         for (LogHandler.Log log : logs) {
             Command command = log.command();
@@ -89,14 +65,7 @@ public class Restorer implements BaseRestorer {
             if (command.type().equals(CommandType.PUT)) {
                 PutCommand comm = (PutCommand) command;
                 store.put(comm.key(), comm.value());
-            } else if (command.type().equals(CommandType.GET)) {
-                GetCommand comm = (GetCommand) command;
-                store.get(comm.key());
-            } else {
-                throw new UnsupportedEncodingException("Unsupported operation " + command.type().getValue());
             }
         }
-
-        return logs.size();
     }
 }

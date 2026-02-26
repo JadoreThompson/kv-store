@@ -5,6 +5,7 @@ import com.zenz.kvstore.CommandType;
 import java.nio.ByteBuffer;
 
 public interface Command {
+
     CommandType type();
 
     byte[] serialize();
