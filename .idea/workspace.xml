@@ -4,13 +4,12 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="113ca11e-a295-4741-aad7-90962967a262" name="Changes" comment=" wip: Implementing raft controller - Added RaftLogHandler">
+    <list default="true" id="113ca11e-a295-4741-aad7-90962967a262" name="Changes" comment="saving - wip: Implementing raft controller - Implemented log request handling and tests">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/com/zenz/kvstore/KVStore.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/zenz/kvstore/KVStore.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/com/zenz/kvstore/logHandlers/RaftLogHandler.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/zenz/kvstore/logHandlers/RaftLogHandler.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/com/zenz/kvstore/messages/LogResponse.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/zenz/kvstore/messages/LogResponse.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/test/java/main/java/com/zenz/kvstore/KVConnectionManagerTest.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/test/java/main/java/com/zenz/kvstore/KVServerTest.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/test/java/main/java/com/zenz/kvstore/SerializationTest.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/test/java/main/java/com/zenz/kvstore/SerializationTest.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/zenz/kvstore/raft/RaftController.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/zenz/kvstore/raft/RaftController.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/zenz/kvstore/responses/HeartbeatResponse.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/zenz/kvstore/responses/HeartbeatResponse.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/zenz/kvstore/responses/LogResponse.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/zenz/kvstore/responses/LogResponse.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/test/java/main/java/com/zenz/kvstore/RaftControllerTest.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/test/java/main/java/com/zenz/kvstore/RaftControllerTest.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -20,6 +19,7 @@
   <component name="FileTemplateManagerImpl">
     <option name="RECENT_TEMPLATES">
       <list>
+        <option value="Record" />
         <option value="Enum" />
         <option value="Class" />
       </list>
@@ -53,6 +53,9 @@
   <component name="McpProjectServerCommands">
     <commands />
     <urls />
+  </component>
+  <component name="ProblemsViewState">
+    <option name="selectedTabId" value="CurrentFile" />
   </component>
   <component name="ProjectColorInfo">{
   &quot;associatedIndex&quot;: 1
@@ -168,7 +171,7 @@
       <workItem from="1772092857125" duration="21824000" />
       <workItem from="1772119388022" duration="4699000" />
       <workItem from="1772126689049" duration="582000" />
-      <workItem from="1772179888198" duration="3443000" />
+      <workItem from="1772179888198" duration="20633000" />
     </task>
     <task id="LOCAL-00001" summary="Added content length check in KVMapSnapshotter.applyLogs">
       <option name="closed" value="true" />
@@ -322,7 +325,23 @@
       <option name="project" value="LOCAL" />
       <updated>1772122705499</updated>
     </task>
-    <option name="localTasksCounter" value="20" />
+    <task id="LOCAL-00020" summary=" wip: Implementing raft controller - Initialised RaftController; Added handling for fresh follower instances; Removed GET command logging within KVStore">
+      <option name="closed" value="true" />
+      <created>1772183625698</created>
+      <option name="number" value="00020" />
+      <option name="presentableId" value="LOCAL-00020" />
+      <option name="project" value="LOCAL" />
+      <updated>1772183625698</updated>
+    </task>
+    <task id="LOCAL-00021" summary="saving - wip: Implementing raft controller - Implemented log request handling and tests">
+      <option name="closed" value="true" />
+      <created>1772191094552</created>
+      <option name="number" value="00021" />
+      <option name="presentableId" value="LOCAL-00021" />
+      <option name="project" value="LOCAL" />
+      <updated>1772191094552</updated>
+    </task>
+    <option name="localTasksCounter" value="22" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -359,6 +378,8 @@
     <MESSAGE value="wip: Implementing raft controller - Exported ClientSession to top of package" />
     <MESSAGE value="wip: Implementing raft controller - Added heartbeat request and response models" />
     <MESSAGE value=" wip: Implementing raft controller - Added RaftLogHandler" />
-    <option name="LAST_COMMIT_MESSAGE" value=" wip: Implementing raft controller - Added RaftLogHandler" />
+    <MESSAGE value=" wip: Implementing raft controller - Initialised RaftController; Added handling for fresh follower instances; Removed GET command logging within KVStore" />
+    <MESSAGE value="saving - wip: Implementing raft controller - Implemented log request handling and tests" />
+    <option name="LAST_COMMIT_MESSAGE" value="saving - wip: Implementing raft controller - Implemented log request handling and tests" />
   </component>
 </project>

@@ -2,22 +2,20 @@ package com.zenz.kvstore.raft;
 
 import com.zenz.kvstore.ClientSession;
 import com.zenz.kvstore.KVMapSnapshotter;
-import com.zenz.kvstore.MessageType;
-import com.zenz.kvstore.commands.PutCommand;
+import com.zenz.kvstore.RequestType;
+import com.zenz.kvstore.commands.Command;
 import com.zenz.kvstore.logHandlers.RaftLogHandler;
-import com.zenz.kvstore.messages.LogRequest;
-import com.zenz.kvstore.messages.LogResponse;
-import com.zenz.kvstore.messages.Message;
+import com.zenz.kvstore.requests.BaseRequest;
+import com.zenz.kvstore.requests.LogRequest;
+import com.zenz.kvstore.responses.ErrorResponse;
+import com.zenz.kvstore.responses.HeartbeatResponse;
+import com.zenz.kvstore.responses.LogResponse;
 
 import java.io.File;
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
-import java.nio.channels.SelectionKey;
-import java.nio.channels.Selector;
-import java.nio.channels.ServerSocketChannel;
-import java.nio.channels.SocketChannel;
-import java.nio.charset.StandardCharsets;
+import java.nio.channels.*;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.*;
@@ -25,7 +23,7 @@ import java.util.*;
 public class RaftController {
     private final String host;
     private final int port;
-    private boolean running = true;
+    private boolean running = false;
 
     private Selector selector;
     private ServerSocketChannel serverChannel;
@@ -99,9 +97,28 @@ public class RaftController {
         logs = RaftLogHandler.deserialize(path);
     }
 
-    public void stop() {
+    public void stop() throws IOException {
         if (!running) return;
+
         running = false;
+
+        if (selector != null) {
+            selector.wakeup();
+        }
+
+        if (selector != null) {
+            for (SelectionKey key : selector.keys()) {
+                cleanup(key);
+            }
+            selector.close();
+        }
+
+        if (serverChannel != null) {
+            serverChannel.close();
+        }
+
+        logs = null;
+        pendingWrites.clear();
     }
 
     public void handleAccept(SelectionKey key) throws IOException {
@@ -140,50 +157,44 @@ public class RaftController {
     }
 
     public void processData(ClientSession session, ByteBuffer buffer) throws IOException {
-        Message message = Message.deserialize(buffer.array());
-        MessageType messageType = message.type();
+        BaseRequest request = BaseRequest.deserialize(buffer.array());
+        RequestType requestType = request.type();
 
-        if (messageType.equals(MessageType.LOG_REQUEST)) {
-            handleLogRequest(session, buffer, (LogRequest) message);
-        } else if (messageType.equals(MessageType.HEARTBEAT_REQUEST)) {
+        ByteBuffer responseBuffer = null;
+        if (requestType.equals(RequestType.LOG)) {
+            responseBuffer = handleLogRequest(session, buffer, (LogRequest) request);
+        } else if (requestType.equals(RequestType.HEARTBEAT)) {
+            responseBuffer = ByteBuffer.wrap(new HeartbeatResponse().serialize());
+        }
 
+        if (responseBuffer != null) {
+            queueWrite(session.getChannel(), responseBuffer);
         }
     }
 
     private ByteBuffer handleLogRequest(ClientSession session, ByteBuffer buffer, LogRequest request) throws IOException {
-        // 1. Check if logId and term match current log id and term. If it does
-        //    then send NULL
-        // 2. Check if log id is in log array list. If it is, send the next log
-        // 3. If log not in array list then send snapshot.
-
         long currentLogId = logHandler.getLogId();
         long currentTerm = logHandler.getTerm();
 
+        if (request.term() > currentTerm) {
+            return ByteBuffer.wrap(new ErrorResponse(
+                    "Term is greater than current term " + currentTerm
+            ).serialize());
+        }
+
+        if (request.logId() > currentLogId) {
+            return ByteBuffer.wrap(new ErrorResponse(
+                    "Log id is greater than current log id " + currentLogId
+            ).serialize());
+
+        }
+
         // Handling a fresh follower
-        if (request.logId() == 0 && request.term() == 0) {
-            // Both nodes haven't processed any commands
-            if (currentLogId == 0 && currentTerm == 1) {
-                return ByteBuffer.wrap(
-                        new LogResponse(
-                                currentLogId,
-                                currentTerm,
-                                LogResponse.DataType.COMMAND,
-                                new PutCommand("", new byte[0]),
-                                null
-                        ).serialize()
-                );
-            }
-
+        if (request.logId() == 0) {
             // Check if we have a snapshot
-            Path snapshotDir = snapshotter.getDir();
-            File[] snapshotFiles = snapshotDir.toFile().listFiles();
-            Path snapshotPath = null;
-            if (snapshotFiles != null && snapshotFiles.length > 0) {
-                snapshotPath = snapshotFiles[0].toPath();
-            }
+            byte[] snapshotBytes = loadSnapshotBytes();
 
-            if (snapshotPath != null) {
-                byte[] snapshotBytes = Files.readAllBytes(snapshotPath);
+            if (snapshotBytes != null) {
                 return ByteBuffer.wrap(
                         new LogResponse(
                                 currentLogId,
@@ -195,42 +206,136 @@ public class RaftController {
                 );
             }
 
-            // If no snapshot, send first log
-            RaftLogHandler.Log log = logs.get(0);
+            RaftLogHandler.Log log = !logs.isEmpty() ? logs.getFirst() : null;
+            if (log != null) {
+                return ByteBuffer.wrap(new LogResponse(
+                        log.id(),
+                        log.term(),
+                        LogResponse.DataType.COMMAND,
+                        log.command(),
+                        null
+                ).serialize());
+            }
+
+            return ByteBuffer.wrap(new LogResponse(
+                    currentLogId,
+                    currentTerm,
+                    LogResponse.DataType.COMMAND,
+                    null,
+                    null
+            ).serialize());
+        }
+
+        // Finding next log
+        RaftLogHandler.Log log = logs.get(0);
+
+        if (request.logId() < log.id()) {
+            byte[] snapshotBytes = loadSnapshotBytes();
+
             return ByteBuffer.wrap(
                     new LogResponse(
-                            log.id(),
-                            log.term(),
-                            LogResponse.DataType.COMMAND,
-                            log.command(),
-                            null
+                            currentLogId,
+                            currentTerm,
+                            LogResponse.DataType.SNAPSHOT,
+                            null,
+                            snapshotBytes
                     ).serialize()
             );
         }
 
-        if (request.logId() == currentLogId && request.term() == currentTerm) {
-            return ByteBuffer.wrap(new byte[0]);
+        if (request.logId() == currentLogId) {
+            RaftLogHandler.Log lastLog = logs.getLast();
+
+            if (request.term() != lastLog.term()) {
+                return ByteBuffer.wrap(new ErrorResponse(
+                        "Invalid term for log id=" + request.logId()
+                ).serialize());
+            }
+
+            return ByteBuffer.wrap(new LogResponse(
+                    lastLog.id(),
+                    lastLog.term(),
+                    LogResponse.DataType.COMMAND,
+                    lastLog.command(),
+                    null
+            ).serialize());
         }
 
-        if (request.logId() == currentLogId && request.term() != currentTerm) {
-            return ByteBuffer.wrap("ERROR Invalid term".getBytes(StandardCharsets.UTF_8));
+        long nextLogId = request.logId() + 1;
+
+        for (RaftLogHandler.Log logEntry : logs) {
+            if (logEntry.id() == nextLogId) {
+                return ByteBuffer.wrap(
+                        new LogResponse(
+                                logEntry.id(),
+                                logEntry.term(),
+                                LogResponse.DataType.COMMAND,
+                                logEntry.command(),
+                                null
+                        ).serialize()
+                );
+            }
         }
 
-        // Searching for next log
-        Path fpath = logHandler.getLogger().getPath();
-        ArrayList<RaftLogHandler.Log> logs = logHandler.deserialize(fpath);
+        // Log id is too large
+        return ByteBuffer.wrap(new ErrorResponse("Failed to find next log").serialize());
+    }
 
-        if (logs.isEmpty()) {
+    private byte[] loadSnapshotBytes() throws IOException {
+        Path snapshotDir = snapshotter.getDir();
+        File[] snapshotFiles = snapshotDir.toFile().listFiles();
+        Path snapshotPath = null;
+        if (snapshotFiles != null && snapshotFiles.length > 0) {
+            snapshotPath = snapshotFiles[0].toPath();
         }
 
-        return ByteBuffer.wrap(new byte[0]);
+        return (snapshotPath == null) ? null : Files.readAllBytes(snapshotPath);
+    }
+
+    private void queueWrite(SocketChannel channel, ByteBuffer buffer) {
+        Queue<ByteBuffer> queue = pendingWrites.computeIfAbsent(channel, k -> new LinkedList<>());
+        queue.offer(buffer.duplicate());
+
+        SelectionKey key = channel.keyFor(selector);
+        if (key != null && key.isValid()) {
+            key.interestOps(key.interestOps() | SelectionKey.OP_WRITE);
+            selector.wakeup();
+        }
     }
 
     public void handleWrite(SelectionKey key) throws IOException {
+        SocketChannel client = (SocketChannel) key.channel();
+        Queue<ByteBuffer> queue = pendingWrites.get(client);
+
+        if (queue == null || queue.isEmpty()) {
+            key.interestOps(SelectionKey.OP_READ);
+            return;
+        }
+
+        ByteBuffer buffer = queue.peek();
+        while (buffer != null) {
+            int bytesWritten = client.write(buffer);
+
+            if (bytesWritten == 0) {
+                break;  // Send buffer full
+            }
+
+            if (!buffer.hasRemaining()) {
+                queue.poll();
+                buffer = queue.peek();
+            }
+        }
+
+        key.interestOps(SelectionKey.OP_READ);
     }
 
     private void cleanup(SelectionKey key) throws IOException {
         if (!key.isValid()) return;
+
+        SelectableChannel channel = key.channel();
+        pendingWrites.remove(channel);
+        channel.close();
+        key.cancel();
     }
 
     public boolean isRunning() {

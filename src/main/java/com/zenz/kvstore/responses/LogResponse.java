@@ -1,6 +1,7 @@
-package com.zenz.kvstore.messages;
+package com.zenz.kvstore.responses;
 
-import com.zenz.kvstore.MessageType;
+import com.zenz.kvstore.ResponseStatus;
+import com.zenz.kvstore.ResponseType;
 import com.zenz.kvstore.commands.Command;
 
 import java.nio.ByteBuffer;
@@ -17,23 +18,33 @@ import java.nio.ByteBuffer;
  * @param snapshot
  */
 public record LogResponse(
-        MessageType type,
+        ResponseStatus status,
+        ResponseType type,
         long logId,
         long term,
         DataType dataType,
         Command command,
         byte[] snapshot
-) implements Message {
+) implements BaseResponse {
 
     public LogResponse(long logId, long term, DataType dataType, Command command, byte[] snapshot) {
-        this(MessageType.LOG_RESPONSE, logId, term, dataType, command, snapshot);
+        this(ResponseStatus.SUCCESS, ResponseType.LOG, logId, term, dataType, command, snapshot);
     }
 
     @Override
     public byte[] serialize() {
-        byte[] dataBytes = command == null ? snapshot : command.serialize();
-        ByteBuffer buffer = ByteBuffer.allocate(4 + 8 + 8 + 4 + 4 + dataBytes.length);
+        byte[] dataBytes;
+        if (command != null) {
+            dataBytes = command.serialize();
+        } else if (snapshot != null) {
+            dataBytes = snapshot;
+        } else {
+            dataBytes = new byte[0];
+        }
 
+        ByteBuffer buffer = ByteBuffer.allocate(4 + 4 + 8 + 8 + 4 + 4 + dataBytes.length);
+
+        buffer.putInt(status().getValue());
         buffer.putInt(type.getValue());
         buffer.putLong(logId);
         buffer.putLong(term);
@@ -47,10 +58,12 @@ public record LogResponse(
     public static LogResponse deserialize(byte[] bytes) {
         ByteBuffer buffer = ByteBuffer.wrap(bytes);
 
-        int type = buffer.getInt();
-        MessageType messageType = MessageType.fromValue(type);
-        if (!messageType.equals(MessageType.LOG_RESPONSE)) {
-            throw new IllegalArgumentException("Invalid message type");
+        int statusValue = buffer.getInt();
+
+        int typeValue = buffer.getInt();
+        ResponseType type = ResponseType.fromValue(typeValue);
+        if (!type.equals(ResponseType.LOG)) {
+            throw new IllegalArgumentException("Invalid response type");
         }
 
         long logId = buffer.getLong();
@@ -63,6 +76,18 @@ public record LogResponse(
         Command command = dataType.equals(DataType.COMMAND) ? Command.deserialize(dataBytes) : null;
 
         return new LogResponse(logId, term, dataType, command, command == null ? dataBytes : null);
+    }
+
+    @Override
+    public String toString() {
+        return "LogResponse{" +
+                "status=" + status +
+                ", type=" + type +
+                ", logId=" + logId +
+                ", term=" + term +
+                ", command=" + command +
+                ", snapshot=" + snapshot +
+                "}";
     }
 
     public enum DataType {

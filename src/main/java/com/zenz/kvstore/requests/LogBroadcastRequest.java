@@ -1,6 +1,7 @@
-package com.zenz.kvstore.messages;
+package com.zenz.kvstore.requests;
 
-import com.zenz.kvstore.MessageType;
+import com.zenz.kvstore.ResponseStatus;
+import com.zenz.kvstore.RequestType;
 import com.zenz.kvstore.commands.Command;
 
 import java.nio.ByteBuffer;
@@ -14,9 +15,10 @@ import java.nio.ByteBuffer;
  * @param term
  * @param command
  */
-public record LogBroadcast(MessageType type, long logId, long term, Command command) implements Message {
-    public LogBroadcast(long logId, long term, Command command) {
-        this(MessageType.LOG_BROADCAST, logId, term, command);
+public record LogBroadcastRequest(ResponseStatus status, RequestType type, long logId, long term,
+                                  Command command) implements BaseRequest {
+    public LogBroadcastRequest(long logId, long term, Command command) {
+        this(ResponseStatus.SUCCESS, RequestType.LOG, logId, term, command);
     }
 
     @Override
@@ -33,12 +35,12 @@ public record LogBroadcast(MessageType type, long logId, long term, Command comm
         return buffer.array();
     }
 
-    public static LogBroadcast deserialize(byte[] bytes) {
+    public static LogBroadcastRequest deserialize(byte[] bytes) {
         ByteBuffer buffer = ByteBuffer.wrap(bytes);
 
         int typeValue = buffer.getInt();
-        MessageType type = MessageType.fromValue(typeValue);
-        if (!type.equals(MessageType.LOG_RESPONSE)) {
+        RequestType type = RequestType.fromValue(typeValue);
+        if (!type.equals(RequestType.BROADCAST)) {
             throw new IllegalArgumentException("Invalid message type");
         }
 
@@ -49,7 +51,6 @@ public record LogBroadcast(MessageType type, long logId, long term, Command comm
         buffer.get(commandBytes);
         Command command = Command.deserialize(commandBytes);
 
-        return new LogBroadcast(logId, term, command);
+        return new LogBroadcastRequest(logId, term, command);
     }
 }
-

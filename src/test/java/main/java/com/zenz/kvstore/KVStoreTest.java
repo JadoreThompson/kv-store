@@ -256,7 +256,6 @@ class KVStoreTest {
                 .setSnapshotter(snapshotter)
                 .setLogHandler(newLogHandler);
 
-        System.out.println("Calling restoration within restores data from snapshot test");
         KVStore restored = new Restorer().restore(newBuilder);
 
         // Verify restored data

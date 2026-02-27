@@ -1,12 +1,12 @@
-package com.zenz.kvstore.messages;
+package com.zenz.kvstore.requests;
 
-import com.zenz.kvstore.MessageType;
+import com.zenz.kvstore.RequestType;
 
 import java.nio.ByteBuffer;
 
-public record HeartbeatRequest(MessageType type) implements Message {
+public record HeartbeatRequest(RequestType type) implements BaseRequest {
     public HeartbeatRequest() {
-        this(MessageType.HEARTBEAT_REQUEST);
+        this(RequestType.HEARTBEAT);
     }
 
     @Override
@@ -19,8 +19,8 @@ public record HeartbeatRequest(MessageType type) implements Message {
     static HeartbeatRequest deserialize(byte[] bytes) {
         ByteBuffer buffer = ByteBuffer.wrap(bytes);
         int typeValue = buffer.getInt();
-        MessageType type = MessageType.fromValue(typeValue);
-        if (!type.equals(MessageType.HEARTBEAT_REQUEST)) {
+        RequestType type = RequestType.fromValue(typeValue);
+        if (!type.equals(RequestType.HEARTBEAT)) {
             throw new IllegalArgumentException("Invalid message type");
         }
         return new HeartbeatRequest();

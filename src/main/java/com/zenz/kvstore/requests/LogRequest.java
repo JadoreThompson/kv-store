@@ -1,6 +1,6 @@
-package com.zenz.kvstore.messages;
+package com.zenz.kvstore.requests;
 
-import com.zenz.kvstore.MessageType;
+import com.zenz.kvstore.RequestType;
 import com.zenz.kvstore.commands.Command;
 
 import java.nio.ByteBuffer;
@@ -15,14 +15,14 @@ import java.nio.ByteBuffer;
  * @param term
  * @param command
  */
-public record LogRequest(MessageType type, long logId, long term, Command command) implements Message {
+public record LogRequest(RequestType type, long logId, long term, Command command) implements BaseRequest {
     public LogRequest(long logId, long term, Command command) {
-        this(MessageType.LOG_REQUEST, logId, term, command);
+        this(RequestType.LOG, logId, term, command);
     }
 
     @Override
     public byte[] serialize() {
-        byte[] commandBytes = command.serialize();
+        byte[] commandBytes = command == null ? new byte[0] : command.serialize();
         ByteBuffer buffer = ByteBuffer.allocate(4 + 8 + 8 + 4 + commandBytes.length);
 
         buffer.putInt(type.getValue());
@@ -38,8 +38,8 @@ public record LogRequest(MessageType type, long logId, long term, Command comman
         ByteBuffer buffer = ByteBuffer.wrap(bytes);
 
         int typeValue = buffer.getInt();
-        MessageType type = MessageType.fromValue(typeValue);
-        if (!type.equals(MessageType.LOG_REQUEST)) {
+        RequestType type = RequestType.fromValue(typeValue);
+        if (!type.equals(RequestType.LOG)) {
             throw new IllegalArgumentException("Invalid message type");
         }
 

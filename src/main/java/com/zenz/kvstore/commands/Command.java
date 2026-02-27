@@ -12,6 +12,8 @@ public interface Command {
     byte[] serialize();
 
     static Command deserialize(byte[] bytes) {
+        if (bytes.length == 0) return null;
+
         ByteBuffer buffer = ByteBuffer.wrap(bytes);
         int typeValue = buffer.getInt();
         CommandType type = CommandType.fromValue(typeValue);
