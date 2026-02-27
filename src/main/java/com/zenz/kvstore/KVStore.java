@@ -1,6 +1,5 @@
 package com.zenz.kvstore;
 
-import com.zenz.kvstore.commands.GetCommand;
 import com.zenz.kvstore.commands.PutCommand;
 import com.zenz.kvstore.logHandlers.BaseLogHandler;
 
@@ -39,7 +38,6 @@ public class KVStore {
     }
 
     public KVMap.Node get(String key) throws IOException {
-        logHandler.log(new GetCommand(key));
         logCount++;
 
         snapshot();

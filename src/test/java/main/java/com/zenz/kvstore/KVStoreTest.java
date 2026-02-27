@@ -169,8 +169,8 @@ class KVStoreTest {
         ArrayList<LogHandler.Log> logs = LogHandler.deserialize(logFile.toPath());
 
         assertNotNull(logs, "Logs should not be null");
-        assertEquals(2, logs.size(), "Should have 2 log entries");
-        assertEquals(CommandType.GET, logs.get(1).command().type(), "Second entry should be GET");
+        assertEquals(1, logs.size(), "Should have 2 log entries");
+        assertEquals(CommandType.PUT, logs.get(0).command().type(), "First entry should be PUT");
     }
 
     @Test
@@ -183,9 +183,8 @@ class KVStoreTest {
         ArrayList<LogHandler.Log> logs = LogHandler.deserialize(logFile.toPath());
 
         assertNotNull(logs, "Logs should not be null");
-        assertEquals(2, logs.size(), "WAL should have exactly 2 entries");
+        assertEquals(1, logs.size(), "WAL should have exactly 2 entries");
         assertEquals(CommandType.PUT, logs.get(0).command().type(), "First entry should be PUT");
-        assertEquals(CommandType.GET, logs.get(1).command().type(), "Second entry should be GET");
     }
 
     @Test
@@ -200,7 +199,7 @@ class KVStoreTest {
         ArrayList<LogHandler.Log> logs = LogHandler.deserialize(logFile.toPath());
 
         assertNotNull(logs, "Logs should not be null");
-        assertEquals(4, logs.size(), "WAL should have exactly 4 entries");
+        assertEquals(2, logs.size(), "WAL should have exactly 2 entries");
 
         PutCommand putCmd1 = (PutCommand) logs.get(0).command();
         assertEquals(CommandType.PUT, putCmd1.type(), "Line 1 should be PUT");
@@ -209,9 +208,6 @@ class KVStoreTest {
         PutCommand putCmd2 = (PutCommand) logs.get(1).command();
         assertEquals(CommandType.PUT, putCmd2.type(), "Line 2 should be PUT");
         assertEquals("k2", putCmd2.key(), "Line 2 should be PUT k2");
-
-        assertEquals(CommandType.GET, logs.get(2).command().type(), "Line 3 should be GET k1");
-        assertEquals(CommandType.GET, logs.get(3).command().type(), "Line 4 should be GET k2");
     }
 
     // --- Integration: Snapshotting ---

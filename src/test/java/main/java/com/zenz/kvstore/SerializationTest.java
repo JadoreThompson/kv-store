@@ -125,7 +125,8 @@ public class SerializationTest {
         // Time the serialization
         Instant start = Instant.now();
 
-        snapshotter.snapshot(map, snapshotDir.resolve("test-output.snapshot"));
+        Path fpath = snapshotDir.resolve("test-output.snapshot");
+        snapshotter.snapshot(map, fpath);
 
         Instant end = Instant.now();
         Duration duration = Duration.between(start, end);
@@ -133,5 +134,11 @@ public class SerializationTest {
         System.out.println("Snapshotter Serialization took " + duration.toSeconds() + " seconds");
         System.out.println("Snapshotter Serialization took " + duration.toMillis() + " milliseconds");
         System.out.println("Snapshotter Serialization took " + duration.toNanos() + " nanoseconds");
+
+        start = Instant.now();
+        Files.readAllBytes(fpath);
+        end = Instant.now();
+        duration = Duration.between(start, end);
+        System.out.println("Snapshotter Deserialization took " + duration.toSeconds() + " seconds");
     }
 }

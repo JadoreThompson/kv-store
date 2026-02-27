@@ -22,7 +22,7 @@ import java.util.concurrent.TimeUnit;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-class KVConnectionManagerTest {
+class KVServerTest {
 
     private static final String TEST_HOST = "127.0.0.1";
     private static final int TEST_PORT = 9999;
@@ -145,7 +145,6 @@ class KVConnectionManagerTest {
         SocketChannel client = connectClient();
         sendCommand(client, new PutCommand("testkey", "testvalue".getBytes(StandardCharsets.UTF_8)));
         ByteBuffer response = receiveResponse(client);
-
         assertEquals("OK", bufferToString(response));
         client.close();
     }

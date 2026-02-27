@@ -15,6 +15,7 @@ public class RaftLogHandler implements BaseLogHandler {
     private long logId = 0;
     private long term = 0;
     private boolean disabled = false;
+    private Log lastLog = null;
 
     public RaftLogHandler(WALogger logger) {
         this.logger = logger;
@@ -28,12 +29,12 @@ public class RaftLogHandler implements BaseLogHandler {
             byte[] logBytes = log.serialize();
             ByteBuffer buffer = ByteBuffer.wrap(logBytes);
             logger.log(buffer);
+            lastLog = log;
         }
     }
 
     public static ArrayList<Log> deserialize(Path fpath) throws IOException {
         byte[] bytes = Files.readAllBytes(fpath);
-        if (bytes == null || bytes.length == 0) return null;
 
         ByteBuffer buffer = ByteBuffer.wrap(bytes);
         ArrayList<Log> logs = new ArrayList<>();
@@ -53,6 +54,13 @@ public class RaftLogHandler implements BaseLogHandler {
         }
 
         return logs;
+    }
+
+    /**
+     * Returns the most recent log
+     */
+    public Log getLog() {
+        return lastLog;
     }
 
     public boolean isDisabled() {

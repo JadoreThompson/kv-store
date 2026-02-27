@@ -16,8 +16,15 @@ import java.nio.ByteBuffer;
  * @param command
  * @param snapshot
  */
-public record LogResponse(MessageType type, long logId, long term, DataType dataType, Command command,
-                          byte[] snapshot) implements Message {
+public record LogResponse(
+        MessageType type,
+        long logId,
+        long term,
+        DataType dataType,
+        Command command,
+        byte[] snapshot
+) implements Message {
+
     public LogResponse(long logId, long term, DataType dataType, Command command, byte[] snapshot) {
         this(MessageType.LOG_RESPONSE, logId, term, dataType, command, snapshot);
     }

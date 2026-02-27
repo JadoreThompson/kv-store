@@ -4,20 +4,13 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="113ca11e-a295-4741-aad7-90962967a262" name="Changes" comment="wip: Implementing raft controller - Added heartbeat request and response models">
-      <change afterPath="$PROJECT_DIR$/src/main/java/com/zenz/kvstore/logHandlers/RaftLogHandler.java" afterDir="false" />
+    <list default="true" id="113ca11e-a295-4741-aad7-90962967a262" name="Changes" comment=" wip: Implementing raft controller - Added RaftLogHandler">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/com/zenz/kvstore/KVServer.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/zenz/kvstore/KVServer.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/com/zenz/kvstore/KVStore.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/zenz/kvstore/KVStore.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/com/zenz/kvstore/Main.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/zenz/kvstore/Main.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/com/zenz/kvstore/command_handlers/BaseCommandHandler.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/zenz/kvstore/commandHandlers/BaseCommandHandler.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/com/zenz/kvstore/command_handlers/CommandHandler.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/zenz/kvstore/commandHandlers/CommandHandler.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/com/zenz/kvstore/log_handlers/BaseLogHandler.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/zenz/kvstore/logHandlers/BaseLogHandler.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/com/zenz/kvstore/log_handlers/LogHandler.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/zenz/kvstore/logHandlers/LogHandler.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/com/zenz/kvstore/restorers/Restorer.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/zenz/kvstore/restorers/Restorer.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/test/java/main/java/com/zenz/kvstore/KVConnectionManagerTest.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/test/java/main/java/com/zenz/kvstore/KVConnectionManagerTest.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/test/java/main/java/com/zenz/kvstore/KVStoreTest.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/test/java/main/java/com/zenz/kvstore/KVStoreTest.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/test/java/main/java/com/zenz/kvstore/RestorerTest.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/test/java/main/java/com/zenz/kvstore/RestorerTest.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/zenz/kvstore/logHandlers/RaftLogHandler.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/zenz/kvstore/logHandlers/RaftLogHandler.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/zenz/kvstore/messages/LogResponse.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/zenz/kvstore/messages/LogResponse.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/test/java/main/java/com/zenz/kvstore/KVConnectionManagerTest.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/test/java/main/java/com/zenz/kvstore/KVServerTest.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/test/java/main/java/com/zenz/kvstore/SerializationTest.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/test/java/main/java/com/zenz/kvstore/SerializationTest.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -173,7 +166,9 @@
       <workItem from="1771753155052" duration="6690000" />
       <workItem from="1772052812379" duration="5905000" />
       <workItem from="1772092857125" duration="21824000" />
-      <workItem from="1772119388022" duration="2630000" />
+      <workItem from="1772119388022" duration="4699000" />
+      <workItem from="1772126689049" duration="582000" />
+      <workItem from="1772179888198" duration="3443000" />
     </task>
     <task id="LOCAL-00001" summary="Added content length check in KVMapSnapshotter.applyLogs">
       <option name="closed" value="true" />
@@ -319,7 +314,15 @@
       <option name="project" value="LOCAL" />
       <updated>1772121734811</updated>
     </task>
-    <option name="localTasksCounter" value="19" />
+    <task id="LOCAL-00019" summary=" wip: Implementing raft controller - Added RaftLogHandler">
+      <option name="closed" value="true" />
+      <created>1772122705499</created>
+      <option name="number" value="00019" />
+      <option name="presentableId" value="LOCAL-00019" />
+      <option name="project" value="LOCAL" />
+      <updated>1772122705499</updated>
+    </task>
+    <option name="localTasksCounter" value="20" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -355,6 +358,7 @@
     <MESSAGE value="wip: Implementing raft controller - Created Message interface, subclasses and MessageType" />
     <MESSAGE value="wip: Implementing raft controller - Exported ClientSession to top of package" />
     <MESSAGE value="wip: Implementing raft controller - Added heartbeat request and response models" />
-    <option name="LAST_COMMIT_MESSAGE" value="wip: Implementing raft controller - Added heartbeat request and response models" />
+    <MESSAGE value=" wip: Implementing raft controller - Added RaftLogHandler" />
+    <option name="LAST_COMMIT_MESSAGE" value=" wip: Implementing raft controller - Added RaftLogHandler" />
   </component>
 </project>
