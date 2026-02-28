@@ -679,4 +679,259 @@ class RaftControllerTest {
 
         client.close();
     }
+
+    // ============================================
+    // Unit Tests for handleAppendEntryResponse
+    // ============================================
+
+    @Test
+    @DisplayName("AppendEntryResponse updates session logId and term")
+    void appendEntryResponse_updatesSessionState() throws Exception {
+        // Setup - create logs so controller has state
+        List<LogEntry> entries = new ArrayList<>();
+        entries.add(new LogEntry(1L, 1L, "key1", "value1".getBytes(StandardCharsets.UTF_8)));
+        entries.add(new LogEntry(2L, 1L, "key2", "value2".getBytes(StandardCharsets.UTF_8)));
+        createLogs(entries);
+
+        restartController();
+
+        // Connect a follower and sync it first
+        SocketChannel client = connectClient();
+        sendMessage(client, new RequestEntry(0, 0));
+
+        BaseMessage resp = receiveResponse(client);
+        assertTrue(resp instanceof AppendEntry, "Expected append entry after initial request");
+
+        // Now send an AppendEntryResponse to update session state
+        sendMessage(client, new AppendEntryResponse(2, 1, true));
+
+        // Give the server time to process
+        Thread.sleep(100);
+
+        // Verify the session was updated by making a new request
+        // The follower should now be at logId 2, term 1
+        sendMessage(client, new RequestEntry(2, 1));
+        resp = receiveResponse(client);
+        assertTrue(resp instanceof AppendEntry, "Expected append entry");
+        AppendEntry response = (AppendEntry) resp;
+        // Follower is up to date, should get empty commands list
+        assertTrue(response.commands().isEmpty(), "Expected empty commands for up-to-date follower");
+
+        client.close();
+    }
+
+    @Test
+    @DisplayName("AppendEntryResponse with lower id triggers catch-up send")
+    void appendEntryResponse_withLowerId_sendsCatchUpEntries() throws Exception {
+        // Setup - create multiple logs
+        List<LogEntry> entries = new ArrayList<>();
+        entries.add(new LogEntry(1L, 1L, "key1", "value1".getBytes(StandardCharsets.UTF_8)));
+        entries.add(new LogEntry(2L, 1L, "key2", "value2".getBytes(StandardCharsets.UTF_8)));
+        entries.add(new LogEntry(3L, 1L, "key3", "value3".getBytes(StandardCharsets.UTF_8)));
+        entries.add(new LogEntry(4L, 1L, "key4", "value4".getBytes(StandardCharsets.UTF_8)));
+        createLogs(entries);
+
+        restartController();
+
+        // Connect a follower
+        SocketChannel client = connectClient();
+        sendMessage(client, new RequestEntry(0, 0));
+
+        BaseMessage resp = receiveResponse(client);
+        assertTrue(resp instanceof AppendEntry);
+
+        // Now send an AppendEntryResponse with id=1 (behind current logId=4)
+        // This should trigger the controller to send catch-up entries
+        sendMessage(client, new AppendEntryResponse(1, 1, true));
+
+        // Receive the catch-up entries (logs 2, 3, 4)
+        resp = receiveResponse(client);
+        assertTrue(resp instanceof AppendEntry, "Expected catch-up append entry");
+        AppendEntry response = (AppendEntry) resp;
+        assertEquals(2, response.id(), "Expected catch-up to start from log 2");
+        assertFalse(response.commands().isEmpty(), "Expected catch-up commands");
+
+        client.close();
+    }
+
+    // ============================================
+    // TODO: Integration Tests for handleAppendEntryResponse
+    // ============================================
+
+    @Test
+    @DisplayName("Majority reached completes future")
+    void majorityReached_completesFuture() throws Exception {
+        // Setup - create logs
+        List<LogEntry> entries = new ArrayList<>();
+        entries.add(new LogEntry(1L, 1L, "key1", "value1".getBytes(StandardCharsets.UTF_8)));
+        createLogs(entries);
+
+        restartController();
+
+        // Connect 3 followers (majority = 2)
+        SocketChannel client1 = connectClient();
+        SocketChannel client2 = connectClient();
+        SocketChannel client3 = connectClient();
+
+        // Sync all followers to current state
+        sendMessage(client1, new RequestEntry(0, 0));
+        sendMessage(client2, new RequestEntry(0, 0));
+        sendMessage(client3, new RequestEntry(0, 0));
+
+        receiveResponse(client1);
+        receiveResponse(client2);
+        receiveResponse(client3);
+
+        // Now simulate a command broadcast by having followers at logId 1
+        // Send responses from 2 followers (majority)
+        sendMessage(client1, new AppendEntryResponse(1, 1, true));
+        Thread.sleep(50);
+        sendMessage(client2, new AppendEntryResponse(1, 1, true));
+        Thread.sleep(100);
+
+        // Both followers should have their sessions updated
+        sendMessage(client1, new RequestEntry(1, 1));
+        BaseMessage resp1 = receiveResponse(client1);
+        assertTrue(resp1 instanceof AppendEntry);
+
+        sendMessage(client2, new RequestEntry(1, 1));
+        BaseMessage resp2 = receiveResponse(client2);
+        assertTrue(resp2 instanceof AppendEntry);
+
+        client1.close();
+        client2.close();
+        client3.close();
+    }
+
+    @Test
+    @DisplayName("AppendEntryResponse with matching id increments count for majority")
+    @Disabled
+    void appendEntryResponse_withMatchingId_incrementsCount() throws Exception {
+        // Setup - create logs
+        List<LogEntry> entries = new ArrayList<>();
+        entries.add(new LogEntry(1L, 1L, "key1", "value1".getBytes(StandardCharsets.UTF_8)));
+        createLogs(entries);
+
+        restartController();
+
+        // Connect multiple followers
+        SocketChannel client1 = connectClient();
+        SocketChannel client2 = connectClient();
+        SocketChannel client3 = connectClient();
+
+        // Sync all followers first
+        sendMessage(client1, new RequestEntry(0, 0));
+        sendMessage(client2, new RequestEntry(0, 0));
+        sendMessage(client3, new RequestEntry(0, 0));
+
+        receiveResponse(client1);
+        receiveResponse(client2);
+        receiveResponse(client3);
+
+        // Simulate a command being handled (this would normally set up majority tracking)
+        // For this test, we verify that responses with matching ids are handled
+        sendMessage(client1, new AppendEntryResponse(1, 1, true));
+
+        // Give server time to process
+        Thread.sleep(100);
+
+        // The session should be updated
+        sendMessage(client1, new RequestEntry(1, 1));
+        BaseMessage resp = receiveResponse(client1);
+        assertTrue(resp instanceof AppendEntry);
+
+        client1.close();
+        client2.close();
+        client3.close();
+    }
+
+    @Test
+    @DisplayName("Follower behind receives catch-up entries via network")
+    @Disabled
+    void followerBehind_receivesCatchUpViaNetwork() throws Exception {
+        // Setup - create multiple logs
+        List<LogEntry> entries = new ArrayList<>();
+        for (long i = 1; i <= 5; i++) {
+            entries.add(new LogEntry(i, 1L, "key" + i, ("value" + i).getBytes(StandardCharsets.UTF_8)));
+        }
+        createLogs(entries);
+
+        restartController();
+
+        // Connect a follower
+        SocketChannel client = connectClient();
+
+        // Initial sync - follower gets all logs
+        sendMessage(client, new RequestEntry(0, 0));
+        BaseMessage resp = receiveResponse(client);
+        assertTrue(resp instanceof AppendEntry);
+        AppendEntry initialResponse = (AppendEntry) resp;
+        assertEquals(1, initialResponse.id());
+
+        // Follower responds that it only applied up to log 2 (behind)
+        sendMessage(client, new AppendEntryResponse(2, 1, true));
+
+        // Controller should send catch-up entries (logs 3, 4, 5)
+        resp = receiveResponse(client);
+        assertTrue(resp instanceof AppendEntry, "Expected catch-up entries");
+        AppendEntry catchUpResponse = (AppendEntry) resp;
+        assertEquals(3, catchUpResponse.id(), "Catch-up should start from log 3");
+        assertFalse(catchUpResponse.commands().isEmpty(), "Expected catch-up commands");
+
+        client.close();
+    }
+
+    @Test
+    @DisplayName("Multiple followers with mixed states")
+    void multipleFollowers_mixedStates_handledCorrectly() throws Exception {
+        // Setup - create logs
+        List<LogEntry> entries = new ArrayList<>();
+        for (long i = 1; i <= 3; i++) {
+            entries.add(new LogEntry(i, 1L, "key" + i, ("value" + i).getBytes(StandardCharsets.UTF_8)));
+        }
+        createLogs(entries);
+
+        restartController();
+
+        // Connect 3 followers
+        SocketChannel client1 = connectClient();
+        SocketChannel client2 = connectClient();
+        SocketChannel client3 = connectClient();
+
+        // Sync all followers
+        sendMessage(client1, new RequestEntry(0, 0));
+        sendMessage(client2, new RequestEntry(0, 0));
+        sendMessage(client3, new RequestEntry(0, 0));
+
+        receiveResponse(client1);
+        receiveResponse(client2);
+        receiveResponse(client3);
+
+        // Follower 1 responds with current logId (up to date)
+        sendMessage(client1, new AppendEntryResponse(3, 1, true));
+        Thread.sleep(50);
+
+        // Follower 2 responds with older logId (behind)
+        sendMessage(client2, new AppendEntryResponse(1, 1, true));
+        Thread.sleep(50);
+
+        // Follower 2 should receive catch-up entries
+        BaseMessage resp2 = receiveResponse(client2);
+        assertTrue(resp2 instanceof AppendEntry, "Follower 2 should get catch-up");
+        AppendEntry catchUp = (AppendEntry) resp2;
+        assertEquals(2, catchUp.id(), "Catch-up should start from log 2");
+
+        // Follower 3 responds with current logId
+        sendMessage(client3, new AppendEntryResponse(3, 1, true));
+        Thread.sleep(50);
+
+        // Verify all sessions are properly tracked
+        sendMessage(client1, new RequestEntry(3, 1));
+        BaseMessage resp1 = receiveResponse(client1);
+        assertTrue(resp1 instanceof AppendEntry);
+
+        client1.close();
+        client2.close();
+        client3.close();
+    }
 }

@@ -31,8 +31,10 @@ public class RaftController {
     private KVMapSnapshotter snapshotter;
     private ArrayList<RaftLogHandler.Log> logs;
 
+    private long logId;
     private int majority;
     private int count;
+    private final ArrayList<SocketChannel> followers = new ArrayList<>();
     private CompletableFuture<Boolean> fut;
 
     public RaftController(String host, int port, RaftLogHandler logHandler, KVMapSnapshotter snapshotter) {
@@ -206,22 +208,33 @@ public class RaftController {
      * @param command
      */
     public void handleCommand(Command command, CompletableFuture<Boolean> fut) {
-        long nextLogId = logHandler.getLogId() + 1;
-        byte[] requestBytes = new LogBroadcastRequest(
-                nextLogId,
+        long currentLogId = logHandler.getLogId();
+//        long nextLogId = currentLogId + 1;
+//        byte[] requestBytes = new LogBroadcastRequest(
+//                nextLogId,
+//                logHandler.getTerm(),
+//                command
+//        ).serialize();
+        ArrayList<Command> commands = new ArrayList<>();
+        commands.add(command);
+        byte[] requestBytes = new AppendEntry(
+                currentLogId + 1,
                 logHandler.getTerm(),
-                command
+                commands
         ).serialize();
         int count = 0;
 
         for (SelectionKey key : selector.keys()) {
             ClientSession session = (ClientSession) key.attachment();
-            if (session.logId + 1 == nextLogId) {
+            if (session.logId == currentLogId) {
                 count++;
-                queueWrite(session.getChannel(), ByteBuffer.wrap(requestBytes));
+                SocketChannel channel = session.getChannel();
+                followers.add(channel);
+                queueWrite(channel, ByteBuffer.wrap(requestBytes));
             }
         }
 
+        logId = currentLogId;
         majority = count / 2 + 1;
         this.fut = fut;
     }
@@ -270,6 +283,9 @@ public class RaftController {
                 ).serialize());
             }
 
+            // Follower is fresh
+            session.setLogId(currentLogId);
+            session.setTerm(currentTerm);
             // Leader hasn't processed a command yet.
             return ByteBuffer.wrap(new AppendEntry(
                     currentLogId,
@@ -297,6 +313,9 @@ public class RaftController {
                 ).serialize());
             }
 
+            // Follower is up to date.
+            session.setLogId(lastLog.id());
+            session.setTerm(lastLog.term());
             // Return empty list since follower is up to date
             return ByteBuffer.wrap(new AppendEntry(
                     lastLog.id(),
@@ -335,9 +354,48 @@ public class RaftController {
     }
 
     private ByteBuffer handleAppendEntryResponse(ClientSession session, AppendEntryResponse response) {
-        // TODO: Set session's log id and log term
-        // TODO: Handle majority
-        return ByteBuffer.wrap(new byte[0]);
+        session.setLogId(response.id());
+        session.setTerm(response.term());
+
+        if (logId == 0 || response.id() != logId) {
+            if (!logs.isEmpty()) {
+                List<Command> commands = new ArrayList<>();
+//                long firstLogId = logs.getFirst().id();
+//                long logTerm = logs.getFirst().term();
+                long firstLogId = -1;
+                long logTerm = -1;
+
+                for (RaftLogHandler.Log log : logs) {
+                    if (log.id() > response.id()) {
+                        if (firstLogId == -1) {
+                            firstLogId = log.id();
+                            logTerm = log.term();
+                        }
+                        commands.add(log.command());
+                    }
+                }
+
+                queueWrite(session.getChannel(), ByteBuffer.wrap(new AppendEntry(
+                        firstLogId,
+                        logTerm,
+                        commands
+                ).serialize()));
+            }
+        } else if (response.id() == logId && majority > 0) {
+            // We're currently looking to confirm that the majority
+            // of the followers have committed a command.
+            count++;
+            if (count >= majority) {
+                fut.complete(true);
+                fut = null;
+                majority = 0;
+                count = 0;
+                followers.clear();
+            }
+        }
+
+
+        return null;
     }
 
     private byte[] loadSnapshotBytes() throws IOException {
@@ -393,6 +451,10 @@ public class RaftController {
 
         SelectableChannel channel = key.channel();
         pendingWrites.remove(channel);
+        followers.remove(channel);
+        if (majority > 0) {
+            majority--;
+        }
         channel.close();
         key.cancel();
     }
@@ -438,3 +500,5 @@ public class RaftController {
         }
     }
 }
+
+
