@@ -2,7 +2,8 @@ package com.zenz.kvstore;
 
 public enum ResponseType {
     LOG(1),
-    HEARTBEAT(2);
+    HEARTBEAT(2),
+    BROADCAST(3);
 
     private final int value;
 

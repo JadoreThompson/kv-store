@@ -21,4 +21,15 @@ public interface BaseRequest {
 
         throw new IllegalArgumentException("Unknown request type");
     }
+
+    static BaseRequest deserialize(ByteBuffer buffer) {
+        int typeValue = buffer.getInt();
+        RequestType type = RequestType.fromValue(typeValue);
+
+        if (type.equals(RequestType.LOG)) return LogRequest.deserialize(buffer);
+        if (type.equals(RequestType.HEARTBEAT)) return HeartbeatRequest.deserialize(buffer);
+        if (type.equals(RequestType.BROADCAST)) return LogBroadcastRequest.deserialize(buffer);
+
+        throw new IllegalArgumentException("Unknown request type");
+    }
 }

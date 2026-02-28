@@ -2,6 +2,7 @@ package com.zenz.kvstore.requests;
 
 import com.zenz.kvstore.RequestType;
 
+import java.nio.BufferUnderflowException;
 import java.nio.ByteBuffer;
 
 public record HeartbeatRequest(RequestType type) implements BaseRequest {
@@ -17,12 +18,29 @@ public record HeartbeatRequest(RequestType type) implements BaseRequest {
     }
 
     static HeartbeatRequest deserialize(byte[] bytes) {
-        ByteBuffer buffer = ByteBuffer.wrap(bytes);
-        int typeValue = buffer.getInt();
-        RequestType type = RequestType.fromValue(typeValue);
-        if (!type.equals(RequestType.HEARTBEAT)) {
-            throw new IllegalArgumentException("Invalid message type");
+        try {
+            ByteBuffer buffer = ByteBuffer.wrap(bytes);
+            int typeValue = buffer.getInt();
+            RequestType type = RequestType.fromValue(typeValue);
+            if (!type.equals(RequestType.HEARTBEAT)) {
+                throw new IllegalArgumentException("Invalid message type");
+            }
+            return new HeartbeatRequest();
+        } catch (BufferUnderflowException e) {
+            return null;
         }
-        return new HeartbeatRequest();
+    }
+
+    static HeartbeatRequest deserialize(ByteBuffer buffer) {
+        try {
+            int typeValue = buffer.getInt();
+            RequestType type = RequestType.fromValue(typeValue);
+            if (!type.equals(RequestType.HEARTBEAT)) {
+                throw new IllegalArgumentException("Invalid message type");
+            }
+            return new HeartbeatRequest();
+        } catch (BufferUnderflowException e) {
+            return null;
+        }
     }
 }

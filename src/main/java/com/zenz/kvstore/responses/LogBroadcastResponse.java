@@ -1,31 +1,40 @@
-package com.zenz.kvstore.requests;
+package com.zenz.kvstore.responses;
 
-import com.zenz.kvstore.RequestType;
+import com.zenz.kvstore.ResponseStatus;
+import com.zenz.kvstore.ResponseType;
 import com.zenz.kvstore.commands.Command;
 
 import java.nio.BufferUnderflowException;
 import java.nio.ByteBuffer;
 
 /**
- * Sent by a broker, this object contains the last log seen
- * by a broker. The controller will evaluate this log and return a
- * corresponding LogResponse to be evaluated by the broker.
+ * Sent by the controller, this object contains the most recent log
+ * seen by the controller.
  *
  * @param type
  * @param logId
  * @param term
  * @param command
  */
-public record LogRequest(RequestType type, long logId, long term, Command command) implements BaseRequest {
-    public LogRequest(long logId, long term, Command command) {
-        this(RequestType.LOG, logId, term, command);
+public record LogBroadcastResponse(
+        ResponseStatus status,
+        ResponseType type,
+        long logId,
+        long term,
+        Command command
+) implements BaseResponse {
+
+    public LogBroadcastResponse(long logId, long term, Command command) {
+        this(ResponseStatus.SUCCESS, ResponseType.LOG, logId, term, command);
     }
 
     @Override
     public byte[] serialize() {
-        byte[] commandBytes = command == null ? new byte[0] : command.serialize();
-        ByteBuffer buffer = ByteBuffer.allocate(4 + 8 + 8 + 4 + commandBytes.length);
+        byte[] commandBytes = command.serialize();
+        ByteBuffer buffer = ByteBuffer.allocate(
+                4 + 4 + 8 + 8 + 4 + commandBytes.length);
 
+        buffer.putInt(status.getValue());
         buffer.putInt(type.getValue());
         buffer.putLong(logId);
         buffer.putLong(term);
@@ -35,13 +44,14 @@ public record LogRequest(RequestType type, long logId, long term, Command comman
         return buffer.array();
     }
 
-    public static LogRequest deserialize(byte[] bytes) {
+    public static LogBroadcastResponse deserialize(byte[] bytes) {
         try {
             ByteBuffer buffer = ByteBuffer.wrap(bytes);
 
+            int statusValue = buffer.getInt();
             int typeValue = buffer.getInt();
-            RequestType type = RequestType.fromValue(typeValue);
-            if (!type.equals(RequestType.LOG)) {
+            ResponseType type = ResponseType.fromValue(typeValue);
+            if (!type.equals(ResponseType.BROADCAST)) {
                 throw new IllegalArgumentException("Invalid message type");
             }
 
@@ -52,17 +62,18 @@ public record LogRequest(RequestType type, long logId, long term, Command comman
             buffer.get(commandBytes);
             Command command = Command.deserialize(commandBytes);
 
-            return new LogRequest(logId, term, command);
+            return new LogBroadcastResponse(logId, term, command);
         } catch (BufferUnderflowException e) {
             return null;
         }
     }
 
-    public static LogRequest deserialize(ByteBuffer buffer) {
+    public static LogBroadcastResponse deserialize(ByteBuffer buffer) {
         try {
+            int statusValue = buffer.getInt();
             int typeValue = buffer.getInt();
-            RequestType type = RequestType.fromValue(typeValue);
-            if (!type.equals(RequestType.LOG)) {
+            ResponseType type = ResponseType.fromValue(typeValue);
+            if (!type.equals(ResponseType.BROADCAST)) {
                 throw new IllegalArgumentException("Invalid message type");
             }
 
@@ -73,7 +84,7 @@ public record LogRequest(RequestType type, long logId, long term, Command comman
             buffer.get(commandBytes);
             Command command = Command.deserialize(commandBytes);
 
-            return new LogRequest(logId, term, command);
+            return new LogBroadcastResponse(logId, term, command);
         } catch (BufferUnderflowException e) {
             return null;
         }

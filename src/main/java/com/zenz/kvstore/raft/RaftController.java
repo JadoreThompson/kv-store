@@ -1,11 +1,11 @@
 package com.zenz.kvstore.raft;
 
-import com.zenz.kvstore.ClientSession;
 import com.zenz.kvstore.KVMapSnapshotter;
 import com.zenz.kvstore.RequestType;
 import com.zenz.kvstore.commands.Command;
 import com.zenz.kvstore.logHandlers.RaftLogHandler;
 import com.zenz.kvstore.requests.BaseRequest;
+import com.zenz.kvstore.requests.LogBroadcastRequest;
 import com.zenz.kvstore.requests.LogRequest;
 import com.zenz.kvstore.responses.ErrorResponse;
 import com.zenz.kvstore.responses.HeartbeatResponse;
@@ -19,6 +19,7 @@ import java.nio.channels.*;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.*;
+import java.util.concurrent.CompletableFuture;
 
 public class RaftController {
     private final String host;
@@ -32,6 +33,10 @@ public class RaftController {
     private RaftLogHandler logHandler;
     private KVMapSnapshotter snapshotter;
     private ArrayList<RaftLogHandler.Log> logs;
+
+    private int majority;
+    private int count;
+    private CompletableFuture<Boolean> fut;
 
     public RaftController(String host, int port, RaftLogHandler logHandler, KVMapSnapshotter snapshotter) {
         this.host = host;
@@ -121,7 +126,7 @@ public class RaftController {
         pendingWrites.clear();
     }
 
-    public void handleAccept(SelectionKey key) throws IOException {
+    private void handleAccept(SelectionKey key) throws IOException {
         ServerSocketChannel serverChannel = (ServerSocketChannel) key.channel();
         SocketChannel channel = serverChannel.accept();
 
@@ -135,7 +140,7 @@ public class RaftController {
         selectionKey.attach(new ClientSession(channel));
     }
 
-    public void handleRead(SelectionKey key) throws IOException {
+    private void handleRead(SelectionKey key) throws IOException {
         SocketChannel client = (SocketChannel) key.channel();
         ClientSession session = (ClientSession) key.attachment();
 
@@ -153,11 +158,30 @@ public class RaftController {
 
         // Process the data
         buffer.flip();
-        processData(session, buffer);
+        boolean consumed = processData(session, buffer);
+        if (consumed) {
+            buffer.compact();
+        }
     }
 
-    public void processData(ClientSession session, ByteBuffer buffer) throws IOException {
-        BaseRequest request = BaseRequest.deserialize(buffer.array());
+    private boolean processData(ClientSession session, ByteBuffer buffer) throws IOException {
+//        BaseRequest request = BaseRequest.deserialize(buffer.array());
+        //////////////////////////////
+        BaseRequest request;
+        int position = buffer.position();
+        try {
+            request = BaseRequest.deserialize(buffer);
+        } catch (IllegalArgumentException e) {
+            queueWrite(session.getChannel(), ByteBuffer.wrap(new ErrorResponse(e.getMessage()).serialize()));
+            return true;
+        }
+
+        if (request == null) {
+            buffer.position(position);
+            return false;
+        }
+        ;
+        //////////////////////////////
         RequestType requestType = request.type();
 
         ByteBuffer responseBuffer = null;
@@ -165,11 +189,21 @@ public class RaftController {
             responseBuffer = handleLogRequest(session, buffer, (LogRequest) request);
         } else if (requestType.equals(RequestType.HEARTBEAT)) {
             responseBuffer = ByteBuffer.wrap(new HeartbeatResponse().serialize());
+        } else if (requestType.equals(RequestType.BROADCAST)) {
+            count++;
+            if (count >= majority) {
+                fut.complete(true);
+                count = 0;
+                majority = 0;
+                fut = null;
+            }
         }
 
         if (responseBuffer != null) {
             queueWrite(session.getChannel(), responseBuffer);
         }
+
+        return true;
     }
 
     private ByteBuffer handleLogRequest(ClientSession session, ByteBuffer buffer, LogRequest request) throws IOException {
@@ -208,6 +242,8 @@ public class RaftController {
 
             RaftLogHandler.Log log = !logs.isEmpty() ? logs.getFirst() : null;
             if (log != null) {
+                session.setLogId(log.id());
+                session.setTerm(log.term());
                 return ByteBuffer.wrap(new LogResponse(
                         log.id(),
                         log.term(),
@@ -217,6 +253,8 @@ public class RaftController {
                 ).serialize());
             }
 
+            session.setLogId(currentLogId);
+            session.setTerm(currentTerm);
             return ByteBuffer.wrap(new LogResponse(
                     currentLogId,
                     currentTerm,
@@ -252,6 +290,8 @@ public class RaftController {
                 ).serialize());
             }
 
+            session.setLogId(lastLog.id());
+            session.setTerm(lastLog.term());
             return ByteBuffer.wrap(new LogResponse(
                     lastLog.id(),
                     lastLog.term(),
@@ -265,6 +305,8 @@ public class RaftController {
 
         for (RaftLogHandler.Log logEntry : logs) {
             if (logEntry.id() == nextLogId) {
+                session.setLogId(logEntry.id());
+                session.setTerm(logEntry.term());
                 return ByteBuffer.wrap(
                         new LogResponse(
                                 logEntry.id(),
@@ -279,6 +321,33 @@ public class RaftController {
 
         // Log id is too large
         return ByteBuffer.wrap(new ErrorResponse("Failed to find next log").serialize());
+    }
+
+    /**
+     * Broadcast the command to all followers. Awaits for majority to confirm
+     * that the command has been commited.
+     *
+     * @param command
+     */
+    public void handleCommand(Command command, CompletableFuture<Boolean> fut) {
+        long nextLogId = logHandler.getLogId() + 1;
+        byte[] requestBytes = new LogBroadcastRequest(
+                nextLogId,
+                logHandler.getTerm(),
+                command
+        ).serialize();
+        int count = 0;
+
+        for (SelectionKey key : selector.keys()) {
+            ClientSession session = (ClientSession) key.attachment();
+            if (session.logId + 1 == nextLogId) {
+                count++;
+                queueWrite(session.getChannel(), ByteBuffer.wrap(requestBytes));
+            }
+        }
+
+        majority = count / 2 + 1;
+        this.fut = fut;
     }
 
     private byte[] loadSnapshotBytes() throws IOException {
@@ -303,7 +372,7 @@ public class RaftController {
         }
     }
 
-    public void handleWrite(SelectionKey key) throws IOException {
+    private void handleWrite(SelectionKey key) throws IOException {
         SocketChannel client = (SocketChannel) key.channel();
         Queue<ByteBuffer> queue = pendingWrites.get(client);
 
@@ -352,5 +421,30 @@ public class RaftController {
 
     public RaftLogHandler getLogHandler() {
         return logHandler;
+    }
+
+    private class ClientSession extends com.zenz.kvstore.ClientSession {
+        private long logId = -1;
+        private long term = -1;
+
+        public ClientSession(SocketChannel channel) {
+            super(channel);
+        }
+
+        public long getLogId() {
+            return logId;
+        }
+
+        public void setLogId(long logId) {
+            this.logId = logId;
+        }
+
+        public long getTerm() {
+            return term;
+        }
+
+        public void setTerm(long term) {
+            this.term = term;
+        }
     }
 }
