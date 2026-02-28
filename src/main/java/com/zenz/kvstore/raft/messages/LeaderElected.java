@@ -38,4 +38,13 @@ public record LeaderElected(MessageType type, long term, long leaderId) implemen
             return null;
         }
     }
+
+    @Override
+    public String toString() {
+        return "LeaderElected{" +
+                "type=" + type +
+                ", term=" + term +
+                ", leaderId=" + leaderId +
+                '}';
+    }
 }

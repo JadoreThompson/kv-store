@@ -3,16 +3,10 @@ package com.zenz.kvstore.raft;
 import com.zenz.kvstore.KVMapSnapshotter;
 import com.zenz.kvstore.MessageType;
 import com.zenz.kvstore.RaftErrorType;
-import com.zenz.kvstore.RequestType;
 import com.zenz.kvstore.commands.Command;
 import com.zenz.kvstore.logHandlers.RaftLogHandler;
 import com.zenz.kvstore.raft.messages.*;
-import com.zenz.kvstore.requests.BaseRequest;
 import com.zenz.kvstore.requests.LogBroadcastRequest;
-import com.zenz.kvstore.requests.LogRequest;
-import com.zenz.kvstore.responses.ErrorResponse;
-import com.zenz.kvstore.responses.HeartbeatResponse;
-import com.zenz.kvstore.responses.LogResponse;
 
 import java.io.File;
 import java.io.IOException;
@@ -259,13 +253,20 @@ public class RaftController {
                 ).serialize());
             }
 
-            RaftLogHandler.Log log = !logs.isEmpty() ? logs.getFirst() : null;
+            // Return all logs if available
+            if (!logs.isEmpty()) {
+                List<Command> commands = new ArrayList<>();
+                long firstLogId = logs.getFirst().id();
+                long logTerm = logs.getFirst().term();
 
-            if (log != null) {
+                for (RaftLogHandler.Log log : logs) {
+                    commands.add(log.command());
+                }
+
                 return ByteBuffer.wrap(new AppendEntry(
-                        log.id(),
-                        log.term(),
-                        log.command()
+                        firstLogId,
+                        logTerm,
+                        commands
                 ).serialize());
             }
 
@@ -273,14 +274,14 @@ public class RaftController {
             return ByteBuffer.wrap(new AppendEntry(
                     currentLogId,
                     currentTerm,
-                    null
+                    new ArrayList<>()
             ).serialize());
         }
 
         // Finding next log
-        RaftLogHandler.Log log = logs.get(0);
+        RaftLogHandler.Log firstLog = logs.get(0);
 
-        if (request.id() < log.id()) {
+        if (request.id() < firstLog.id()) {
             byte[] snapshotBytes = loadSnapshotBytes();
             return ByteBuffer.wrap(new AppendSnapshot(
                     snapshotBytes
@@ -296,29 +297,40 @@ public class RaftController {
                 ).serialize());
             }
 
+            // Return empty list since follower is up to date
             return ByteBuffer.wrap(new AppendEntry(
                     lastLog.id(),
                     lastLog.term(),
-                    lastLog.command()
+                    new ArrayList<>()
             ).serialize());
         }
 
-        long nextLogId = request.id() + 1;
+        // Find all succeeding logs starting from request.id() + 1
+        List<Command> succeedingCommands = new ArrayList<>();
+        long firstSucceedingLogId = -1;
+        long firstSucceedingLogTerm = -1;
 
-
-        // Guaranteed to find a log via prev guarding checks
-        RaftLogHandler.Log logEntry = null;
         for (RaftLogHandler.Log entry : logs) {
-            if (entry.id() == nextLogId) {
-                logEntry = entry;
-                break;
+            if (entry.id() > request.id()) {
+                if (succeedingCommands.isEmpty()) {
+                    firstSucceedingLogId = entry.id();
+                    firstSucceedingLogTerm = entry.term();
+                }
+                succeedingCommands.add(entry.command());
             }
         }
 
+        if (succeedingCommands.isEmpty()) {
+            // No succeeding logs found - shouldn't happen due to prev guarding checks
+            return ByteBuffer.wrap(new ErrorMessage(
+                    RaftErrorType.LOG_NOT_FOUND, null
+            ).serialize());
+        }
+
         return ByteBuffer.wrap(new AppendEntry(
-                logEntry.id(),
-                logEntry.term(),
-                logEntry.command()).serialize()
+                firstSucceedingLogId,
+                firstSucceedingLogTerm,
+                succeedingCommands).serialize()
         );
     }
 

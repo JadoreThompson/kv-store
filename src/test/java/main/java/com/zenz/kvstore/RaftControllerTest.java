@@ -248,7 +248,8 @@ class RaftControllerTest {
         assertNotNull(response);
         assertEquals(0, response.id());
         assertEquals(1, response.term());
-        assertNull(response.command()); // No processed commands yet
+//        assertNull(response.command()); // No processed commands yet
+        assertTrue(response.commands().isEmpty()); // No processed commands yet
 
         client.close();
     }
@@ -305,8 +306,10 @@ class RaftControllerTest {
         assertNotNull(response);
         assertEquals(1, response.id());
         assertEquals(1, response.term());
-        assertNotNull(response.command());
-        PutCommand cmd = (PutCommand) response.command();
+//        assertNotNull(response.command());
+//        PutCommand cmd = (PutCommand) response.command();
+        assertFalse(response.commands().isEmpty());
+        PutCommand cmd = (PutCommand) response.commands().get(0);
         assertEquals("firstKey", cmd.key());
         assertEquals("firstValue", new String(cmd.value(), StandardCharsets.UTF_8));
 
@@ -417,7 +420,8 @@ class RaftControllerTest {
         assertTrue(resp instanceof AppendEntry, "Expected log response");
         AppendEntry response = (AppendEntry) resp;
         assertNotNull(response);
-        assertNotNull(response.command());
+//        assertNotNull(response.command());
+        assertFalse(response.commands().isEmpty());
 
         client.close();
     }
@@ -443,7 +447,8 @@ class RaftControllerTest {
         assertTrue(resp instanceof AppendEntry, "Expected append entry");
         AppendEntry response = (AppendEntry) resp;
         assertNotNull(response);
-        assertNotNull(response.command());
+//        assertNotNull(response.command());
+        assertFalse(response.commands().isEmpty());
 
         client.close();
     }
@@ -632,12 +637,14 @@ class RaftControllerTest {
         sendMessage(client, new RequestEntry(0, 0));
 
         BaseMessage resp = receiveResponse(client);
-        assertTrue(resp instanceof AppendEntry, "Expected append entry");
+        assertTrue(resp instanceof AppendEntry, "Expected append entry. Received " + resp);
         AppendEntry response = (AppendEntry) resp;
         assertNotNull(response);
         assertEquals(1, response.id());
         assertEquals(1, response.term());
-        PutCommand cmd = (PutCommand) response.command();
+//        PutCommand cmd = (PutCommand) response.command();
+        assertFalse(response.commands().isEmpty());
+        PutCommand cmd = (PutCommand) response.commands().get(0);
         assertEquals("singleKey", cmd.key());
 
         client.close();
@@ -667,7 +674,8 @@ class RaftControllerTest {
         assertTrue(resp instanceof AppendEntry, "Expected append entry");
         AppendEntry response = (AppendEntry) resp;
         assertNotNull(response);
-        assertNotNull(response.command());
+//        assertNotNull(response.command());
+        assertFalse(response.commands().isEmpty());
 
         client.close();
     }

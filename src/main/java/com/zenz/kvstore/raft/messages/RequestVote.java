@@ -42,4 +42,15 @@ public record RequestVote(MessageType type, long term, long candidateId, long la
             return null;
         }
     }
+
+    @Override
+    public String toString() {
+        return "RequestVote{" +
+                "type=" + type +
+                ", term=" + term +
+                ", candidateId=" + candidateId +
+                ", lastLogIndex=" + lastLogIndex +
+                ", lastLogTerm=" + lastLogTerm +
+                '}';
+    }
 }

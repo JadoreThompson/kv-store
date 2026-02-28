@@ -47,4 +47,13 @@ public record ErrorMessage(
             return null;
         }
     }
+
+    @Override
+    public String toString() {
+        return "ErrorMessage{" +
+                "type=" + type +
+                ", errorType=" + errorType +
+                ", message='" + message + '\'' +
+                '}';
+    }
 }

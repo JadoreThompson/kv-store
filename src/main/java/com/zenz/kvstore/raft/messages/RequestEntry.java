@@ -38,4 +38,13 @@ public record RequestEntry(MessageType type, long id, long term) implements Base
             return null;
         }
     }
+
+    @Override
+    public String toString() {
+        return "RequestEntry{" +
+                "type=" + type +
+                ", id=" + id +
+                ", term=" + term +
+                '}';
+    }
 }

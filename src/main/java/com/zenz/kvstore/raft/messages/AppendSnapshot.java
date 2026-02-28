@@ -38,4 +38,12 @@ public record AppendSnapshot(MessageType type, byte[] snapshot) implements BaseM
             return null;
         }
     }
+
+    @Override
+    public String toString() {
+        return "AppendSnapshot{" +
+                "type=" + type +
+                ", snapshot=" + (snapshot != null ? snapshot.length + " bytes" : "null") +
+                '}';
+    }
 }

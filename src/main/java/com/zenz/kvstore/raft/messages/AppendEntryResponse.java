@@ -45,4 +45,14 @@ public record AppendEntryResponse(
             return null;
         }
     }
+
+    @Override
+    public String toString() {
+        return "AppendEntryResponse{" +
+                "type=" + type +
+                ", id=" + id +
+                ", term=" + term +
+                ", success=" + success +
+                '}';
+    }
 }

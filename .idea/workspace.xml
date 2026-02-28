@@ -4,8 +4,18 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="113ca11e-a295-4741-aad7-90962967a262" name="Changes" comment="saving - wip: Implementing raft controller - Refactored raft messaging">
+    <list default="true" id="113ca11e-a295-4741-aad7-90962967a262" name="Changes" comment="wip: Implementing raft controller - Updated AppendEntries to send a list of logs instead of single logs">
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/zenz/kvstore/RaftErrorType.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/zenz/kvstore/RaftErrorType.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/com/zenz/kvstore/raft/RaftController.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/zenz/kvstore/raft/RaftController.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/zenz/kvstore/raft/messages/AppendEntry.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/zenz/kvstore/raft/messages/AppendEntry.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/zenz/kvstore/raft/messages/AppendEntryResponse.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/zenz/kvstore/raft/messages/AppendEntryResponse.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/zenz/kvstore/raft/messages/AppendSnapshot.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/zenz/kvstore/raft/messages/AppendSnapshot.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/zenz/kvstore/raft/messages/ErrorMessage.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/zenz/kvstore/raft/messages/ErrorMessage.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/zenz/kvstore/raft/messages/LeaderElected.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/zenz/kvstore/raft/messages/LeaderElected.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/zenz/kvstore/raft/messages/RequestEntry.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/zenz/kvstore/raft/messages/RequestEntry.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/zenz/kvstore/raft/messages/RequestVote.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/zenz/kvstore/raft/messages/RequestVote.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/test/java/main/java/com/zenz/kvstore/RaftControllerTest.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/test/java/main/java/com/zenz/kvstore/RaftControllerTest.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -168,7 +178,7 @@
       <workItem from="1772119388022" duration="4699000" />
       <workItem from="1772126689049" duration="582000" />
       <workItem from="1772179888198" duration="26970000" />
-      <workItem from="1772267586100" duration="10358000" />
+      <workItem from="1772267586100" duration="13436000" />
     </task>
     <task id="LOCAL-00001" summary="Added content length check in KVMapSnapshotter.applyLogs">
       <option name="closed" value="true" />
@@ -354,7 +364,23 @@
       <option name="project" value="LOCAL" />
       <updated>1772272221933</updated>
     </task>
-    <option name="localTasksCounter" value="24" />
+    <task id="LOCAL-00024" summary="saving - wip: Implementing raft controller - Updated AppendEntries to send a list of logs instead of single logs">
+      <option name="closed" value="true" />
+      <created>1772281460296</created>
+      <option name="number" value="00024" />
+      <option name="presentableId" value="LOCAL-00024" />
+      <option name="project" value="LOCAL" />
+      <updated>1772281460296</updated>
+    </task>
+    <task id="LOCAL-00025" summary="wip: Implementing raft controller - Updated AppendEntries to send a list of logs instead of single logs">
+      <option name="closed" value="true" />
+      <created>1772281919462</created>
+      <option name="number" value="00025" />
+      <option name="presentableId" value="LOCAL-00025" />
+      <option name="project" value="LOCAL" />
+      <updated>1772281919462</updated>
+    </task>
+    <option name="localTasksCounter" value="26" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -395,6 +421,8 @@
     <MESSAGE value="saving - wip: Implementing raft controller - Implemented log request handling and tests" />
     <MESSAGE value="wip: Implementing raft controller - Implemented deserialize method in BaseRequests and BaseResponse subclasses with ByteBuffer parameter" />
     <MESSAGE value="saving - wip: Implementing raft controller - Refactored raft messaging" />
-    <option name="LAST_COMMIT_MESSAGE" value="saving - wip: Implementing raft controller - Refactored raft messaging" />
+    <MESSAGE value="saving - wip: Implementing raft controller - Updated AppendEntries to send a list of logs instead of single logs" />
+    <MESSAGE value="wip: Implementing raft controller - Updated AppendEntries to send a list of logs instead of single logs" />
+    <option name="LAST_COMMIT_MESSAGE" value="wip: Implementing raft controller - Updated AppendEntries to send a list of logs instead of single logs" />
   </component>
 </project>
