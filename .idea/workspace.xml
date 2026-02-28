@@ -4,24 +4,8 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="113ca11e-a295-4741-aad7-90962967a262" name="Changes" comment="saving - wip: Implementing raft controller - Implemented log request handling and tests">
-      <change afterPath="$PROJECT_DIR$/src/main/java/com/zenz/kvstore/raft/messages/HeartbeatRequest.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/java/com/zenz/kvstore/raft/messages/LogBroadcastRequest.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/java/com/zenz/kvstore/raft/messages/LogBroadcastResponse.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/java/com/zenz/kvstore/raft/messages/LogRequest.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/com/zenz/kvstore/Main.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/zenz/kvstore/Main.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/com/zenz/kvstore/ResponseType.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/zenz/kvstore/ResponseType.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/com/zenz/kvstore/commandHandlers/RaftCommandHandler.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/zenz/kvstore/commandHandlers/RaftCommandHandler.java" afterDir="false" />
+    <list default="true" id="113ca11e-a295-4741-aad7-90962967a262" name="Changes" comment="saving - wip: Implementing raft controller - Refactored raft messaging">
       <change beforePath="$PROJECT_DIR$/src/main/java/com/zenz/kvstore/raft/RaftController.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/zenz/kvstore/raft/RaftController.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/com/zenz/kvstore/requests/BaseRequest.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/zenz/kvstore/requests/BaseRequest.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/com/zenz/kvstore/requests/HeartbeatRequest.java" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/com/zenz/kvstore/requests/LogBroadcastRequest.java" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/com/zenz/kvstore/requests/LogRequest.java" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/com/zenz/kvstore/responses/BaseResponse.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/zenz/kvstore/responses/BaseResponse.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/com/zenz/kvstore/responses/HeartbeatResponse.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/zenz/kvstore/raft/messages/HeartbeatResponse.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/com/zenz/kvstore/responses/LogResponse.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/zenz/kvstore/raft/messages/LogResponse.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/test/java/main/java/com/zenz/kvstore/RaftControllerTest.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/test/java/main/java/com/zenz/kvstore/RaftControllerTest.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -184,6 +168,7 @@
       <workItem from="1772119388022" duration="4699000" />
       <workItem from="1772126689049" duration="582000" />
       <workItem from="1772179888198" duration="26970000" />
+      <workItem from="1772267586100" duration="10358000" />
     </task>
     <task id="LOCAL-00001" summary="Added content length check in KVMapSnapshotter.applyLogs">
       <option name="closed" value="true" />
@@ -353,7 +338,23 @@
       <option name="project" value="LOCAL" />
       <updated>1772191094552</updated>
     </task>
-    <option name="localTasksCounter" value="22" />
+    <task id="LOCAL-00022" summary="wip: Implementing raft controller - Implemented deserialize method in BaseRequests and BaseResponse subclasses with ByteBuffer parameter">
+      <option name="closed" value="true" />
+      <created>1772267784723</created>
+      <option name="number" value="00022" />
+      <option name="presentableId" value="LOCAL-00022" />
+      <option name="project" value="LOCAL" />
+      <updated>1772267784723</updated>
+    </task>
+    <task id="LOCAL-00023" summary="saving - wip: Implementing raft controller - Refactored raft messaging">
+      <option name="closed" value="true" />
+      <created>1772272221933</created>
+      <option name="number" value="00023" />
+      <option name="presentableId" value="LOCAL-00023" />
+      <option name="project" value="LOCAL" />
+      <updated>1772272221933</updated>
+    </task>
+    <option name="localTasksCounter" value="24" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -392,6 +393,8 @@
     <MESSAGE value=" wip: Implementing raft controller - Added RaftLogHandler" />
     <MESSAGE value=" wip: Implementing raft controller - Initialised RaftController; Added handling for fresh follower instances; Removed GET command logging within KVStore" />
     <MESSAGE value="saving - wip: Implementing raft controller - Implemented log request handling and tests" />
-    <option name="LAST_COMMIT_MESSAGE" value="saving - wip: Implementing raft controller - Implemented log request handling and tests" />
+    <MESSAGE value="wip: Implementing raft controller - Implemented deserialize method in BaseRequests and BaseResponse subclasses with ByteBuffer parameter" />
+    <MESSAGE value="saving - wip: Implementing raft controller - Refactored raft messaging" />
+    <option name="LAST_COMMIT_MESSAGE" value="saving - wip: Implementing raft controller - Refactored raft messaging" />
   </component>
 </project>

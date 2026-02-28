@@ -1,9 +1,12 @@
 package com.zenz.kvstore.raft;
 
 import com.zenz.kvstore.KVMapSnapshotter;
+import com.zenz.kvstore.MessageType;
+import com.zenz.kvstore.RaftErrorType;
 import com.zenz.kvstore.RequestType;
 import com.zenz.kvstore.commands.Command;
 import com.zenz.kvstore.logHandlers.RaftLogHandler;
+import com.zenz.kvstore.raft.messages.*;
 import com.zenz.kvstore.requests.BaseRequest;
 import com.zenz.kvstore.requests.LogBroadcastRequest;
 import com.zenz.kvstore.requests.LogRequest;
@@ -158,45 +161,41 @@ public class RaftController {
 
         // Process the data
         buffer.flip();
+        int position = buffer.position();
         boolean consumed = processData(session, buffer);
         if (consumed) {
             buffer.compact();
+        } else {
+            buffer.position(position);
         }
     }
 
     private boolean processData(ClientSession session, ByteBuffer buffer) throws IOException {
-//        BaseRequest request = BaseRequest.deserialize(buffer.array());
-        //////////////////////////////
-        BaseRequest request;
-        int position = buffer.position();
+        BaseMessage message;
         try {
-            request = BaseRequest.deserialize(buffer);
+            message = BaseMessage.deserialize(buffer);
         } catch (IllegalArgumentException e) {
-            queueWrite(session.getChannel(), ByteBuffer.wrap(new ErrorResponse(e.getMessage()).serialize()));
+            e.printStackTrace();
+            queueWrite(
+                    session.getChannel(),
+                    ByteBuffer.wrap(new ErrorMessage(
+                            RaftErrorType.INVALID_MESSAGE_TYPE, e.getMessage()
+                    ).serialize())
+            );
             return true;
         }
 
-        if (request == null) {
-            buffer.position(position);
+        if (message == null) {
             return false;
         }
-        ;
-        //////////////////////////////
-        RequestType requestType = request.type();
 
+        MessageType messageType = message.type();
         ByteBuffer responseBuffer = null;
-        if (requestType.equals(RequestType.LOG)) {
-            responseBuffer = handleLogRequest(session, buffer, (LogRequest) request);
-        } else if (requestType.equals(RequestType.HEARTBEAT)) {
-            responseBuffer = ByteBuffer.wrap(new HeartbeatResponse().serialize());
-        } else if (requestType.equals(RequestType.BROADCAST)) {
-            count++;
-            if (count >= majority) {
-                fut.complete(true);
-                count = 0;
-                majority = 0;
-                fut = null;
-            }
+
+        if (messageType.equals(MessageType.REQUEST_ENTRY)) {
+            responseBuffer = handleEntryRequest(session, (RequestEntry) message);
+        } else if (messageType.equals(MessageType.APPEND_ENTRY_RESPONSE)) {
+            responseBuffer = handleAppendEntryResponse(session, (AppendEntryResponse) message);
         }
 
         if (responseBuffer != null) {
@@ -204,123 +203,6 @@ public class RaftController {
         }
 
         return true;
-    }
-
-    private ByteBuffer handleLogRequest(ClientSession session, ByteBuffer buffer, LogRequest request) throws IOException {
-        long currentLogId = logHandler.getLogId();
-        long currentTerm = logHandler.getTerm();
-
-        if (request.term() > currentTerm) {
-            return ByteBuffer.wrap(new ErrorResponse(
-                    "Term is greater than current term " + currentTerm
-            ).serialize());
-        }
-
-        if (request.logId() > currentLogId) {
-            return ByteBuffer.wrap(new ErrorResponse(
-                    "Log id is greater than current log id " + currentLogId
-            ).serialize());
-
-        }
-
-        // Handling a fresh follower
-        if (request.logId() == 0) {
-            // Check if we have a snapshot
-            byte[] snapshotBytes = loadSnapshotBytes();
-
-            if (snapshotBytes != null) {
-                return ByteBuffer.wrap(
-                        new LogResponse(
-                                currentLogId,
-                                currentTerm,
-                                LogResponse.DataType.SNAPSHOT,
-                                null,
-                                snapshotBytes
-                        ).serialize()
-                );
-            }
-
-            RaftLogHandler.Log log = !logs.isEmpty() ? logs.getFirst() : null;
-            if (log != null) {
-                session.setLogId(log.id());
-                session.setTerm(log.term());
-                return ByteBuffer.wrap(new LogResponse(
-                        log.id(),
-                        log.term(),
-                        LogResponse.DataType.COMMAND,
-                        log.command(),
-                        null
-                ).serialize());
-            }
-
-            session.setLogId(currentLogId);
-            session.setTerm(currentTerm);
-            return ByteBuffer.wrap(new LogResponse(
-                    currentLogId,
-                    currentTerm,
-                    LogResponse.DataType.COMMAND,
-                    null,
-                    null
-            ).serialize());
-        }
-
-        // Finding next log
-        RaftLogHandler.Log log = logs.get(0);
-
-        if (request.logId() < log.id()) {
-            byte[] snapshotBytes = loadSnapshotBytes();
-
-            return ByteBuffer.wrap(
-                    new LogResponse(
-                            currentLogId,
-                            currentTerm,
-                            LogResponse.DataType.SNAPSHOT,
-                            null,
-                            snapshotBytes
-                    ).serialize()
-            );
-        }
-
-        if (request.logId() == currentLogId) {
-            RaftLogHandler.Log lastLog = logs.getLast();
-
-            if (request.term() != lastLog.term()) {
-                return ByteBuffer.wrap(new ErrorResponse(
-                        "Invalid term for log id=" + request.logId()
-                ).serialize());
-            }
-
-            session.setLogId(lastLog.id());
-            session.setTerm(lastLog.term());
-            return ByteBuffer.wrap(new LogResponse(
-                    lastLog.id(),
-                    lastLog.term(),
-                    LogResponse.DataType.COMMAND,
-                    lastLog.command(),
-                    null
-            ).serialize());
-        }
-
-        long nextLogId = request.logId() + 1;
-
-        for (RaftLogHandler.Log logEntry : logs) {
-            if (logEntry.id() == nextLogId) {
-                session.setLogId(logEntry.id());
-                session.setTerm(logEntry.term());
-                return ByteBuffer.wrap(
-                        new LogResponse(
-                                logEntry.id(),
-                                logEntry.term(),
-                                LogResponse.DataType.COMMAND,
-                                logEntry.command(),
-                                null
-                        ).serialize()
-                );
-            }
-        }
-
-        // Log id is too large
-        return ByteBuffer.wrap(new ErrorResponse("Failed to find next log").serialize());
     }
 
     /**
@@ -348,6 +230,102 @@ public class RaftController {
 
         majority = count / 2 + 1;
         this.fut = fut;
+    }
+
+    private ByteBuffer handleEntryRequest(ClientSession session, RequestEntry request) throws IOException {
+        long currentLogId = logHandler.getLogId();
+        long currentTerm = logHandler.getTerm();
+
+
+        // Leader needs to be dethroned and converted to a follower.
+        if (request.term() > currentTerm) {
+            stop();
+            return null;
+        }
+
+        // Leader needs to be dethroned and converted to a follower.
+        if (request.term() == currentTerm && request.id() > currentLogId) {
+            stop();
+            return null;
+        }
+
+        // Handling a fresh follower
+        if (request.id() == 0) {
+            // Check if we have a snapshot
+            byte[] snapshotBytes = loadSnapshotBytes();
+            if (snapshotBytes != null) {
+                return ByteBuffer.wrap(new AppendSnapshot(
+                        snapshotBytes
+                ).serialize());
+            }
+
+            RaftLogHandler.Log log = !logs.isEmpty() ? logs.getFirst() : null;
+
+            if (log != null) {
+                return ByteBuffer.wrap(new AppendEntry(
+                        log.id(),
+                        log.term(),
+                        log.command()
+                ).serialize());
+            }
+
+            // Leader hasn't processed a command yet.
+            return ByteBuffer.wrap(new AppendEntry(
+                    currentLogId,
+                    currentTerm,
+                    null
+            ).serialize());
+        }
+
+        // Finding next log
+        RaftLogHandler.Log log = logs.get(0);
+
+        if (request.id() < log.id()) {
+            byte[] snapshotBytes = loadSnapshotBytes();
+            return ByteBuffer.wrap(new AppendSnapshot(
+                    snapshotBytes
+            ).serialize());
+        }
+
+        if (request.id() == currentLogId) {
+            RaftLogHandler.Log lastLog = logs.getLast();
+
+            if (request.term() != lastLog.term()) {
+                return ByteBuffer.wrap(new ErrorMessage(
+                        RaftErrorType.INVALID_TERM, null
+                ).serialize());
+            }
+
+            return ByteBuffer.wrap(new AppendEntry(
+                    lastLog.id(),
+                    lastLog.term(),
+                    lastLog.command()
+            ).serialize());
+        }
+
+        long nextLogId = request.id() + 1;
+
+
+        // Guaranteed to find a log via prev guarding checks
+        RaftLogHandler.Log logEntry = null;
+        for (RaftLogHandler.Log entry : logs) {
+            if (entry.id() == nextLogId) {
+                logEntry = entry;
+                break;
+            }
+        }
+
+        return ByteBuffer.wrap(new AppendEntry(
+                logEntry.id(),
+                logEntry.term(),
+                logEntry.command()).serialize()
+        );
+    }
+
+    private ByteBuffer handleAppendEntryResponse(ClientSession session, AppendEntryResponse response) {
+        // TODO: Set session's log id and log term
+        // TODO: Handle majority
+        return ByteBuffer.wrap(new byte[0]);
     }
 
     private byte[] loadSnapshotBytes() throws IOException {

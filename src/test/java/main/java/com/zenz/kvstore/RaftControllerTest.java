@@ -5,10 +5,8 @@ import com.zenz.kvstore.KVStore;
 import com.zenz.kvstore.WALogger;
 import com.zenz.kvstore.commands.PutCommand;
 import com.zenz.kvstore.logHandlers.RaftLogHandler;
+import com.zenz.kvstore.raft.messages.*;
 import com.zenz.kvstore.requests.LogRequest;
-import com.zenz.kvstore.responses.BaseResponse;
-import com.zenz.kvstore.responses.ErrorResponse;
-import com.zenz.kvstore.responses.LogResponse;
 import com.zenz.kvstore.raft.RaftController;
 import com.zenz.kvstore.restorers.RaftRestorer;
 import org.junit.jupiter.api.*;
@@ -89,23 +87,7 @@ class RaftControllerTest {
             logger.close();
         }
         // Cleanup temp directory
-        deleteDirectory(tempDir.toFile());
-    }
-
-    private static void deleteDirectory(java.io.File directory) {
-        if (directory.exists()) {
-            java.io.File[] files = directory.listFiles();
-            if (files != null) {
-                for (java.io.File file : files) {
-                    if (file.isDirectory()) {
-                        deleteDirectory(file);
-                    } else {
-                        file.delete();
-                    }
-                }
-            }
-        }
-        directory.delete();
+        tempDir.toFile().delete();
     }
 
     @BeforeEach
@@ -128,10 +110,6 @@ class RaftControllerTest {
         }
     }
 
-    // ============================================
-    // Helper Methods
-    // ============================================
-
     private SocketChannel connectClient() throws IOException {
         SocketChannel client = SocketChannel.open();
         client.configureBlocking(true);
@@ -139,22 +117,22 @@ class RaftControllerTest {
         return client;
     }
 
-    /**
-     * Creates a LogRequest with a dummy command (required for serialization).
-     * The command field is not used by the RaftController in handleLogRequest.
-     */
-    private LogRequest createLogRequest(long logId, long term) {
-        // LogRequest requires a non-null command for serialization
-        // Use a dummy command - it's not used by the controller
-        return new LogRequest(logId, term, new PutCommand("", new byte[0]));
-    }
-
-    private void sendLogRequest(SocketChannel client, LogRequest request) throws IOException {
-        byte[] serialized = request.serialize();
+    private void sendMessage(SocketChannel channel, BaseMessage message) throws IOException {
+        byte[] serialized = message.serialize();
         ByteBuffer buffer = ByteBuffer.wrap(serialized);
         while (buffer.hasRemaining()) {
-            client.write(buffer);
+            channel.write(buffer);
         }
+    }
+
+    private BaseMessage receiveResponse(SocketChannel channel) throws IOException {
+        ByteBuffer buffer = ByteBuffer.allocate(8192);
+
+        channel.read(buffer);
+        buffer.flip();
+
+        BaseMessage response = BaseMessage.deserialize(buffer);
+        return response;
     }
 
     /**
@@ -198,15 +176,34 @@ class RaftControllerTest {
         Files.write(snapshotPath, data);
     }
 
+    private void restartController() throws Exception {
+        // Stop the current controller
+        controller.stop();
+        Thread.sleep(200);
+
+        // Create a new controller with the same configuration
+        controller = new RaftController(TEST_HOST, TEST_PORT, logHandler, snapshotter);
+
+        // Start in a new thread
+        serverExecutor.shutdown();
+        serverExecutor = Executors.newSingleThreadExecutor();
+        serverExecutor.submit(() -> {
+            try {
+                controller.start();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        });
+
+        // Wait for server to start
+        Thread.sleep(500);
+    }
+
     /**
      * Helper record for log entry data.
      */
     private record LogEntry(long id, long term, String key, byte[] value) {
     }
-
-    // ============================================
-    // Connection Tests
-    // ============================================
 
     @Test
     @DisplayName("Client can connect to RaftController")
@@ -232,10 +229,6 @@ class RaftControllerTest {
         client3.close();
     }
 
-    // ============================================
-    // Scenario 1: Fresh Follower (logId=0, term=0)
-    // ============================================
-
     @Test
     @DisplayName("Fresh follower with both nodes having no processed commands")
     void freshFollower_bothNodesEmpty_returnsEmptyCommand() throws Exception {
@@ -247,16 +240,14 @@ class RaftControllerTest {
         restartController();
 
         SocketChannel client = connectClient();
-        LogRequest request = createLogRequest(0, 0);
-        sendLogRequest(client, request);
+        sendMessage(client, new RequestEntry(0, 0));
 
-        BaseResponse resp = receiveResponse(client);
-        assertTrue(resp instanceof LogResponse, "Expected log response");
-        LogResponse response = (LogResponse) resp;
+        BaseMessage resp = receiveResponse(client);
+        assertTrue(resp instanceof AppendEntry, "Expected log response");
+        AppendEntry response = (AppendEntry) resp;
         assertNotNull(response);
-        assertEquals(0, response.logId());
+        assertEquals(0, response.id());
         assertEquals(1, response.term());
-        assertEquals(LogResponse.DataType.COMMAND, response.dataType());
         assertNull(response.command()); // No processed commands yet
 
         client.close();
@@ -280,17 +271,13 @@ class RaftControllerTest {
         restartController();
 
         SocketChannel client = connectClient();
-        LogRequest request = createLogRequest(0, 0);
-        sendLogRequest(client, request);
+        sendMessage(client, new RequestEntry(0, 0));
 
-        BaseResponse resp = receiveResponse(client);
-        assertTrue(resp instanceof LogResponse, "Expected log response");
-        LogResponse response = (LogResponse) resp;
+        BaseMessage resp = receiveResponse(client);
+        assertTrue(resp instanceof AppendSnapshot, "Expected append snapshot message");
+        AppendSnapshot response = (AppendSnapshot) resp;
         assertNotNull(response);
-        assertEquals(5, response.logId());
-        assertEquals(2, response.term());
-        assertEquals(LogResponse.DataType.SNAPSHOT, response.dataType());
-        assertNull(response.command());
+        assertNotNull(response.snapshot());
         assertArrayEquals(snapshotData, response.snapshot());
 
         client.close();
@@ -310,16 +297,14 @@ class RaftControllerTest {
         restartController();
 
         SocketChannel client = connectClient();
-        LogRequest request = createLogRequest(0, 0);
-        sendLogRequest(client, request);
+        sendMessage(client, new RequestEntry(0, 0));
 
-        BaseResponse resp = receiveResponse(client);
-        assertTrue(resp instanceof LogResponse, "Expected log response");
-        LogResponse response = (LogResponse) resp;
+        BaseMessage resp = receiveResponse(client);
+        assertTrue(resp instanceof AppendEntry, "Expected append entry");
+        AppendEntry response = (AppendEntry) resp;
         assertNotNull(response);
-        assertEquals(1, response.logId());
+        assertEquals(1, response.id());
         assertEquals(1, response.term());
-        assertEquals(LogResponse.DataType.COMMAND, response.dataType());
         assertNotNull(response.command());
         PutCommand cmd = (PutCommand) response.command();
         assertEquals("firstKey", cmd.key());
@@ -327,10 +312,6 @@ class RaftControllerTest {
 
         client.close();
     }
-
-    // ============================================
-    // Scenario 2: Follower is up to date
-    // ============================================
 
     @Test
     @DisplayName("Follower up to date - same logId and term")
@@ -346,17 +327,13 @@ class RaftControllerTest {
         restartController();
 
         SocketChannel client = connectClient();
-        LogRequest request = createLogRequest(3, 2);
-        sendLogRequest(client, request);
+        sendMessage(client, new RequestEntry(3, 2));
 
-        BaseResponse resp = receiveResponse(client);
-        assertTrue(resp instanceof LogResponse, "Expected log response");
+        BaseMessage resp = receiveResponse(client);
+        assertTrue(resp instanceof AppendEntry, "Expected append entry");
+
         client.close();
     }
-
-    // ============================================
-    // Scenario 3: Same logId but different term
-    // ============================================
 
     @Test
     @DisplayName("Same logId but different term - returns error")
@@ -373,17 +350,13 @@ class RaftControllerTest {
 
         SocketChannel client = connectClient();
         // Request with same logId but different term
-        LogRequest request = createLogRequest(5, 2);
-        sendLogRequest(client, request);
+        sendMessage(client, new RequestEntry(5, 2));
 
-        BaseResponse resp = receiveResponse(client);
-        assertTrue(resp instanceof ErrorResponse, "Expected error response. Received " + resp);
+        BaseMessage resp = receiveResponse(client);
+        assertTrue(resp instanceof ErrorMessage, "Expected error response. Received " + resp);
+
         client.close();
     }
-
-    // ============================================
-    // Scenario 4: Request logId before first log (requires snapshot)
-    // ============================================
 
     @Test
     @DisplayName("Request logId before first log with snapshot - returns snapshot")
@@ -411,25 +384,17 @@ class RaftControllerTest {
 
         SocketChannel client = connectClient();
         // Request with logId 0 (fresh follower) - should return snapshot
-        LogRequest request = createLogRequest(0, 0);
-        sendLogRequest(client, request);
+        sendMessage(client, new RequestEntry(0, 0));
 
-        BaseResponse resp = receiveResponse(client);
-        assertTrue(resp instanceof LogResponse, "Expected log response");
-        LogResponse response = (LogResponse) resp;
+        BaseMessage resp = receiveResponse(client);
+        assertTrue(resp instanceof AppendSnapshot, "Expected log response");
+        AppendSnapshot response = (AppendSnapshot) resp;
 
         assertNotNull(response);
-        assertEquals(5, response.logId());
-        assertEquals(2, response.term());
-        assertEquals(LogResponse.DataType.SNAPSHOT, response.dataType());
         assertNotNull(response.snapshot());
 
         client.close();
     }
-
-    // ============================================
-    // Scenario 5: Finding next log in the middle
-    // ============================================
 
     @Test
     @DisplayName("Finding next log - returns correct next log entry")
@@ -446,14 +411,12 @@ class RaftControllerTest {
 
         SocketChannel client = connectClient();
         // Request with logId 5 - follower has processed log 5, needs log 6
-        LogRequest request = createLogRequest(5, 2);
-        sendLogRequest(client, request);
+        sendMessage(client, new RequestEntry(5, 2));
 
-        BaseResponse resp = receiveResponse(client);
-        assertTrue(resp instanceof LogResponse, "Expected log response");
-        LogResponse response = (LogResponse) resp;
+        BaseMessage resp = receiveResponse(client);
+        assertTrue(resp instanceof AppendEntry, "Expected log response");
+        AppendEntry response = (AppendEntry) resp;
         assertNotNull(response);
-        assertEquals(LogResponse.DataType.COMMAND, response.dataType());
         assertNotNull(response.command());
 
         client.close();
@@ -474,33 +437,21 @@ class RaftControllerTest {
 
         SocketChannel client = connectClient();
         // Request with logId 1 - follower has processed log 1, needs log 2
-        LogRequest request = createLogRequest(1, 1);
-        sendLogRequest(client, request);
+        sendMessage(client, new RequestEntry(1, 1));
 
-        BaseResponse resp = receiveResponse(client);
-        assertTrue(resp instanceof LogResponse, "Expected log response");
-        LogResponse response = (LogResponse) resp;
+        BaseMessage resp = receiveResponse(client);
+        assertTrue(resp instanceof AppendEntry, "Expected append entry");
+        AppendEntry response = (AppendEntry) resp;
         assertNotNull(response);
-        assertEquals(LogResponse.DataType.COMMAND, response.dataType());
         assertNotNull(response.command());
 
         client.close();
     }
 
-    private BaseResponse receiveResponse(SocketChannel client) throws IOException {
-        ByteBuffer buffer = ByteBuffer.allocate(8192);
-        client.read(buffer);
-        BaseResponse response = BaseResponse.deserialize(buffer.array());
-        return response;
-    }
-
-    // ============================================
-    // Scenario 6: Log id is too large
-    // ============================================
 
     @Test
-    @DisplayName("Log id is too large - returns error")
-    void logIdTooLarge_returnsError() throws Exception {
+    @DisplayName("Terms match but log id is greater. Controller terminates before converting to follower.")
+    void termsMatching_logIdLarge_terminatesController() throws Exception {
         // Setup
         List<LogEntry> entries = new ArrayList<>();
         for (long i = 1; i <= 5; i++) {
@@ -512,19 +463,13 @@ class RaftControllerTest {
         restartController();
 
         SocketChannel client = connectClient();
-        // Request with logId 10 (larger than current max of 5)
-        LogRequest request = createLogRequest(10, 1);
-        sendLogRequest(client, request);
+        sendMessage(client, new RequestEntry(10, 1));
 
-        BaseResponse resp = receiveResponse(client);
-        assertTrue(resp instanceof ErrorResponse, "Expected error response");
+        Thread.sleep(500);
+        assertTrue(!controller.isRunning(), "Controller should've stopped to convert itself to a follower");
 
         client.close();
     }
-
-    // ============================================
-    // Edge Cases
-    // ============================================
 
     @Test
     @DisplayName("Request with logId 0 but non-zero term")
@@ -545,38 +490,11 @@ class RaftControllerTest {
         restartController();
 
         SocketChannel client = connectClient();
-        // Request with logId 0 but term 2 (edge case)
-        // This should not be treated as fresh follower since term != 0
-        LogRequest request = createLogRequest(0, 2);
-        sendLogRequest(client, request);
+        sendMessage(client, new RequestEntry(0, 2));
 
-        // This should not be treated as fresh follower since term != 0
-        BaseResponse resp = receiveResponse(client);
-        assertTrue(resp instanceof LogResponse, "Expected log response. Received " + resp.toString());
-
-        client.close();
-    }
-
-    @Test
-    @DisplayName("Request with term 0 but non-zero logId")
-    void termZeroWithNonZeroLogId() throws Exception {
-        // Setup
-        List<LogEntry> entries = new ArrayList<>();
-        entries.add(new LogEntry(1L, 1L, "key1", "value1".getBytes(StandardCharsets.UTF_8)));
-        createLogs(entries);
-
-        // Restart controller to reload logs
-        restartController();
-
-        SocketChannel client = connectClient();
-        // Request with logId 5 but term 0 (edge case)
-        // This should not be treated as fresh follower since logId != 0
-        LogRequest request = createLogRequest(5, 0);
-        sendLogRequest(client, request);
-
-        // This should not be treated as fresh follower since logId != 0
-        BaseResponse response = receiveResponse(client);
-        assertTrue(response instanceof ErrorResponse, "Controller should throw error as broker is requesting log id which hasn't been reached");
+        // Log file is empty and the store is loaded from a snapshot
+        BaseMessage resp = receiveResponse(client);
+        assertTrue(resp instanceof AppendSnapshot, "Expected append snapshto. Received " + resp.toString());
 
         client.close();
     }
@@ -595,22 +513,18 @@ class RaftControllerTest {
         restartController();
 
         SocketChannel client = connectClient();
+        sendMessage(client, new RequestEntry(0, 0));
 
-        // First request - fresh follower
-        LogRequest request1 = createLogRequest(0, 0);
-        sendLogRequest(client, request1);
-        BaseResponse resp = receiveResponse(client);
-        assertTrue(resp instanceof LogResponse, "Expected log response");
-        LogResponse response = (LogResponse) resp;
+        BaseMessage resp = receiveResponse(client);
+        assertTrue(resp instanceof AppendEntry, "Expected log response");
+        AppendEntry response = (AppendEntry) resp;
         assertNotNull(response);
-        assertEquals(1, response.logId());
+        assertEquals(1, response.id());
 
-        // Second request - asking for next log
-        LogRequest request2 = createLogRequest(1, 1);
-        sendLogRequest(client, request2);
+        sendMessage(client, new RequestEntry(1, 1));
         resp = receiveResponse(client);
-        assertTrue(resp instanceof LogResponse, "Expected log response");
-        response = (LogResponse) resp;
+        assertTrue(resp instanceof AppendEntry, "Expected log response");
+        response = (AppendEntry) resp;
         assertNotNull(response);
 
         client.close();
@@ -634,14 +548,13 @@ class RaftControllerTest {
         restartController();
 
         SocketChannel client = connectClient();
-        LogRequest request = createLogRequest(0, 0);
-        sendLogRequest(client, request);
+        ;
+        sendMessage(client, new RequestEntry(0, 0));
 
-        BaseResponse resp = receiveResponse(client);
-        assertTrue(resp instanceof LogResponse, "Expected log response");
-        LogResponse response = (LogResponse) resp;
-        assertNotNull(response);
-        assertEquals(LogResponse.DataType.SNAPSHOT, response.dataType());
+        BaseMessage resp = receiveResponse(client);
+        assertTrue(resp instanceof AppendSnapshot, "Expected append snapshot");
+        AppendSnapshot response = (AppendSnapshot) resp;
+        assertNotNull(response.snapshot());
         assertArrayEquals(binarySnapshot, response.snapshot());
 
         client.close();
@@ -668,14 +581,13 @@ class RaftControllerTest {
         restartController();
 
         SocketChannel client = connectClient();
-        LogRequest request = createLogRequest(0, 0);
-        sendLogRequest(client, request);
 
-        BaseResponse resp = receiveResponse(client);
-        assertTrue(resp instanceof LogResponse, "Expected log response");
-        LogResponse response = (LogResponse) resp;
-        assertNotNull(response);
-        assertEquals(LogResponse.DataType.SNAPSHOT, response.dataType());
+        sendMessage(client, new RequestEntry(0, 0));
+
+        BaseMessage resp = receiveResponse(client);
+        assertTrue(resp instanceof AppendSnapshot, "Expected append snapshot");
+        AppendSnapshot response = (AppendSnapshot) resp;
+        assertNotNull(response.snapshot());
         assertArrayEquals(largeSnapshot, response.snapshot());
 
         client.close();
@@ -692,17 +604,15 @@ class RaftControllerTest {
         restartController();
 
         SocketChannel client = connectClient();
-        LogRequest request = createLogRequest(0, 0);
-        sendLogRequest(client, request);
+        sendMessage(client, new RequestEntry(0, 0));
 
         // Should return empty command response
-        BaseResponse resp = receiveResponse(client);
-        assertTrue(resp instanceof LogResponse, "Expected log response");
-        LogResponse response = (LogResponse) resp;
+        BaseMessage resp = receiveResponse(client);
+        assertTrue(resp instanceof AppendEntry, "Expected append entry");
+        AppendEntry response = (AppendEntry) resp;
         assertNotNull(response);
-        assertEquals(0, response.logId());
+        assertEquals(0, response.id());
         assertEquals(1, response.term());
-        assertEquals(LogResponse.DataType.COMMAND, response.dataType());
 
         client.close();
     }
@@ -719,16 +629,14 @@ class RaftControllerTest {
         restartController();
 
         SocketChannel client = connectClient();
-        LogRequest request = createLogRequest(0, 0);
-        sendLogRequest(client, request);
+        sendMessage(client, new RequestEntry(0, 0));
 
-        BaseResponse resp = receiveResponse(client);
-        assertTrue(resp instanceof LogResponse, "Expected log response");
-        LogResponse response = (LogResponse) resp;
+        BaseMessage resp = receiveResponse(client);
+        assertTrue(resp instanceof AppendEntry, "Expected append entry");
+        AppendEntry response = (AppendEntry) resp;
         assertNotNull(response);
-        assertEquals(1, response.logId());
+        assertEquals(1, response.id());
         assertEquals(1, response.term());
-        assertEquals(LogResponse.DataType.COMMAND, response.dataType());
         PutCommand cmd = (PutCommand) response.command();
         assertEquals("singleKey", cmd.key());
 
@@ -753,42 +661,14 @@ class RaftControllerTest {
         SocketChannel client = connectClient();
 
         // Request with term 1
-        LogRequest request = createLogRequest(2, 1);
-        sendLogRequest(client, request);
+        sendMessage(client, new RequestEntry(2, 1));
 
-        BaseResponse resp = receiveResponse(client);
-        assertTrue(resp instanceof LogResponse, "Expected log response");
-        LogResponse response = (LogResponse) resp;
+        BaseMessage resp = receiveResponse(client);
+        assertTrue(resp instanceof AppendEntry, "Expected append entry");
+        AppendEntry response = (AppendEntry) resp;
         assertNotNull(response);
-        assertEquals(LogResponse.DataType.COMMAND, response.dataType());
+        assertNotNull(response.command());
 
         client.close();
-    }
-
-    // ============================================
-    // Helper method to restart controller
-    // ============================================
-
-    private void restartController() throws Exception {
-        // Stop the current controller
-        controller.stop();
-        Thread.sleep(200);
-
-        // Create a new controller with the same configuration
-        controller = new RaftController(TEST_HOST, TEST_PORT, logHandler, snapshotter);
-
-        // Start in a new thread
-        serverExecutor.shutdown();
-        serverExecutor = Executors.newSingleThreadExecutor();
-        serverExecutor.submit(() -> {
-            try {
-                controller.start();
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-        });
-
-        // Wait for server to start
-        Thread.sleep(500);
     }
 }
