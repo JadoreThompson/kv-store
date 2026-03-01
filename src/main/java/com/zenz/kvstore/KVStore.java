@@ -2,6 +2,7 @@ package com.zenz.kvstore;
 
 import com.zenz.kvstore.commands.PutCommand;
 import com.zenz.kvstore.logHandlers.BaseLogHandler;
+import com.zenz.kvstore.logHandlers.RaftLogHandler;
 
 import java.io.*;
 import java.nio.file.Files;
@@ -19,6 +20,7 @@ public class KVStore {
     private int logsPerSnapshot;
 
     private final KVMap map;
+    private boolean isRaftMode;
 
     public KVStore(Builder builder) throws IOException {
         snapshotter = builder.snapshotter;
@@ -26,8 +28,8 @@ public class KVStore {
         logHandler = builder.logHandler;
         logsPerSnapshot = builder.logsPerSnapshot;
         map = (builder.map == null) ? new KVMap() : builder.map;
+        isRaftMode = builder.isRaftMode;
     }
-
 
     public void put(String key, byte[] value) throws IOException {
         logHandler.log(new PutCommand(key, value));
@@ -52,7 +54,17 @@ public class KVStore {
             if (snapshotEnabled) {
                 // Create snapshot and move to main
                 Path snapshotDir = snapshotter.getDir();
-                Path fpath = snapshotDir.resolve(logHandler.getLogId() + ".snapshot");
+//                Path fpath = snapshotDir.resolve(logHandler.getLogId() + ".snapshot");
+                Path fpath;
+                if (isRaftMode) {
+                    fpath = snapshotDir.resolve(
+                            logHandler.getLogId() +
+                                    "_" + ((RaftLogHandler) logHandler).getTerm() +
+                                    ".snapshot"
+                    );
+                } else {
+                    fpath = snapshotDir.resolve(logHandler.getLogId() + ".snapshot");
+                }
                 snapshotter.snapshot(map, fpath);
                 for (File file : snapshotDir.toFile().listFiles()) {
                     Path fp = file.toPath();
@@ -97,12 +109,17 @@ public class KVStore {
         return logHandler;
     }
 
+    public boolean isRaftMode() {
+        return isRaftMode;
+    }
+
     public static class Builder {
         private KVMapSnapshotter snapshotter = null;
         private boolean snapshotEnabled = true;
         private int logsPerSnapshot = DEFAULT_LOGS_PER_SNAPSHOT;
         private KVMap map = null;
         private BaseLogHandler logHandler = null;
+        private boolean isRaftMode = false;
 
         public Builder() {
         }
@@ -149,6 +166,15 @@ public class KVStore {
 
         public Builder setMap(KVMap map) {
             this.map = map;
+            return this;
+        }
+
+        public boolean isRaftMode() {
+            return isRaftMode;
+        }
+
+        public Builder setRaftMode(boolean isRaftMode) {
+            this.isRaftMode = isRaftMode;
             return this;
         }
     }

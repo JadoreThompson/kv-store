@@ -34,7 +34,7 @@ import static org.junit.jupiter.api.Assertions.*;
 class RaftControllerTest {
 
     private static final String TEST_HOST = "127.0.0.1";
-    private static final int TEST_PORT = 9099;
+    private static final int TEST_PORT = 6969;
 
     private static ExecutorService serverExecutor;
     private static RaftController controller;

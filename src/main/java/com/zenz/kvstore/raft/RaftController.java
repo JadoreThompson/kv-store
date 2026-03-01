@@ -49,20 +49,14 @@ public class RaftController {
 
         loadLogs();
 
-        // Open selector
         selector = Selector.open();
-
-        // Create and configure server channel
         serverChannel = ServerSocketChannel.open();
         serverChannel.configureBlocking(false);
         serverChannel.socket().bind(new InetSocketAddress(host, port));
-
-        // Register for ACCEPT events
         serverChannel.register(selector, SelectionKey.OP_ACCEPT);
 
         running = true;
 
-        // Main event loop
         while (running) {
             int readyCount = selector.select();
             if (readyCount == 0) continue;
@@ -97,8 +91,16 @@ public class RaftController {
      * @throws IOException
      */
     private void loadLogs() throws IOException {
+        // Adding the last command processed within the snapshot.
+        File[] files = snapshotter.getDir().toFile().listFiles();
+        if (files.length > 0) {
+            logs.add(logHandler.getLog());
+        }
+
         Path path = logHandler.getLogger().getPath();
-        logs = RaftLogHandler.deserialize(path);
+        for (RaftLogHandler.Log logEntry : RaftLogHandler.deserialize(path)) {
+            logs.add(logEntry);
+        }
     }
 
     public void stop() throws IOException {
@@ -209,12 +211,6 @@ public class RaftController {
      */
     public void handleCommand(Command command, CompletableFuture<Boolean> fut) {
         long currentLogId = logHandler.getLogId();
-//        long nextLogId = currentLogId + 1;
-//        byte[] requestBytes = new LogBroadcastRequest(
-//                nextLogId,
-//                logHandler.getTerm(),
-//                command
-//        ).serialize();
         ArrayList<Command> commands = new ArrayList<>();
         commands.add(command);
         byte[] requestBytes = new AppendEntry(
@@ -259,24 +255,49 @@ public class RaftController {
         // Handling a fresh follower
         if (request.id() == 0) {
             // Check if we have a snapshot
-            byte[] snapshotBytes = loadSnapshotBytes();
+//            byte[] snapshotBytes = loadSnapshotBytes();
+            Map.Entry<byte[], String> loadSnapshotBytesResult = loadSnapshotBytes();
+            byte[] snapshotBytes = loadSnapshotBytesResult.getKey();
+
             if (snapshotBytes != null) {
-                return ByteBuffer.wrap(new AppendSnapshot(
-                        snapshotBytes
+//                return ByteBuffer.wrap(new AppendSnapshot(
+//                        snapshotBytes
+//                ).serialize());
+                String fname = loadSnapshotBytesResult.getValue();
+                long[] details = extractLogIdAndTerm(fname);
+
+//                return ByteBuffer.wrap(new AppendSnapshot(
+//                        snapshotBytes
+//                ).serialize());
+                return ByteBuffer.wrap(new AppendSnapshotV2(
+                        snapshotBytes, details[0], details[1]
                 ).serialize());
             }
 
             // Return all logs if available
             if (!logs.isEmpty()) {
-                List<Command> commands = new ArrayList<>();
+//                List<Command> commands = new ArrayList<>();
+//                long firstLogId = logs.getFirst().id();
+//                long logTerm = logs.getFirst().term();
+//
+//                for (RaftLogHandler.Log log : logs) {
+//                    commands.add(log.command());
+//                }
+//
+//                return ByteBuffer.wrap(new AppendEntry(
+//                        firstLogId,
+//                        logTerm,
+//                        commands
+//                ).serialize());
+                List<RaftLogHandler.Log> commands = new ArrayList<>();
                 long firstLogId = logs.getFirst().id();
                 long logTerm = logs.getFirst().term();
 
                 for (RaftLogHandler.Log log : logs) {
-                    commands.add(log.command());
+                    commands.add(log);
                 }
 
-                return ByteBuffer.wrap(new AppendEntry(
+                return ByteBuffer.wrap(new AppendEntryV2(
                         firstLogId,
                         logTerm,
                         commands
@@ -298,9 +319,17 @@ public class RaftController {
         RaftLogHandler.Log firstLog = logs.get(0);
 
         if (request.id() < firstLog.id()) {
-            byte[] snapshotBytes = loadSnapshotBytes();
-            return ByteBuffer.wrap(new AppendSnapshot(
-                    snapshotBytes
+//            byte[] snapshotBytes = loadSnapshotBytes();
+            Map.Entry<byte[], String> loadSnapshotBytesResult = loadSnapshotBytes();
+            byte[] snapshotBytes = loadSnapshotBytesResult.getKey();
+            String fname = loadSnapshotBytesResult.getValue();
+            long[] details = extractLogIdAndTerm(fname);
+
+//            return ByteBuffer.wrap(new AppendSnapshot(
+//                    snapshotBytes
+//            ).serialize());
+            return ByteBuffer.wrap(new AppendSnapshotV2(
+                    snapshotBytes, details[0], details[1]
             ).serialize());
         }
 
@@ -325,7 +354,20 @@ public class RaftController {
         }
 
         // Find all succeeding logs starting from request.id() + 1
-        List<Command> succeedingCommands = new ArrayList<>();
+//        List<Command> succeedingCommands = new ArrayList<>();
+//        long firstSucceedingLogId = -1;
+//        long firstSucceedingLogTerm = -1;
+//
+//        for (RaftLogHandler.Log entry : logs) {
+//            if (entry.id() > request.id()) {
+//                if (succeedingCommands.isEmpty()) {
+//                    firstSucceedingLogId = entry.id();
+//                    firstSucceedingLogTerm = entry.term();
+//                }
+//                succeedingCommands.add(entry.command());
+//            }
+//        }
+        List<RaftLogHandler.Log> succeedingCommands = new ArrayList<>();
         long firstSucceedingLogId = -1;
         long firstSucceedingLogTerm = -1;
 
@@ -335,7 +377,7 @@ public class RaftController {
                     firstSucceedingLogId = entry.id();
                     firstSucceedingLogTerm = entry.term();
                 }
-                succeedingCommands.add(entry.command());
+                succeedingCommands.add(entry);
             }
         }
 
@@ -346,7 +388,12 @@ public class RaftController {
             ).serialize());
         }
 
-        return ByteBuffer.wrap(new AppendEntry(
+//        return ByteBuffer.wrap(new AppendEntry(
+//                firstSucceedingLogId,
+//                firstSucceedingLogTerm,
+//                succeedingCommands).serialize()
+//        );
+        return ByteBuffer.wrap(new AppendEntryV2(
                 firstSucceedingLogId,
                 firstSucceedingLogTerm,
                 succeedingCommands).serialize()
@@ -359,9 +406,26 @@ public class RaftController {
 
         if (logId == 0 || response.id() != logId) {
             if (!logs.isEmpty()) {
-                List<Command> commands = new ArrayList<>();
-//                long firstLogId = logs.getFirst().id();
-//                long logTerm = logs.getFirst().term();
+//                List<Command> commands = new ArrayList<>();
+//                long firstLogId = -1;
+//                long logTerm = -1;
+//
+//                for (RaftLogHandler.Log log : logs) {
+//                    if (log.id() > response.id()) {
+//                        if (firstLogId == -1) {
+//                            firstLogId = log.id();
+//                            logTerm = log.term();
+//                        }
+//                        commands.add(log.command());
+//                    }
+//                }
+//
+//                queueWrite(session.getChannel(), ByteBuffer.wrap(new AppendEntry(
+//                        firstLogId,
+//                        logTerm,
+//                        commands
+//                ).serialize()));
+                List<RaftLogHandler.Log> commands = new ArrayList<>();
                 long firstLogId = -1;
                 long logTerm = -1;
 
@@ -371,11 +435,11 @@ public class RaftController {
                             firstLogId = log.id();
                             logTerm = log.term();
                         }
-                        commands.add(log.command());
+                        commands.add(log);
                     }
                 }
 
-                queueWrite(session.getChannel(), ByteBuffer.wrap(new AppendEntry(
+                queueWrite(session.getChannel(), ByteBuffer.wrap(new AppendEntryV2(
                         firstLogId,
                         logTerm,
                         commands
@@ -398,7 +462,18 @@ public class RaftController {
         return null;
     }
 
-    private byte[] loadSnapshotBytes() throws IOException {
+//    private byte[] loadSnapshotBytes() throws IOException {
+//        Path snapshotDir = snapshotter.getDir();
+//        File[] snapshotFiles = snapshotDir.toFile().listFiles();
+//        Path snapshotPath = null;
+//        if (snapshotFiles != null && snapshotFiles.length > 0) {
+//            snapshotPath = snapshotFiles[0].toPath();
+//        }
+//
+//        return (snapshotPath == null) ? null : Files.readAllBytes(snapshotPath)
+//    }
+
+    private AbstractMap.SimpleEntry<byte[], String> loadSnapshotBytes() throws IOException {
         Path snapshotDir = snapshotter.getDir();
         File[] snapshotFiles = snapshotDir.toFile().listFiles();
         Path snapshotPath = null;
@@ -406,7 +481,16 @@ public class RaftController {
             snapshotPath = snapshotFiles[0].toPath();
         }
 
-        return (snapshotPath == null) ? null : Files.readAllBytes(snapshotPath);
+        byte[] snapshotBytes = (snapshotPath == null) ? null : Files.readAllBytes(snapshotPath);
+        String snapshotPathStr = (snapshotPath == null) ? null : snapshotPath.getFileName().toString();
+        return new AbstractMap.SimpleEntry<>(snapshotBytes, snapshotPathStr);
+    }
+
+    private long[] extractLogIdAndTerm(String fname) {
+        String[] parts = fname.split("_", 2);
+        long logId = Long.parseLong(parts[0]);
+        long term = Long.parseLong(parts[1]);
+        return new long[]{logId, term};
     }
 
     private void queueWrite(SocketChannel channel, ByteBuffer buffer) {

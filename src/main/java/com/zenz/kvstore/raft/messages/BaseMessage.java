@@ -15,10 +15,12 @@ public interface BaseMessage {
 
         buffer.rewind();
         if (type.equals(MessageType.APPEND_SNAPSHOT)) {
-            return AppendSnapshot.deserialize(buffer);
+//            return AppendSnapshot.deserialize(buffer);
+            return AppendSnapshotV2.deserialize(buffer);
         }
         if (type.equals(MessageType.APPEND_ENTRY)) {
-            return AppendEntry.deserialize(buffer);
+//            return AppendEntry.deserialize(buffer);
+            return AppendEntryV2.deserialize(buffer);
         }
         if (type.equals(MessageType.REQUEST_ENTRY)) {
             return RequestEntry.deserialize(buffer);

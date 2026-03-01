@@ -31,12 +31,15 @@ public class RaftRestorer implements BaseRestorer {
 
             Path snapshotDir = snapshotter.getDir();
             String prefix = snapshotDir.toFile().listFiles()[0].getName().replace(".snapshot", "");
-            long lastLogId = Long.parseLong(prefix);
+            String[] parts = prefix.split("_");
+            long lastLogId = Long.parseLong(parts[0]);
+            long lastTerm = Long.parseLong(parts[1]);
             logHandler.setLogId(lastLogId);
+            logHandler.setTerm(lastTerm);
 
             Path path = logHandler.getLogger().getPath();
             ArrayList<RaftLogHandler.Log> logs = logHandler.deserialize(path);
-            if (logs != null && !logs.isEmpty() && logs.get(logs.size() - 1).id() == lastLogId) {
+            if (!logs.isEmpty() && logs.get(logs.size() - 1).id() == lastLogId) {
                 WALogger logger = logHandler.getLogger();
                 path = logger.getPath();
                 Files.deleteIfExists(path);
@@ -58,6 +61,10 @@ public class RaftRestorer implements BaseRestorer {
 
         for (RaftLogHandler.Log log : logs) {
             Command command = log.command();
+
+            if (log.term() != logHandler.getTerm()) logHandler.setTerm(log.term());
+            // log handler increments each time
+            logHandler.setLogId(log.id() - 1);
 
             if (command.type().equals(CommandType.PUT)) {
                 PutCommand comm = (PutCommand) command;
