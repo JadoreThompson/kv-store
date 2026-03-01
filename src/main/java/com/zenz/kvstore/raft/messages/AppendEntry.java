@@ -1,7 +1,7 @@
 package com.zenz.kvstore.raft.messages;
 
 import com.zenz.kvstore.MessageType;
-import com.zenz.kvstore.commands.Command;
+import com.zenz.kvstore.logHandlers.RaftLogHandler;
 
 import java.nio.BufferUnderflowException;
 import java.nio.ByteBuffer;
@@ -12,43 +12,43 @@ public record AppendEntry(
         MessageType type,
         long id,
         long term,
-        List<Command> commands
+        List<RaftLogHandler.Log> entries
 ) implements BaseMessage {
 
     public AppendEntry(
             long id,
             long term,
-            List<Command> commands
+            List<RaftLogHandler.Log> entries
     ) {
-        this(MessageType.APPEND_ENTRY, id, term, commands);
+        this(MessageType.APPEND_ENTRY, id, term, entries);
     }
 
     @Override
     public byte[] serialize() {
-        // Calculate total size needed for commands
-        int commandsSize = 0;
-        List<byte[]> commandBytesList = new ArrayList<>();
+        // Calculate total size needed for entries
+        int entriesSize = 0;
+        List<byte[]> entryBytesList = new ArrayList<>();
 
-        if (commands != null) {
-            for (Command cmd : commands) {
-                if (cmd == null) continue;
+        if (entries != null) {
+            for (RaftLogHandler.Log entry : entries) {
+                if (entry == null) continue;
 
-                byte[] cmdBytes = cmd.serialize();
-                commandBytesList.add(cmdBytes);
-                commandsSize += 4 + cmdBytes.length; // 4 bytes for length + command bytes
+                byte[] entryBytes = entry.serialize();
+                entryBytesList.add(entryBytes);
+                entriesSize += 4 + entryBytes.length; // 4 bytes for length + entry bytes
             }
         }
 
-        ByteBuffer buffer = ByteBuffer.allocate(4 + 8 + 8 + 4 + commandsSize);
+        ByteBuffer buffer = ByteBuffer.allocate(4 + 8 + 8 + 4 + entriesSize);
 
         buffer.putInt(type.getValue());
         buffer.putLong(id);
         buffer.putLong(term);
-        buffer.putInt(commandsSize);
+        buffer.putInt(entriesSize);
 
-        for (byte[] cmdBytes : commandBytesList) {
-            buffer.putInt(cmdBytes.length);
-            buffer.put(cmdBytes);
+        for (byte[] entryBytes : entryBytesList) {
+            buffer.putInt(entryBytes.length);
+            buffer.put(entryBytes);
         }
 
         return buffer.array();
@@ -65,21 +65,21 @@ public record AppendEntry(
             long id = buffer.getLong();
             long term = buffer.getLong();
 
-            int allCommandBytesLength = buffer.getInt();
-            byte[] allCommandBytes = new byte[allCommandBytesLength];
-            buffer.get(allCommandBytes);
-            ByteBuffer allCommandBuffer = ByteBuffer.wrap(allCommandBytes);
+            int allEntryBytesLength = buffer.getInt();
+            byte[] allEntryBytes = new byte[allEntryBytesLength];
+            buffer.get(allEntryBytes);
+            ByteBuffer allEntryBuffer = ByteBuffer.wrap(allEntryBytes);
 
-            List<Command> commands = new ArrayList<>();
-            while (allCommandBuffer.hasRemaining()) {
-                int commandLength = allCommandBuffer.getInt();
-                byte[] commandBytes = new byte[commandLength];
-                allCommandBuffer.get(commandBytes);
-                Command command = Command.deserialize(commandBytes);
-                commands.add(command);
+            List<RaftLogHandler.Log> entries = new ArrayList<>();
+            while (allEntryBuffer.hasRemaining()) {
+                int entryLength = allEntryBuffer.getInt();
+                byte[] entryBytes = new byte[entryLength];
+                allEntryBuffer.get(entryBytes);
+                RaftLogHandler.Log entry = RaftLogHandler.Log.deserialize(entryBytes);
+                entries.add(entry);
             }
 
-            return new AppendEntry(id, term, commands);
+            return new AppendEntry(id, term, entries);
         } catch (BufferUnderflowException e) {
             return null;
         }
@@ -91,7 +91,7 @@ public record AppendEntry(
                 "type=" + type +
                 ", id=" + id +
                 ", term=" + term +
-                ", commands=" + commands +
+                ", entries=" + entries +
                 '}';
     }
 }

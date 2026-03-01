@@ -54,7 +54,6 @@ public class KVStore {
             if (snapshotEnabled) {
                 // Create snapshot and move to main
                 Path snapshotDir = snapshotter.getDir();
-//                Path fpath = snapshotDir.resolve(logHandler.getLogId() + ".snapshot");
                 Path fpath;
                 if (isRaftMode) {
                     fpath = snapshotDir.resolve(

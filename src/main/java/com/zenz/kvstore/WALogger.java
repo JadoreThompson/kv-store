@@ -9,13 +9,13 @@ import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
 
 public class WALogger {
-    private FileChannel channel;
-    private Path path;
+    private final FileChannel channel;
+    private final Path path;
 
     public WALogger(Path fpath) throws IOException {
         File file = fpath.toFile();
-        if (!file.exists()) {
-            file.createNewFile();
+        if (!file.exists() && !file.createNewFile()) {
+            throw new IOException("Failed to create file " + file.getPath());
         }
 
         this.path = fpath;

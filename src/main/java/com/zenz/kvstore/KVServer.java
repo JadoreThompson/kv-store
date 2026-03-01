@@ -20,19 +20,14 @@ import java.util.*;
  * GET mykey
  */
 public class KVServer {
-    private static final int BUFFER_SIZE = 8192;
+    private final String host;
+    private final int port;
+    private final BaseCommandHandler commandHandler;
 
     private Selector selector;
     private ServerSocketChannel serverChannel;
-    private volatile boolean running = true;
-
-    private final String host;
-    private final int port;
-
-    // Track pending writes per channel
     private final Map<SocketChannel, Queue<ByteBuffer>> pendingWrites = new HashMap<>();
-
-    private final BaseCommandHandler commandHandler;
+    private volatile boolean running = true;
 
     public KVServer(String host, int port, BaseCommandHandler commandHandler) {
         this.commandHandler = commandHandler;
@@ -41,15 +36,10 @@ public class KVServer {
     }
 
     public void start() throws IOException {
-        // Open selector
         selector = Selector.open();
-
-        // Create and configure server channel
         serverChannel = ServerSocketChannel.open();
         serverChannel.configureBlocking(false);
         serverChannel.socket().bind(new InetSocketAddress(host, port));
-
-        // Register for ACCEPT events
         serverChannel.register(selector, SelectionKey.OP_ACCEPT);
 
         System.out.println("KV Server started on " + host + ":" + port);
@@ -83,7 +73,6 @@ public class KVServer {
                 }
             }
         }
-
     }
 
     public void stop() throws IOException {

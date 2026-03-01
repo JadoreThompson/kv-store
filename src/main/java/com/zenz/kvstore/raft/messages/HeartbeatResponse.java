@@ -5,9 +5,9 @@ import com.zenz.kvstore.MessageType;
 import java.nio.BufferUnderflowException;
 import java.nio.ByteBuffer;
 
-public record HeartbeatRequest(MessageType type) implements BaseMessage {
-    public HeartbeatRequest() {
-        this(MessageType.HEARTBEAT_REQUEST);
+public record HeartbeatResponse(MessageType type) implements BaseMessage {
+    public HeartbeatResponse() {
+        this(MessageType.HEARTBEAT_RESPONSE);
     }
 
     @Override
@@ -17,28 +17,28 @@ public record HeartbeatRequest(MessageType type) implements BaseMessage {
         return buffer.array();
     }
 
-    static HeartbeatRequest deserialize(byte[] bytes) {
+    static HeartbeatResponse deserialize(byte[] bytes) {
         try {
             ByteBuffer buffer = ByteBuffer.wrap(bytes);
             int typeValue = buffer.getInt();
             MessageType type = MessageType.fromValue(typeValue);
-            if (!type.equals(MessageType.HEARTBEAT_REQUEST)) {
-                throw new IllegalArgumentException("Invalid message type");
+            if (!type.equals(MessageType.HEARTBEAT_RESPONSE)) {
+                throw new IllegalArgumentException("Invalid message type " + type);
             }
-            return new HeartbeatRequest();
+            return new HeartbeatResponse();
         } catch (BufferUnderflowException e) {
             return null;
         }
     }
 
-    static HeartbeatRequest deserialize(ByteBuffer buffer) {
+    static HeartbeatResponse deserialize(ByteBuffer buffer) {
         try {
             int typeValue = buffer.getInt();
             MessageType type = MessageType.fromValue(typeValue);
-            if (!type.equals(MessageType.HEARTBEAT_REQUEST)) {
+            if (!type.equals(MessageType.HEARTBEAT_RESPONSE)) {
                 throw new IllegalArgumentException("Invalid message type");
             }
-            return new HeartbeatRequest();
+            return new HeartbeatResponse();
         } catch (BufferUnderflowException e) {
             return null;
         }

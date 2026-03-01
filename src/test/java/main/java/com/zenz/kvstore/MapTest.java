@@ -17,8 +17,6 @@ class MapTest {
         map = new KVMap();
     }
 
-    // --- put / get ---
-
     @Test
     void put_thenGet_returnsNode() {
         byte[] value = "hello".getBytes(StandardCharsets.UTF_8);
@@ -59,8 +57,6 @@ class MapTest {
         assertArrayEquals("gamma".getBytes(StandardCharsets.UTF_8), map.get("c").value);
     }
 
-    // --- byte[] values ---
-
     @Test
     void put_integerAsBytes_retrievesCorrectly() {
         byte[] value = ByteBuffer.allocate(4).putInt(42).array();
@@ -83,8 +79,6 @@ class MapTest {
         assertNotNull(node);
         assertArrayEquals(new byte[0], node.value);
     }
-
-    // --- collision handling ---
 
     @Test
     void put_collidingKeys_bothRetrievable() {

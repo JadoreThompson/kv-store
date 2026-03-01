@@ -114,8 +114,6 @@ class KVServerTest {
         return new String(data, StandardCharsets.UTF_8).trim();
     }
 
-    // --- Connection Tests ---
-
     @Test
     void clientCanConnect() throws IOException {
         SocketChannel client = connectClient();
@@ -205,8 +203,6 @@ class KVServerTest {
         client.close();
     }
 
-    // --- Multiple Operations Tests ---
-
     @Test
     void multipleOperations_sameConnection() throws IOException {
         SocketChannel client = connectClient();
@@ -257,8 +253,6 @@ class KVServerTest {
         client.close();
     }
 
-    // --- Map Update Verification ---
-
     @Test
     void mapIsUpdated_afterPut() throws IOException {
         SocketChannel client = connectClient();
@@ -273,10 +267,6 @@ class KVServerTest {
 
         client.close();
     }
-
-    // ============================================
-    // CommandHandler Unit Tests
-    // ============================================
 
     @Test
     void commandHandler_putCommand_storesValue() throws Exception {
@@ -475,10 +465,6 @@ class KVServerTest {
         testLogsFolder.toFile().delete();
         testSnapshotsFolder.toFile().delete();
     }
-
-    // ============================================
-    // Command Serialization/Deserialization Tests
-    // ============================================
 
     @Test
     void putCommand_serializeDeserialize_roundTrip() {

@@ -6,26 +6,27 @@ import com.zenz.kvstore.KVStore;
 import com.zenz.kvstore.commands.Command;
 import com.zenz.kvstore.commands.GetCommand;
 import com.zenz.kvstore.commands.PutCommand;
-import com.zenz.kvstore.raft.RaftController;
+import com.zenz.kvstore.raft.RaftControllerServerHandler;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
-import java.util.concurrent.Executor;
-import java.util.concurrent.Executors;
 
 public class RaftCommandHandler implements BaseCommandHandler {
     private final KVStore store;
-    private final RaftController controller;
+    private final RaftControllerServerHandler controller;
+    private final String DEBUG_PREFIX;
 
-    public RaftCommandHandler(KVStore store, RaftController controller) {
+    public RaftCommandHandler(KVStore store, RaftControllerServerHandler controller) {
         this.store = store;
         this.controller = controller;
+        DEBUG_PREFIX = "[RaftCommandHandler]";
     }
 
     public ByteBuffer handleCommand(Command command) {
+        final String debugPrefix = DEBUG_PREFIX + "[handleCommand] ";
         try {
             CommandType commandType = command.type();
             if (commandType.equals(CommandType.GET)) {
@@ -66,7 +67,7 @@ public class RaftCommandHandler implements BaseCommandHandler {
         return store;
     }
 
-    public RaftController getController() {
+    public RaftControllerServerHandler getController() {
         return controller;
     }
 }

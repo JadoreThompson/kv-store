@@ -5,15 +5,15 @@ import com.zenz.kvstore.MessageType;
 import java.nio.BufferUnderflowException;
 import java.nio.ByteBuffer;
 
-public record AppendSnapshotV2(
+public record InstallSnapshot(
         MessageType type,
         byte[] snapshot,
         long logId,
         long term
 ) implements BaseMessage {
 
-    public AppendSnapshotV2(byte[] snapshot, long logId, long term) {
-        this(MessageType.APPEND_SNAPSHOT, snapshot, logId, term);
+    public InstallSnapshot(byte[] snapshot, long logId, long term) {
+        this(MessageType.INSTALL_SNAPSHOT, snapshot, logId, term);
     }
 
     public byte[] serialize() {
@@ -28,11 +28,11 @@ public record AppendSnapshotV2(
         return buffer.array();
     }
 
-    public static AppendSnapshotV2 deserialize(ByteBuffer buffer) {
+    public static InstallSnapshot deserialize(ByteBuffer buffer) {
         try {
             int typeValue = buffer.getInt();
             MessageType messageType = MessageType.fromValue(typeValue);
-            if (!messageType.equals(MessageType.APPEND_SNAPSHOT)) {
+            if (!messageType.equals(MessageType.INSTALL_SNAPSHOT)) {
                 throw new IllegalArgumentException("Invalid message type " + messageType);
             }
 
@@ -42,7 +42,7 @@ public record AppendSnapshotV2(
             byte[] snapshot = new byte[snapshotLength];
             buffer.get(snapshot);
 
-            return new AppendSnapshotV2(snapshot, logId, term);
+            return new InstallSnapshot(snapshot, logId, term);
         } catch (BufferUnderflowException e) {
             return null;
         }
@@ -50,7 +50,7 @@ public record AppendSnapshotV2(
 
     @Override
     public String toString() {
-        return "AppendSnapshotV2{" +
+        return "InstallSnapshot{" +
                 "type=" + type +
                 ", snapshot=" + (snapshot != null ? snapshot.length + " bytes" : "null") +
                 ", logId=" + logId +

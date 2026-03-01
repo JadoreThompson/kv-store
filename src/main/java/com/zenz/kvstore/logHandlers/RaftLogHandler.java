@@ -24,13 +24,6 @@ public class RaftLogHandler implements BaseLogHandler {
     @Override
     public void log(Command command) throws IOException {
         logId++;
-//        if (!disabled) {
-//            Log log = new Log(logId, term, command);
-//            byte[] logBytes = log.serialize();
-//            ByteBuffer buffer = ByteBuffer.wrap(logBytes);
-//            logger.log(buffer);
-//            lastLog = log;
-//        }
         Log log = new Log(logId, term, command);
         lastLog = log;
         if (!disabled) {
@@ -42,7 +35,6 @@ public class RaftLogHandler implements BaseLogHandler {
 
     public static ArrayList<Log> deserialize(Path fpath) throws IOException {
         byte[] bytes = Files.readAllBytes(fpath);
-
         ByteBuffer buffer = ByteBuffer.wrap(bytes);
         ArrayList<Log> logs = new ArrayList<>();
 

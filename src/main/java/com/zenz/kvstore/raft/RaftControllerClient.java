@@ -1,7 +1,6 @@
 package com.zenz.kvstore.raft;
 
 import com.zenz.kvstore.*;
-import com.zenz.kvstore.commands.Command;
 import com.zenz.kvstore.commands.PutCommand;
 import com.zenz.kvstore.logHandlers.RaftLogHandler;
 import com.zenz.kvstore.raft.messages.*;
@@ -9,11 +8,9 @@ import com.zenz.kvstore.raft.messages.*;
 import java.io.File;
 import java.io.IOException;
 import java.net.InetSocketAddress;
-import java.net.Socket;
 import java.nio.ByteBuffer;
 import java.nio.channels.*;
 import java.nio.file.Files;
-import java.nio.file.OpenOption;
 import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
 import java.util.*;
@@ -31,14 +28,27 @@ public class RaftControllerClient {
     private RaftLogHandler logHandler;
     private ArrayList<RaftLogHandler.Log> logs = new ArrayList<>();
     private CompletableFuture<Boolean> onDisconnect;
+    private Random random = new Random();
+    private RaftManager manager;
+    private long lastHeartBeatResponse;
+    private final String DEBUG_PREFIX;
+    private CompletableFuture<Boolean> joinFut = new CompletableFuture<>();
 
-    public RaftControllerClient(String host, int port, KVStore store, RaftLogHandler logHandler) {
+    public RaftControllerClient(
+            String host,
+            int port,
+            KVStore store,
+            RaftManager manager
+    ) {
         controllerAddress = new InetSocketAddress(host, port);
         this.store = store;
-        this.logHandler = logHandler;
+        this.logHandler = (RaftLogHandler) store.getLogHandler();
+        this.manager = manager;
+        DEBUG_PREFIX = String.format("[nodeId=%s RaftControllerClient]", manager.getConfig().id());
     }
 
     public void start() throws IOException {
+        final String debugPrefix = DEBUG_PREFIX + "[start]";
         if (isRunning) return;
 
         selector = Selector.open();
@@ -49,8 +59,32 @@ public class RaftControllerClient {
 
         isRunning = true;
 
+        int timeout = random.nextInt(1000);
+        long lastHeartbeatRequest = 0;
+        boolean connected = false;
+
         while (isRunning) {
-            int readyCount = selector.select();
+            int readyCount = selector.select(timeout);
+
+            // Handling heartbeats
+            long currentTime = System.currentTimeMillis();
+            if (currentTime - lastHeartbeatRequest > timeout) {
+                if (lastHeartBeatResponse == 0) {
+                    lastHeartBeatResponse = currentTime;
+                }
+
+                if (currentTime - lastHeartBeatResponse > 2000) {
+                    // Assuming controller has disconnected.
+                    manager.initiateElectionAsControllerClient();
+                    stop();
+                    break;
+                }
+
+                sendHeartBeat();
+                lastHeartbeatRequest = currentTime;
+                timeout = random.nextInt(1000);
+            }
+
             if (readyCount == 0) continue;
 
             Iterator<SelectionKey> keys = selector.selectedKeys().iterator();
@@ -62,12 +96,39 @@ public class RaftControllerClient {
 
                 try {
                     if (key.isConnectable()) {
-                        if (((SocketChannel) key.channel()).finishConnect()) {
+
+
+                        if (!connected) {
+                            if (socketChannel.isConnectionPending()) {
+
+                                try {
+                                    socketChannel.finishConnect();
+                                    connected = true;
+                                    // Update interest ops from OP_CONNECT to OP_READ, preserving OP_WRITE if there are pending writes
+                                    int newOps = SelectionKey.OP_READ;
+                                    if (!pendingWrites.isEmpty()) {
+                                        newOps |= SelectionKey.OP_WRITE;
+                                    }
+                                    key.interestOps(newOps);
+                                } catch (IOException e) {
+                                    // Close the old channel and retry
+                                    socketChannel.close();
+                                    socketChannel = SocketChannel.open();
+                                    socketChannel.configureBlocking(false);
+                                    socketChannel.connect(controllerAddress);
+                                    socketChannel.register(selector, SelectionKey.OP_CONNECT);
+                                }
+                            } else {
+                                socketChannel.connect(controllerAddress);
+                            }
+                        } else if (((SocketChannel) key.channel()).finishConnect()) {
                             // Connection established, remove OP_CONNECT interest
                             key.interestOps(key.interestOps() & ~SelectionKey.OP_CONNECT);
                             // Now safe to call handleConnect
                             handleConnect(key);
                         }
+
+
                     } else if (key.isReadable()) handleRead(key);
                     else if (key.isWritable()) handleWrite(key);
                 } catch (Exception e) {
@@ -75,10 +136,15 @@ public class RaftControllerClient {
                 }
             }
         }
+
+        joinFut.complete(true);
     }
 
     public void stop() throws IOException {
-        if (!isRunning) return;
+        final String debugPrefix = DEBUG_PREFIX + "[stop] ";
+        if (!isRunning) {
+            return;
+        }
 
         isRunning = false;
         socketChannel.close();
@@ -86,6 +152,13 @@ public class RaftControllerClient {
         pendingWrites.clear();
         readBuffer.clear();
         logs.clear();
+    }
+
+    private void join() {
+        try {
+            joinFut.get();
+        } catch (Exception e) {
+        }
     }
 
     private void handleConnect(SelectionKey key) throws IOException {
@@ -121,55 +194,16 @@ public class RaftControllerClient {
         }
     }
 
-//    private void handleRead(SelectionKey key) throws IOException {
-//        final String M = "[handleRead] ";
-//        System.out.println(M + "handling read");
-//        SocketChannel channel = (SocketChannel) key.channel();
-//
-//        while (true) {
-//            if (readBuffer.position() >= readBuffer.capacity() - 1) {
-//                System.out.println(M + "resizing buffer");
-//                ByteBuffer newReadBuffer = ByteBuffer.allocate((int) (readBuffer.capacity() * 1.6));
-//
-//                newReadBuffer.put(readBuffer);
-//                readBuffer = newReadBuffer;
-//            }
-//
-//            int bytesRead = channel.read(readBuffer);
-//
-//            if (bytesRead == -1) {
-//                cleanup(key);
-//                return;
-//            }
-//
-//            if (readBuffer.position() < readBuffer.capacity() - 1) {
-//                break;
-//            }
-//        }
-//
-//        readBuffer.flip();
-//        int position = readBuffer.position();
-//        boolean processed = processData(key);
-//        if (processed) {
-//            readBuffer.compact();
-//        } else {
-//            readBuffer.position(position);
-//        }
-//    }
-
     private void handleRead(SelectionKey key) throws IOException {
-        final String M = "[handleRead] ";
-        System.out.println(M + "entered");
+        final String M = DEBUG_PREFIX + "[handleRead] ";
 
         SocketChannel channel = (SocketChannel) key.channel();
-        System.out.println(M + "channel=" + channel);
+
+        int totalBytesRead = 0;
 
         while (true) {
-            System.out.println(M + "loop start | position=" + readBuffer.position() +
-                    " capacity=" + readBuffer.capacity());
 
             if (readBuffer.position() >= readBuffer.capacity() - 1) {
-                System.out.println(M + "resizing buffer");
 
                 int oldCap = readBuffer.capacity();
                 int newCap = (int) (oldCap * 1.6);
@@ -180,58 +214,49 @@ public class RaftControllerClient {
                 newReadBuffer.put(readBuffer);
                 readBuffer = newReadBuffer;
 
-                System.out.println(M + "buffer resized | oldCapacity=" + oldCap +
-                        " newCapacity=" + newCap);
             }
 
             int bytesRead = channel.read(readBuffer);
-            System.out.println(M + "bytesRead=" + bytesRead);
+            totalBytesRead += bytesRead;
 
             if (bytesRead == -1) {
-                System.out.println(M + "remote closed connection");
                 cleanup(key);
+                stop();
+                manager.initiateElectionAsControllerClient();
                 return;
             }
 
             if (bytesRead == 0) {
-                System.out.println(M + "no more data available right now");
+                break;
             }
 
             if (readBuffer.position() < readBuffer.capacity() - 1) {
-                System.out.println(M + "buffer not full, breaking read loop");
                 break;
             }
         }
 
-        System.out.println(M + "flipping buffer for processing");
-        readBuffer.flip();
 
-        System.out.println(M + "buffer state after flip | position=" +
-                readBuffer.position() + " limit=" + readBuffer.limit());
+        if (totalBytesRead > 0) {
+            readBuffer.flip();
 
-        int position = readBuffer.position();
+            int position = readBuffer.position();
 
-        System.out.println(M + "invoking processData");
-        boolean processed = processData(key);
+            boolean processed = processData(key);
+            readBuffer.flip();
 
-        System.out.println(M + "processData returned=" + processed);
 
-        if (processed) {
-            System.out.println(M + "compacting buffer");
-            readBuffer.compact();
+            if (processed) {
+                readBuffer.compact();
 
-            System.out.println(M + "buffer after compact | position=" +
-                    readBuffer.position() + " limit=" + readBuffer.limit());
-        } else {
-            System.out.println(M + "message incomplete, restoring position=" + position);
-            readBuffer.position(position);
+            } else {
+                readBuffer.position(position);
+            }
         }
 
-        System.out.println(M + "exit");
     }
 
     private boolean processData(SelectionKey key) throws IOException {
-        final String M = "[processData] ";
+        final String debugPrefix = DEBUG_PREFIX + "[processData] ";
         BaseMessage message;
 
         try {
@@ -244,12 +269,14 @@ public class RaftControllerClient {
 
         ByteBuffer responseBuffer = null;
         if (message.type().equals(MessageType.APPEND_ENTRY)) {
-//            responseBuffer = handleAppendEntry(key, (AppendEntry) message);
-            responseBuffer = handleAppendEntry(key, (AppendEntryV2) message);
-        } else if (message.type().equals(MessageType.APPEND_SNAPSHOT)) {
-//            responseBuffer = handleAppendSnapshot(key, (AppendSnapshot) message);
-            System.out.println(M + "calling append snapshot");
-            responseBuffer = handleAppendSnapshot(key, (AppendSnapshotV2) message);
+            responseBuffer = handleAppendEntry(key, (AppendEntry) message);
+        } else if (message.type().equals(MessageType.INSTALL_SNAPSHOT)) {
+            responseBuffer = handleAppendSnapshot(key, (InstallSnapshot) message);
+        } else if (message.type().equals(MessageType.HEARTBEAT_RESPONSE)) {
+            responseBuffer = handleHeartBeatResponse(key, (HeartbeatResponse) message);
+        } else if (message.type().equals(MessageType.SWITCH)) {
+            manager.handleSwitchMessage((SwitchMessage) message);
+            stop();
         }
 
         if (responseBuffer != null) {
@@ -259,27 +286,7 @@ public class RaftControllerClient {
         return true;
     }
 
-    //    private ByteBuffer handleAppendEntry(SelectionKey key, AppendEntry message) throws IOException {
-//        long curLogId = logHandler.getLogId();
-//        long curTerm = logHandler.getTerm();
-//
-//        // Nothing to process. We're up to date.
-//        if (curLogId == message.id() && curTerm == message.term()) return null;
-//
-//        // Processing all commands.
-//        List<Command> commands = message.commands();
-//        for (Command command : commands) {
-//            if (command.type().equals(CommandType.PUT)) {
-//                PutCommand comm = (PutCommand) command;
-//                store.put(comm.key(), comm.value());
-//            }
-//        }
-//
-//        return ByteBuffer.wrap(new AppendEntryResponse(
-//                logHandler.getLogId(), logHandler.getTerm(), true
-//        ).serialize());
-//    }
-    private ByteBuffer handleAppendEntry(SelectionKey key, AppendEntryV2 message) throws IOException {
+    private ByteBuffer handleAppendEntry(SelectionKey key, AppendEntry message) throws IOException {
         long curLogId = logHandler.getLogId();
         long curTerm = logHandler.getTerm();
 
@@ -311,98 +318,57 @@ public class RaftControllerClient {
      * @return
      * @throws IOException
      */
-//    private ByteBuffer handleAppendSnapshot(SelectionKey key, AppendSnapshotV2 message) throws IOException {
-//        long lastLogId = message.logId();
-//        long lastTerm = message.term();
-//        byte[] snapshot = message.snapshot();
-//
-//        KVMapSnapshotter snapshotter = store.getSnapshotter();
-//        Path snapshotDir = snapshotter.getDir();
-//        Path snapshotPath = snapshotDir.resolve(lastLogId + "_" + lastTerm + ".snapshot");
-//        Files.createFile(snapshotPath);
-//        try (FileChannel fileChannel = FileChannel.open(snapshotPath, StandardOpenOption.WRITE)) {
-//            fileChannel.write(ByteBuffer.wrap(snapshot));
-//        }
-//
-//        File[] files = snapshotDir.toFile().listFiles();
-//        for (File file : files) {
-//            if (!file.getName().equals(snapshotPath.getFileName().toString())) file.delete();
-//        }
-//
-//        Path logFpath = store.getLogHandler().getLogger().getPath();
-//        Files.delete(logFpath);
-//        Files.createFile(logFpath);
-//        store.getLogHandler().setLogger(new WALogger(logFpath));
-//
-////        return ByteBuffer.wrap(new byte[0]);
-//        return ByteBuffer.wrap(new AppendEntryResponse(lastLogId, lastTerm, true).serialize());
-//    }
-    private ByteBuffer handleAppendSnapshot(SelectionKey key, AppendSnapshotV2 message) throws IOException {
+    private ByteBuffer handleAppendSnapshot(SelectionKey key, InstallSnapshot message) throws IOException {
         final String M = "[handleAppendSnapshot] ";
 
-        System.out.println(M + "invoked");
 
         long lastLogId = message.logId();
         long lastTerm = message.term();
         byte[] snapshot = message.snapshot();
 
-        System.out.println(M + "Snapshot metadata:");
-        System.out.println(M + "lastLogId=" + lastLogId);
-        System.out.println(M + "lastTerm=" + lastTerm);
-        System.out.println(M + "snapshotSize=" + (snapshot != null ? snapshot.length : -1));
 
         KVMapSnapshotter snapshotter = store.getSnapshotter();
         Path snapshotDir = snapshotter.getDir();
 
-        System.out.println(M + "Snapshot directory: " + snapshotDir);
 
         Path snapshotPath = snapshotDir.resolve(lastLogId + "_" + lastTerm + ".snapshot");
 
-        System.out.println(M + "Creating snapshot file: " + snapshotPath);
         Files.createFile(snapshotPath);
 
         try (FileChannel fileChannel = FileChannel.open(snapshotPath, StandardOpenOption.WRITE)) {
-            System.out.println(M + "Writing snapshot bytes...");
             fileChannel.write(ByteBuffer.wrap(snapshot));
-            System.out.println(M + "Snapshot write complete");
         }
 
-        System.out.println(M + "Cleaning old snapshots...");
         File[] files = snapshotDir.toFile().listFiles();
         if (files != null) {
             for (File file : files) {
                 if (!file.getName().equals(snapshotPath.getFileName().toString())) {
-                    System.out.println(M + "Deleting old snapshot: " + file.getAbsolutePath());
                     file.delete();
                 }
             }
-        } else {
-            System.out.println(M + "No files found in snapshot directory");
         }
 
-        System.out.println(M + "Resetting WAL log...");
 
         Path logFpath = store.getLogHandler().getLogger().getPath();
-        System.out.println(M + "WAL path: " + logFpath);
 
         Files.delete(logFpath);
-        System.out.println(M + "Deleted old WAL");
 
         Files.createFile(logFpath);
-        System.out.println(M + "Created new WAL file");
 
         store.getLogHandler().setLogger(new WALogger(logFpath));
-        System.out.println(M + "WAL logger reset complete");
 
-        System.out.println(M + "Creating AppendEntryResponse");
 
         ByteBuffer response = ByteBuffer.wrap(
                 new AppendEntryResponse(lastLogId, lastTerm, true).serialize()
         );
 
-        System.out.println(M + "completed successfully");
 
         return response;
+    }
+
+    private ByteBuffer handleHeartBeatResponse(SelectionKey key, HeartbeatResponse message) throws IOException {
+        lastHeartBeatResponse = System.currentTimeMillis();
+        return null;
     }
 
     private void handleWrite(SelectionKey key) throws IOException {
@@ -452,6 +418,15 @@ public class RaftControllerClient {
         queueWrite(socketChannel, ByteBuffer.wrap(new RequestEntry(curLogId, curTerm).serialize()));
     }
 
+    private void sendHeartBeat() {
+        queueWrite(socketChannel, ByteBuffer.wrap(new HeartbeatRequest().serialize()));
+    }
+
+    private void handleSwitchMessage(SwitchMessage message) throws IOException {
+        stop();
+        manager.convertControllerToFollower();
+    }
+
     private void cleanup(SelectionKey key) throws IOException {
         if (!key.isValid()) return;
 
@@ -482,5 +457,9 @@ public class RaftControllerClient {
 
     public void setOnDisconnect(CompletableFuture<Boolean> onDisconnect) {
         this.onDisconnect = onDisconnect;
+    }
+
+    public RaftManager getManager() {
+        return manager;
     }
 }

@@ -5,10 +5,16 @@ import com.zenz.kvstore.MessageType;
 import java.nio.BufferUnderflowException;
 import java.nio.ByteBuffer;
 
-public record RequestVote(MessageType type, long term, long candidateId, long lastLogIndex, long lastLogTerm) implements BaseMessage {
+public record RequestVote(
+        MessageType type,
+        long term,
+        long candidateId,
+        long logId,
+        long prevTerm
+) implements BaseMessage {
 
-    public RequestVote(long term, long candidateId, long lastLogIndex, long lastLogTerm) {
-        this(MessageType.REQUEST_VOTE, term, candidateId, lastLogIndex, lastLogTerm);
+    public RequestVote(long candidateId, long term, long prevLogId, long prevTerm) {
+        this(MessageType.REQUEST_VOTE, term, candidateId, prevLogId, prevTerm);
     }
 
     @Override
@@ -18,8 +24,8 @@ public record RequestVote(MessageType type, long term, long candidateId, long la
         buffer.putInt(type.getValue());
         buffer.putLong(term);
         buffer.putLong(candidateId);
-        buffer.putLong(lastLogIndex);
-        buffer.putLong(lastLogTerm);
+        buffer.putLong(logId);
+        buffer.putLong(prevTerm);
 
         return buffer.array();
     }
@@ -34,10 +40,10 @@ public record RequestVote(MessageType type, long term, long candidateId, long la
 
             long term = buffer.getLong();
             long candidateId = buffer.getLong();
-            long lastLogIndex = buffer.getLong();
-            long lastLogTerm = buffer.getLong();
+            long prevLogId = buffer.getLong();
+            long prevTerm = buffer.getLong();
 
-            return new RequestVote(messageType, term, candidateId, lastLogIndex, lastLogTerm);
+            return new RequestVote(messageType, term, candidateId, prevLogId, prevTerm);
         } catch (BufferUnderflowException e) {
             return null;
         }
@@ -49,8 +55,8 @@ public record RequestVote(MessageType type, long term, long candidateId, long la
                 "type=" + type +
                 ", term=" + term +
                 ", candidateId=" + candidateId +
-                ", lastLogIndex=" + lastLogIndex +
-                ", lastLogTerm=" + lastLogTerm +
+                ", logId=" + logId +
+                ", prevTerm=" + prevTerm +
                 '}';
     }
 }

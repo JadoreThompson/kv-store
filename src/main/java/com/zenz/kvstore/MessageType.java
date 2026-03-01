@@ -2,12 +2,16 @@ package com.zenz.kvstore;
 
 public enum MessageType {
     APPEND_ENTRY(1),
-    APPEND_SNAPSHOT(2),
+    INSTALL_SNAPSHOT(2),
     REQUEST_ENTRY(3),
     ERROR(4),
     REQUEST_VOTE(5),
     LEADER_ELECTED(6),
-    APPEND_ENTRY_RESPONSE(7);
+    APPEND_ENTRY_RESPONSE(7),
+    HEARTBEAT_REQUEST(8),
+    HEARTBEAT_RESPONSE(9),
+    REQUEST_VOTE_RESPONSE(10),
+    SWITCH(11);
 
     private final int value;
 

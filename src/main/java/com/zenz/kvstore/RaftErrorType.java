@@ -3,7 +3,9 @@ package com.zenz.kvstore;
 public enum RaftErrorType {
     INVALID_MESSAGE_TYPE(1),
     INVALID_TERM(2),
-    LOG_NOT_FOUND(3);
+    LOG_NOT_FOUND(3),
+    GREATER_TERM(4),
+    GREATER_LOG_ID(5);
 
     private final int value;
 
