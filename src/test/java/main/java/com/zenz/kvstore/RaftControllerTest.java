@@ -56,7 +56,7 @@ class RaftControllerTest {
         );
 
         nodes = new ArrayList<>();
-        nodes.add(new RaftNode(0, new InetSocketAddress(TEST_HOST, TEST_PORT), NodeState.CONTROLLER));
+        nodes.add(new RaftNode(0, new InetSocketAddress(TEST_HOST, TEST_PORT), null, NodeState.CONTROLLER));
         manager = new RaftManager(0, nodes, kvStore);
         startManager();
 

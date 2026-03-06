@@ -1,4 +1,4 @@
-package com.zenz.kvstore;
+package com.zenz.kvstore.raft;
 
 public enum RaftErrorType {
     INVALID_MESSAGE_TYPE(1),

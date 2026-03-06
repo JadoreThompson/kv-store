@@ -19,7 +19,7 @@ public enum CommandType {
             if (type.value == value) return type;
         }
 
-        throw new IllegalArgumentException("Unknown command type: " + value);
+        throw new IllegalArgumentException("Unknown command errorType: " + value);
     }
 
     @Override

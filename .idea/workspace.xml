@@ -4,9 +4,10 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="113ca11e-a295-4741-aad7-90962967a262" name="Changes" comment="saving - wip: Implementing leader election - Implemented controller client led election">
+    <list default="true" id="113ca11e-a295-4741-aad7-90962967a262" name="Changes" comment="Removed unused properties and code from RaftControllerServerHandler">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/com/zenz/kvstore/raft/RaftControllerServerHandler.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/zenz/kvstore/raft/RaftControllerServerHandler.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/zenz/kvstore/commandHandlers/CommandHandler.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/zenz/kvstore/commandHandlers/CommandHandler.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/zenz/kvstore/responses/GetResponse.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/zenz/kvstore/responses/GetResponse.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -16,11 +17,11 @@
   <component name="FileTemplateManagerImpl">
     <option name="RECENT_TEMPLATES">
       <list>
-        <option value="Record" />
-        <option value="Interface" />
         <option value="Enum" />
-        <option value="Class" />
         <option value="Dockerfile" />
+        <option value="Interface" />
+        <option value="Class" />
+        <option value="Record" />
       </list>
     </option>
   </component>
@@ -74,8 +75,9 @@
   </component>
   <component name="PropertiesComponent"><![CDATA[{
   "keyToString": {
-    "Application.Main.executor": "Run",
+    "Application.Main.executor": "Debug",
     "Docker.Dockerfile builder.executor": "Run",
+    "JUnit.RaftCommandHandlerTest.executor": "Debug",
     "Maven.kv-store [compile].executor": "Run",
     "ModuleVcsDetector.initialDetectionPerformed": "true",
     "RunOnceActivity.MCP Project settings loaded": "true",
@@ -121,7 +123,7 @@
       <command value="mvn compile" />
     </option>
   </component>
-  <component name="RunManager" selected="Docker.Dockerfile builder">
+  <component name="RunManager" selected="JUnit.RaftCommandHandlerTest">
     <configuration name="Main" type="Application" factoryName="Application" temporary="true" nameIsGenerated="true">
       <option name="MAIN_CLASS_NAME" value="com.java.zenz.kvstore.Main" />
       <module name="kv-store" />
@@ -131,6 +133,21 @@
           <option name="ENABLED" value="true" />
         </pattern>
       </extension>
+      <method v="2">
+        <option name="Make" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="RaftCommandHandlerTest" type="JUnit" factoryName="JUnit" temporary="true" nameIsGenerated="true">
+      <module name="kv-store" />
+      <extension name="coverage">
+        <pattern>
+          <option name="PATTERN" value="main.java.com.zenz.kvstore.*" />
+          <option name="ENABLED" value="true" />
+        </pattern>
+      </extension>
+      <option name="PACKAGE_NAME" value="main.java.com.zenz.kvstore" />
+      <option name="MAIN_CLASS_NAME" value="main.java.com.zenz.kvstore.RaftCommandHandlerTest" />
+      <option name="TEST_OBJECT" value="class" />
       <method v="2">
         <option name="Make" enabled="true" />
       </method>
@@ -154,8 +171,9 @@
     </configuration>
     <recent_temporary>
       <list>
-        <item itemvalue="Docker.Dockerfile builder" />
+        <item itemvalue="JUnit.RaftCommandHandlerTest" />
         <item itemvalue="Application.Main" />
+        <item itemvalue="Docker.Dockerfile builder" />
       </list>
     </recent_temporary>
   </component>
@@ -443,7 +461,15 @@
       <option name="project" value="LOCAL" />
       <updated>1772802736684</updated>
     </task>
-    <option name="localTasksCounter" value="30" />
+    <task id="LOCAL-00030" summary="Removed unused properties and code from RaftControllerServerHandler">
+      <option name="closed" value="true" />
+      <created>1772803298589</created>
+      <option name="number" value="00030" />
+      <option name="presentableId" value="LOCAL-00030" />
+      <option name="project" value="LOCAL" />
+      <updated>1772803298589</updated>
+    </task>
+    <option name="localTasksCounter" value="31" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -461,7 +487,6 @@
     </option>
   </component>
   <component name="VcsManagerConfiguration">
-    <MESSAGE value="Modified KVStore2.Builder to return self&#10;for each method; Updated KVStore2Test" />
     <MESSAGE value="Updated KVConnectionManagerTest" />
     <MESSAGE value="Removed debug comments; Removed unused methods and constructors; Updated Main to use new Builder" />
     <MESSAGE value="Renamed KVStore2 to KVStore" />
@@ -486,6 +511,7 @@
     <MESSAGE value="wip: Implementing raft controller - Implemented AppendEntryResponse handling" />
     <MESSAGE value="saving - wip: Implementing raft controller client - Implemented handling for append entry and append snapshot." />
     <MESSAGE value="Moved docs/system-design.md to README.md" />
-    <option name="LAST_COMMIT_MESSAGE" value="Moved docs/system-design.md to README.md" />
+    <MESSAGE value="Removed unused properties and code from RaftControllerServerHandler" />
+    <option name="LAST_COMMIT_MESSAGE" value="Removed unused properties and code from RaftControllerServerHandler" />
   </component>
 </project>

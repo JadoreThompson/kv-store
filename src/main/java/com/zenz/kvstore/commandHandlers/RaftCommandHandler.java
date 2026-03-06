@@ -10,6 +10,7 @@ import com.zenz.kvstore.raft.RaftControllerServerHandler;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
+import java.nio.channels.SocketChannel;
 import java.nio.charset.StandardCharsets;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
@@ -23,6 +24,11 @@ public class RaftCommandHandler implements BaseCommandHandler {
         this.store = store;
         this.controller = controller;
         DEBUG_PREFIX = "[RaftCommandHandler]";
+    }
+
+    @Override
+    public ByteBuffer handleCommand(SocketChannel channel, Command command) {
+        return handleCommand(command);
     }
 
     public ByteBuffer handleCommand(Command command) {

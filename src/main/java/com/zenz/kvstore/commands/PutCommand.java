@@ -31,7 +31,8 @@ public record PutCommand(String key, byte[] value) implements Command {
 
         int typeValue = buffer.getInt();
         CommandType type = CommandType.fromValue(typeValue);
-        if (!type.equals(CommandType.PUT)) throw new IllegalArgumentException("Unknown command type: " + typeValue);
+        if (!type.equals(CommandType.PUT))
+            throw new IllegalArgumentException("Unknown command errorType: " + typeValue);
 
         int keyLength = buffer.getInt();
         byte[] keyBytes = new byte[keyLength];

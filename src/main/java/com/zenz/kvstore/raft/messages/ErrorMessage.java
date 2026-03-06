@@ -1,7 +1,7 @@
 package com.zenz.kvstore.raft.messages;
 
 import com.zenz.kvstore.MessageType;
-import com.zenz.kvstore.RaftErrorType;
+import com.zenz.kvstore.raft.RaftErrorType;
 
 import java.nio.BufferUnderflowException;
 import java.nio.ByteBuffer;
@@ -34,7 +34,7 @@ public record ErrorMessage(
         try {
             MessageType messageType = MessageType.fromValue(buffer.getInt());
             if (!messageType.equals(MessageType.ERROR)) {
-                throw new IllegalArgumentException("Invalid message type " + messageType);
+                throw new IllegalArgumentException("Invalid message errorType " + messageType);
             }
 
             RaftErrorType errorType = RaftErrorType.fromValue(buffer.getInt());
@@ -51,7 +51,7 @@ public record ErrorMessage(
     @Override
     public String toString() {
         return "ErrorMessage{" +
-                "type=" + type +
+                "errorType=" + type +
                 ", errorType=" + errorType +
                 ", message='" + message + '\'' +
                 '}';

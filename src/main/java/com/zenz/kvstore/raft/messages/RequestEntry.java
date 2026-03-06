@@ -27,7 +27,7 @@ public record RequestEntry(MessageType type, long id, long term) implements Base
             int typeValue = buffer.getInt();
             MessageType messageType = MessageType.fromValue(typeValue);
             if (!messageType.equals(MessageType.REQUEST_ENTRY)) {
-                throw new IllegalArgumentException("Invalid message type " + messageType);
+                throw new IllegalArgumentException("Invalid message errorType " + messageType);
             }
 
             long id = buffer.getLong();
@@ -42,7 +42,7 @@ public record RequestEntry(MessageType type, long id, long term) implements Base
     @Override
     public String toString() {
         return "RequestEntry{" +
-                "type=" + type +
+                "errorType=" + type +
                 ", id=" + id +
                 ", term=" + term +
                 '}';

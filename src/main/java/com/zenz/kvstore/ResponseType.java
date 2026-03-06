@@ -1,9 +1,10 @@
 package com.zenz.kvstore;
 
 public enum ResponseType {
-    LOG(1),
-    HEARTBEAT(2),
-    BROADCAST(3);
+    PUT_RESPONSE(1),
+    GET_RESPONSE(2),
+    REDIRECT_RESPONSE(3),
+    ERROR_RESPONSE(4);
 
     private final int value;
 
@@ -17,14 +18,9 @@ public enum ResponseType {
 
     public static ResponseType fromValue(int value) {
         for (ResponseType type : ResponseType.values()) {
-            if (type.value == value) return type;
+            if (type.getValue() == value) return type;
         }
 
-        throw new IllegalArgumentException("Invalid value " + value);
-    }
-
-    @Override
-    public String toString() {
-        return name();
+        throw new IllegalArgumentException("Invalid errorType value " + value);
     }
 }

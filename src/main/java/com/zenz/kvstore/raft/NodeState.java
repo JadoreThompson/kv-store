@@ -20,7 +20,7 @@ public enum NodeState {
             if (type.value == value) return type;
         }
 
-        throw new IllegalArgumentException("Invalid type " + value);
+        throw new IllegalArgumentException("Invalid errorType " + value);
     }
 
     @Override

@@ -143,6 +143,7 @@ public class KVServer {
         byte[] bytes = new byte[buffer.remaining()];
         buffer.get(bytes);
         String message = new String(bytes, StandardCharsets.UTF_8).trim();
+        SocketChannel channel = session.getChannel();
 
         if (message.isEmpty()) {
             return true;
@@ -152,7 +153,8 @@ public class KVServer {
         try {
             ArrayList<Command> commands = Command.deserializeList(bytes);
             for (Command command : commands) {
-                ByteBuffer responseBuffer = commandHandler.handleCommand(command);
+//                ByteBuffer responseBuffer = commandHandler.handleCommand(command);
+                ByteBuffer responseBuffer = commandHandler.handleCommand(channel, command);
                 if (responseBuffer != null) {
                     queueWrite(session.getChannel(), responseBuffer);
                 }

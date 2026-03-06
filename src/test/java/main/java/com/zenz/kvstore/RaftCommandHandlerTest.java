@@ -3,6 +3,7 @@ package main.java.com.zenz.kvstore;
 import com.zenz.kvstore.KVMapSnapshotter;
 import com.zenz.kvstore.KVStore;
 import com.zenz.kvstore.WALogger;
+import com.zenz.kvstore.commandHandlers.RaftCommandHandlerV2;
 import com.zenz.kvstore.commands.PutCommand;
 import com.zenz.kvstore.logHandlers.RaftLogHandler;
 import com.zenz.kvstore.raft.NodeState;
@@ -14,7 +15,11 @@ import com.zenz.kvstore.raft.messages.AppendEntryResponse;
 import com.zenz.kvstore.raft.messages.BaseMessage;
 import com.zenz.kvstore.raft.messages.RequestEntry;
 import com.zenz.kvstore.commandHandlers.RaftCommandHandler;
+import com.zenz.kvstore.responses.*;
+import com.zenz.kvstore.ErrorType;
 import org.junit.jupiter.api.*;
+import org.junit.jupiter.api.parallel.Execution;
+import org.junit.jupiter.api.parallel.ExecutionMode;
 
 import java.io.IOException;
 import java.lang.reflect.Array;
@@ -28,6 +33,7 @@ import java.util.ArrayList;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
+import java.lang.reflect.Field;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -37,6 +43,7 @@ import static org.junit.jupiter.api.Assertions.*;
  * different speed nodes, and various command arguments.
  */
 //@Disabled
+@Execution(ExecutionMode.SAME_THREAD)
 class RaftCommandHandlerTest {
 
     private static final String TEST_HOST = "localhost";
@@ -51,7 +58,8 @@ class RaftCommandHandlerTest {
     private WALogger logger;
     private RaftLogHandler logHandler;
     private KVStore kvStore;
-    private RaftCommandHandler commandHandler;
+    //    private RaftCommandHandler commandHandler;
+    private RaftCommandHandlerV2 commandHandler;
 
     @BeforeEach
     void beforeEach() throws IOException, InterruptedException {
@@ -67,13 +75,14 @@ class RaftCommandHandlerTest {
         );
 
         nodes = new ArrayList<>();
-        nodes.add(new RaftNode(0, new InetSocketAddress(TEST_HOST, TEST_PORT), NodeState.CONTROLLER));
+        nodes.add(new RaftNode(0, new InetSocketAddress(TEST_HOST, TEST_PORT), null, NodeState.CONTROLLER));
         manager = new RaftManager(0, nodes, kvStore);
         startManager();
         Thread.sleep(500);
 
         RaftControllerServerHandler controller = manager.getControllerServerHandler();
-        commandHandler = new RaftCommandHandler(kvStore, controller);
+//        commandHandler = new RaftCommandHandler(kvStore, controller);
+        commandHandler = new RaftCommandHandlerV2(kvStore, manager);
     }
 
     @AfterEach
@@ -427,7 +436,8 @@ class RaftCommandHandlerTest {
         Thread.sleep(500);
 
         RaftControllerServerHandler controller = manager.getControllerServerHandler();
-        commandHandler = new RaftCommandHandler(kvStore, controller);
+//        commandHandler = new RaftCommandHandler(kvStore, controller);
+        commandHandler = new RaftCommandHandlerV2(kvStore, manager);
 
         SocketChannel client1 = connectClient();
         SocketChannel client2 = connectClient();
@@ -438,7 +448,8 @@ class RaftCommandHandlerTest {
         AtomicReference<ByteBuffer> responseRef = new AtomicReference<>();
         Thread handlerThread = new Thread(() -> {
             PutCommand command = new PutCommand("handlerKey", "handlerValue".getBytes(StandardCharsets.UTF_8));
-            ByteBuffer response = commandHandler.handleCommand(command);
+//            ByteBuffer response = commandHandler.handleCommand(command);
+            ByteBuffer response = commandHandler.handleCommand(client1, command);
             responseRef.set(response);
         });
         handlerThread.start();
@@ -455,13 +466,159 @@ class RaftCommandHandlerTest {
         ByteBuffer response = responseRef.get();
         assertNotNull(response, "Response should not be null");
 
-        // Check response is "OK"
-        byte[] responseBytes = new byte[response.remaining()];
-        response.get(responseBytes);
-        String responseStr = new String(responseBytes, StandardCharsets.UTF_8);
-        assertTrue(responseStr.startsWith("OK"), "Response should start with OK");
+        // Check response is Success
+        PutResponse getResponse = PutResponse.deserialize(response);
+        assertNotNull(getResponse, "Response should not be null");
 
         client1.close();
         client2.close();
+    }
+
+    /**
+     * Test 7: BROKER state returns redirect to controller address.
+     * When a client connects to a broker (follower), it should be redirected to the controller (leader).
+     */
+    @Test
+    @DisplayName("BROKER state returns redirect to controller address")
+    void brokerState_returnsRedirectToController() throws Exception {
+        // Stop the current controller manager
+        stopManager();
+        Thread.sleep(500);
+
+        // Create a broker node configuration
+        // nodeAddress: broker's internal Raft server
+        // serverAddress: where clients should connect (redirect target)
+        int brokerPort = TEST_PORT + 1;
+        int controllerClientPort = TEST_PORT + 2;
+        InetSocketAddress controllerClientAddress = new InetSocketAddress(TEST_HOST, controllerClientPort);
+
+        nodes = new ArrayList<>();
+        // Broker node: nodeAddress is broker's Raft server, serverAddress is where clients should be redirected (controller's client server)
+        nodes.add(new RaftNode(0, new InetSocketAddress(TEST_HOST, brokerPort),
+                controllerClientAddress, NodeState.BROKER));
+        // Controller node: nodeAddress is controller's Raft server, serverAddress is controller's client server
+        nodes.add(new RaftNode(1, new InetSocketAddress(TEST_HOST, TEST_PORT + 3),
+                controllerClientAddress, NodeState.CONTROLLER));
+
+        // Start the broker manager
+        manager = new RaftManager(0, nodes, kvStore);
+        managerThread = new Thread(() -> {
+            try {
+                manager.start();
+            } catch (Exception e) {
+                System.out.println("An error occurred within the server thread:");
+                e.printStackTrace();
+            }
+        });
+        managerThread.start();
+        Thread.sleep(500);
+
+        // Verify manager is in BROKER state
+        assertEquals(NodeState.BROKER, manager.getState(), "Manager should be in BROKER state");
+
+        // Create command handler for the broker
+        RaftCommandHandlerV2 brokerHandler = new RaftCommandHandlerV2(kvStore, manager);
+
+        // Create a command
+        PutCommand command = new PutCommand("testKey", "testValue".getBytes(StandardCharsets.UTF_8));
+        ByteBuffer responseBuffer = brokerHandler.handleCommand(null, command);
+
+        assertNotNull(responseBuffer, "Response should not be null");
+
+        // Deserialize and verify it's a RedirectResponse
+        BaseResponse response = BaseResponse.deserialize(responseBuffer);
+        assertTrue(response instanceof RedirectResponse, "Response should be a RedirectResponse");
+
+        RedirectResponse redirectResponse = (RedirectResponse) response;
+        assertEquals(controllerClientAddress, redirectResponse.address(),
+                "Redirect should point to controller's client-facing server address");
+    }
+
+    /**
+     * Test 8: CANDIDATE state returns IN_ELECTION error.
+     * When a node is in CANDIDATE state during an election, it should return an error.
+     */
+    @Test
+    @DisplayName("CANDIDATE state returns IN_ELECTION error")
+    void candidateState_returnsInElectionError() throws Exception {
+        // Use reflection to set the state to CANDIDATE (simulating an election)
+        Field stateField = RaftManager.class.getDeclaredField("state");
+        stateField.setAccessible(true);
+        stateField.set(manager, NodeState.CANDIDATE);
+
+        // Verify manager is in CANDIDATE state
+        assertEquals(NodeState.CANDIDATE, manager.getState(), "Manager should be in CANDIDATE state");
+
+        // Create command handler
+        RaftCommandHandlerV2 candidateHandler = new RaftCommandHandlerV2(kvStore, manager);
+
+        // Send a command
+        PutCommand command = new PutCommand("testKey", "testValue".getBytes(StandardCharsets.UTF_8));
+        ByteBuffer responseBuffer = candidateHandler.handleCommand(null, command);
+
+        assertNotNull(responseBuffer, "Response should not be null");
+
+        // Deserialize and verify it's an ErrorResponse with IN_ELECTION
+        BaseResponse response = BaseResponse.deserialize(responseBuffer);
+        assertTrue(response instanceof ErrorResponse, "Response should be an ErrorResponse");
+
+        ErrorResponse errorResponse = (ErrorResponse) response;
+        assertEquals(ErrorType.IN_ELECTION, errorResponse.errorType(),
+                "Error type should be IN_ELECTION");
+    }
+
+    /**
+     * Test 9: BROKER state redirect contains correct controller server address.
+     * Verifies that the redirect message contains the exact controller server address (client-facing address).
+     */
+    @Test
+    @DisplayName("BROKER state redirect contains correct controller server address")
+    void brokerState_redirectContainsCorrectControllerAddress() throws Exception {
+        // Stop the current controller manager
+        stopManager();
+        Thread.sleep(500);
+
+        // Create a broker node configuration with specific controller client address
+        String controllerHost = "127.0.0.1";
+        int brokerPort = TEST_PORT + 10;
+        int controllerClientPort = TEST_PORT + 11;
+        InetSocketAddress expectedClientAddress = new InetSocketAddress(controllerHost, controllerClientPort);
+
+        nodes = new ArrayList<>();
+        // serverAddress is the client-facing address where clients should connect
+        nodes.add(new RaftNode(0, new InetSocketAddress(TEST_HOST, brokerPort),
+                expectedClientAddress, NodeState.BROKER));
+        nodes.add(new RaftNode(1, new InetSocketAddress(TEST_HOST, TEST_PORT + 12),
+                expectedClientAddress, NodeState.CONTROLLER));
+
+        // Start the broker manager
+        manager = new RaftManager(0, nodes, kvStore);
+        managerThread = new Thread(() -> {
+            try {
+                manager.start();
+            } catch (Exception e) {
+                System.out.println("An error occurred within the server thread:");
+                e.printStackTrace();
+            }
+        });
+        managerThread.start();
+        Thread.sleep(500);
+
+        // Create command handler for the broker
+        RaftCommandHandlerV2 brokerHandler = new RaftCommandHandlerV2(kvStore, manager);
+
+        // Send a GET command
+        com.zenz.kvstore.commands.GetCommand command = new com.zenz.kvstore.commands.GetCommand("testKey");
+        ByteBuffer responseBuffer = brokerHandler.handleCommand(null, command);
+
+        assertNotNull(responseBuffer, "Response should not be null");
+
+        // Deserialize and verify the redirect address
+        BaseResponse response = BaseResponse.deserialize(responseBuffer);
+        assertTrue(response instanceof RedirectResponse, "Response should be a RedirectResponse");
+
+        RedirectResponse redirectResponse = (RedirectResponse) response;
+        assertEquals(expectedClientAddress, redirectResponse.address(),
+                "Redirect should contain the exact controller client-facing server address");
     }
 }

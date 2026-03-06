@@ -68,7 +68,7 @@ public class RaftManager {
         isRunning = true;
 
         executor = Executors.newFixedThreadPool(brokerConfigs.size() + 1);
-        nodeServer = new SocketServer(node.address().getHostName(), node.address().getPort());
+        nodeServer = new SocketServer(node.nodeAddress().getHostName(), node.nodeAddress().getPort());
 
         if (state == NodeState.BROKER) {
             startControllerClient();
@@ -102,8 +102,8 @@ public class RaftManager {
 
     private void startBrokerClient(RaftNode broker) {
         RaftBrokerClient brokerClient = new RaftBrokerClient(
-                broker.address().getHostName(),
-                broker.address().getPort(),
+                broker.nodeAddress().getHostName(),
+                broker.nodeAddress().getPort(),
                 this
         );
         brokerClients.add(brokerClient);
@@ -125,8 +125,8 @@ public class RaftManager {
 
         controllerNode = node;
         controllerClient = new RaftControllerClient(
-                controllerNode.address().getHostName(),
-                controllerNode.address().getPort(),
+                controllerNode.nodeAddress().getHostName(),
+                controllerNode.nodeAddress().getPort(),
                 store,
                 this
         );
@@ -263,7 +263,7 @@ public class RaftManager {
      * Updates state to follower and re-establishes controller client.
      * <p>
      * If the node with leader id `message.leaderId` is present within the config.
-     * A new client is created, connecting to the address as the controller.
+     * A new client is created, connecting to the nodeAddress as the controller.
      * The old controller client is dismantled.
      *
      * @param message - The message
@@ -281,7 +281,7 @@ public class RaftManager {
         RaftNode brokerNode = null;
         for (RaftNode broker : brokerConfigs) {
             if (broker.id() == message.leaderId()) {
-//                remoteAddr = broker.address();
+//                remoteAddr = broker.nodeAddress();
                 brokerNode = broker;
                 break;
             }
@@ -298,8 +298,8 @@ public class RaftManager {
         // Re-establishing controller
         controllerClient.stop();
         controllerClient = new RaftControllerClient(
-                brokerNode.address().getHostName(),
-                brokerNode.address().getPort(),
+                brokerNode.nodeAddress().getHostName(),
+                brokerNode.nodeAddress().getPort(),
                 store,
                 this
         );
@@ -355,6 +355,10 @@ public class RaftManager {
     }
 
     public void convertControllerToFollower() {
+    }
+
+    public RaftNode getControllerNode() {
+        return controllerNode;
     }
 
     interface CheckedRunnable {

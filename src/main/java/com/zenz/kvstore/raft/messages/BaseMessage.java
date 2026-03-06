@@ -45,7 +45,10 @@ public interface BaseMessage {
         if (type.equals(MessageType.ERROR)) {
             return ErrorMessage.deserialize(buffer);
         }
+        if (type.equals(MessageType.REDIRECT)) {
+            return RedirectMessage.deserialize(buffer);
+        }
 
-        throw new IllegalArgumentException("Unknown message type: " + type);
+        throw new IllegalArgumentException("Unknown message errorType: " + type);
     }
 }

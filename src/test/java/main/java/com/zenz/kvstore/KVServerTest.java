@@ -6,6 +6,7 @@ import com.zenz.kvstore.commands.Command;
 import com.zenz.kvstore.commands.GetCommand;
 import com.zenz.kvstore.commands.PutCommand;
 import com.zenz.kvstore.logHandlers.LogHandler;
+import com.zenz.kvstore.responses.*;
 import com.zenz.kvstore.restorers.Restorer;
 import org.junit.jupiter.api.*;
 
@@ -98,20 +99,14 @@ class KVServerTest {
         }
     }
 
-    private ByteBuffer receiveResponse(SocketChannel client) throws IOException {
+    private BaseResponse receiveResponse(SocketChannel client) throws IOException {
         ByteBuffer buffer = ByteBuffer.allocate(1024);
         int bytesRead = client.read(buffer);
         if (bytesRead <= 0) {
             return null;
         }
         buffer.flip();
-        return buffer;
-    }
-
-    private String bufferToString(ByteBuffer buffer) {
-        byte[] data = new byte[buffer.remaining()];
-        buffer.get(data);
-        return new String(data, StandardCharsets.UTF_8).trim();
+        return BaseResponse.deserialize(buffer);
     }
 
     @Test
@@ -142,8 +137,10 @@ class KVServerTest {
     void put_returnsOk() throws IOException {
         SocketChannel client = connectClient();
         sendCommand(client, new PutCommand("testkey", "testvalue".getBytes(StandardCharsets.UTF_8)));
-        ByteBuffer response = receiveResponse(client);
-        assertEquals("OK", bufferToString(response));
+        BaseResponse response = receiveResponse(client);
+        
+        assertTrue(response instanceof PutResponse, "Response should be PutResponse");
+        assertEquals(ResponseType.PUT_RESPONSE, response.type());
         client.close();
     }
 
@@ -152,13 +149,15 @@ class KVServerTest {
         SocketChannel client = connectClient();
 
         sendCommand(client, new PutCommand("mykey", "myvalue".getBytes(StandardCharsets.UTF_8)));
-        receiveResponse(client);  // consume OK
+        receiveResponse(client);  // consume PutResponse
 
         // Verify via GET
         sendCommand(client, new GetCommand("mykey"));
-        ByteBuffer response = receiveResponse(client);
+        BaseResponse response = receiveResponse(client);
 
-        assertEquals("OK myvalue", bufferToString(response));
+        assertTrue(response instanceof GetResponse, "Response should be GetResponse");
+        GetResponse getResponse = (GetResponse) response;
+        assertEquals("myvalue", new String(getResponse.value(), StandardCharsets.UTF_8));
         client.close();
     }
 
@@ -167,12 +166,14 @@ class KVServerTest {
         SocketChannel client = connectClient();
 
         sendCommand(client, new PutCommand("greeting", "hello world".getBytes(StandardCharsets.UTF_8)));
-        receiveResponse(client);  // consume OK
+        receiveResponse(client);  // consume PutResponse
 
         sendCommand(client, new GetCommand("greeting"));
-        ByteBuffer response = receiveResponse(client);
+        BaseResponse response = receiveResponse(client);
 
-        assertEquals("OK hello world", bufferToString(response));
+        assertTrue(response instanceof GetResponse, "Response should be GetResponse");
+        GetResponse getResponse = (GetResponse) response;
+        assertEquals("hello world", new String(getResponse.value(), StandardCharsets.UTF_8));
         client.close();
     }
 
@@ -183,12 +184,14 @@ class KVServerTest {
         SocketChannel client = connectClient();
 
         sendCommand(client, new PutCommand("existingkey", "existingvalue".getBytes(StandardCharsets.UTF_8)));
-        receiveResponse(client);  // consume OK
+        receiveResponse(client);  // consume PutResponse
 
         sendCommand(client, new GetCommand("existingkey"));
-        ByteBuffer response = receiveResponse(client);
+        BaseResponse response = receiveResponse(client);
 
-        assertEquals("OK existingvalue", bufferToString(response));
+        assertTrue(response instanceof GetResponse, "Response should be GetResponse");
+        GetResponse getResponse = (GetResponse) response;
+        assertEquals("existingvalue", new String(getResponse.value(), StandardCharsets.UTF_8));
         client.close();
     }
 
@@ -197,9 +200,12 @@ class KVServerTest {
         SocketChannel client = connectClient();
 
         sendCommand(client, new GetCommand("nonexistentkey"));
-        ByteBuffer response = receiveResponse(client);
+        BaseResponse response = receiveResponse(client);
 
-        assertEquals("NULL", bufferToString(response));
+        assertTrue(response instanceof GetResponse, "Response should be GetResponse");
+        GetResponse getResponse = (GetResponse) response;
+        assertTrue(getResponse.isNull(), "Response should indicate null value");
+        assertNull(getResponse.value(), "Value should be null for missing key");
         client.close();
     }
 
@@ -209,19 +215,23 @@ class KVServerTest {
 
         // PUT
         sendCommand(client, new PutCommand("key1", "value1".getBytes(StandardCharsets.UTF_8)));
-        assertEquals("OK", bufferToString(receiveResponse(client)));
+        BaseResponse putResponse1 = receiveResponse(client);
+        assertTrue(putResponse1 instanceof PutResponse);
 
         // GET
         sendCommand(client, new GetCommand("key1"));
-        assertEquals("OK value1", bufferToString(receiveResponse(client)));
+        GetResponse getResponse1 = (GetResponse) receiveResponse(client);
+        assertEquals("value1", new String(getResponse1.value(), StandardCharsets.UTF_8));
 
         // PUT overwrite
         sendCommand(client, new PutCommand("key1", "newvalue".getBytes(StandardCharsets.UTF_8)));
-        assertEquals("OK", bufferToString(receiveResponse(client)));
+        BaseResponse putResponse2 = receiveResponse(client);
+        assertTrue(putResponse2 instanceof PutResponse);
 
         // GET updated
         sendCommand(client, new GetCommand("key1"));
-        assertEquals("OK newvalue", bufferToString(receiveResponse(client)));
+        GetResponse getResponse2 = (GetResponse) receiveResponse(client);
+        assertEquals("newvalue", new String(getResponse2.value(), StandardCharsets.UTF_8));
 
         client.close();
     }
@@ -232,23 +242,26 @@ class KVServerTest {
 
         // Store multiple keys
         sendCommand(client, new PutCommand("keyA", "valueA".getBytes(StandardCharsets.UTF_8)));
-        assertEquals("OK", bufferToString(receiveResponse(client)));
+        assertTrue(receiveResponse(client) instanceof PutResponse);
 
         sendCommand(client, new PutCommand("keyB", "valueB".getBytes(StandardCharsets.UTF_8)));
-        assertEquals("OK", bufferToString(receiveResponse(client)));
+        assertTrue(receiveResponse(client) instanceof PutResponse);
 
         sendCommand(client, new PutCommand("keyC", "valueC".getBytes(StandardCharsets.UTF_8)));
-        assertEquals("OK", bufferToString(receiveResponse(client)));
+        assertTrue(receiveResponse(client) instanceof PutResponse);
 
         // Retrieve all
         sendCommand(client, new GetCommand("keyA"));
-        assertEquals("OK valueA", bufferToString(receiveResponse(client)));
+        GetResponse responseA = (GetResponse) receiveResponse(client);
+        assertEquals("valueA", new String(responseA.value(), StandardCharsets.UTF_8));
 
         sendCommand(client, new GetCommand("keyB"));
-        assertEquals("OK valueB", bufferToString(receiveResponse(client)));
+        GetResponse responseB = (GetResponse) receiveResponse(client);
+        assertEquals("valueB", new String(responseB.value(), StandardCharsets.UTF_8));
 
         sendCommand(client, new GetCommand("keyC"));
-        assertEquals("OK valueC", bufferToString(receiveResponse(client)));
+        GetResponse responseC = (GetResponse) receiveResponse(client);
+        assertEquals("valueC", new String(responseC.value(), StandardCharsets.UTF_8));
 
         client.close();
     }
@@ -286,9 +299,9 @@ class KVServerTest {
         ByteBuffer result = handler.handleCommand(command);
 
         // Verify response
-        byte[] resultBytes = new byte[result.remaining()];
-        result.get(resultBytes);
-        assertEquals("OK", new String(resultBytes, StandardCharsets.UTF_8));
+        result.rewind();
+        BaseResponse response = BaseResponse.deserialize(result);
+        assertTrue(response instanceof PutResponse, "Response should be PutResponse");
 
         // Verify value was stored
         KVMap.Node node = testStore.getMap().get("handlerKey");
@@ -322,11 +335,11 @@ class KVServerTest {
         ByteBuffer result = handler.handleCommand(command);
 
         // Verify response
-        byte[] resultBytes = new byte[result.remaining()];
-        result.get(resultBytes);
-        String response = new String(resultBytes, StandardCharsets.UTF_8);
-        assertTrue(response.startsWith("OK "), "Response should start with 'OK '");
-        assertTrue(response.contains("getValue"), "Response should contain the value");
+        result.rewind();
+        BaseResponse response = BaseResponse.deserialize(result);
+        assertTrue(response instanceof GetResponse, "Response should be GetResponse");
+        GetResponse getResponse = (GetResponse) response;
+        assertEquals("getValue", new String(getResponse.value(), StandardCharsets.UTF_8));
 
         testLogger.close();
         testLogsFolder.toFile().delete();
@@ -350,13 +363,15 @@ class KVServerTest {
         // Try to get a non-existent key
         GetCommand command = new GetCommand("nonExistentKey");
 
-        // Should return NULL for missing key
+        // Should return GetResponse with null value for missing key
         ByteBuffer result = handler.handleCommand(command);
-        byte[] resultBytes = new byte[result.remaining()];
-        result.get(resultBytes);
-        String response = new String(resultBytes, StandardCharsets.UTF_8);
-
-        assertEquals("NULL", response, "Response should be NULL for missing key");
+        result.rewind();
+        BaseResponse response = BaseResponse.deserialize(result);
+        
+        assertTrue(response instanceof GetResponse, "Response should be GetResponse");
+        GetResponse getResponse = (GetResponse) response;
+        assertTrue(getResponse.isNull(), "Response should indicate null value");
+        assertNull(getResponse.value(), "Value should be null for missing key");
 
         testLogger.close();
         testLogsFolder.toFile().delete();
@@ -386,9 +401,9 @@ class KVServerTest {
         ByteBuffer result = handler.handleCommand(command2);
 
         // Verify response
-        byte[] resultBytes = new byte[result.remaining()];
-        result.get(resultBytes);
-        assertEquals("OK", new String(resultBytes, StandardCharsets.UTF_8));
+        result.rewind();
+        BaseResponse response = BaseResponse.deserialize(result);
+        assertTrue(response instanceof PutResponse, "Response should be PutResponse");
 
         // Verify value was overwritten
         KVMap.Node node = testStore.getMap().get("overwriteKey");
@@ -418,9 +433,9 @@ class KVServerTest {
         ByteBuffer result = handler.handleCommand(command);
 
         // Verify response
-        byte[] resultBytes = new byte[result.remaining()];
-        result.get(resultBytes);
-        assertEquals("OK", new String(resultBytes, StandardCharsets.UTF_8));
+        result.rewind();
+        BaseResponse response = BaseResponse.deserialize(result);
+        assertTrue(response instanceof PutResponse, "Response should be PutResponse");
 
         // Verify value was stored
         KVMap.Node node = testStore.getMap().get("emptyKey");
@@ -452,9 +467,9 @@ class KVServerTest {
         ByteBuffer result = handler.handleCommand(command);
 
         // Verify response
-        byte[] resultBytes = new byte[result.remaining()];
-        result.get(resultBytes);
-        assertEquals("OK", new String(resultBytes, StandardCharsets.UTF_8));
+        result.rewind();
+        BaseResponse response = BaseResponse.deserialize(result);
+        assertTrue(response instanceof PutResponse, "Response should be PutResponse");
 
         // Verify value was stored correctly
         KVMap.Node node = testStore.getMap().get("binaryKey");
@@ -527,5 +542,61 @@ class KVServerTest {
         testLogger.close();
         testLogsFolder.toFile().delete();
         testSnapshotsFolder.toFile().delete();
+    }
+
+    // --- Response Serialization Tests ---
+
+    @Test
+    void putResponse_serializeDeserialize_roundTrip() {
+        PutResponse original = new PutResponse();
+        byte[] serialized = original.serialize();
+
+        ByteBuffer buffer = ByteBuffer.wrap(serialized);
+        BaseResponse deserialized = BaseResponse.deserialize(buffer);
+
+        assertTrue(deserialized instanceof PutResponse, "Should deserialize to PutResponse");
+        assertEquals(ResponseType.PUT_RESPONSE, deserialized.type());
+    }
+
+    @Test
+    void getResponse_serializeDeserialize_roundTrip() {
+        byte[] value = "testValue".getBytes(StandardCharsets.UTF_8);
+        GetResponse original = new GetResponse(value);
+        byte[] serialized = original.serialize();
+
+        ByteBuffer buffer = ByteBuffer.wrap(serialized);
+        BaseResponse deserialized = BaseResponse.deserialize(buffer);
+
+        assertTrue(deserialized instanceof GetResponse, "Should deserialize to GetResponse");
+        GetResponse getResponse = (GetResponse) deserialized;
+        assertArrayEquals(value, getResponse.value());
+    }
+
+    @Test
+    void getResponse_nullValue_serializeDeserialize() {
+        GetResponse original = new GetResponse(null);
+        byte[] serialized = original.serialize();
+
+        ByteBuffer buffer = ByteBuffer.wrap(serialized);
+        BaseResponse deserialized = BaseResponse.deserialize(buffer);
+
+        assertTrue(deserialized instanceof GetResponse, "Should deserialize to GetResponse");
+        GetResponse getResponse = (GetResponse) deserialized;
+        assertTrue(getResponse.isNull(), "Should indicate null value");
+        assertNull(getResponse.value(), "Value should be null");
+    }
+
+    @Test
+    void errorResponse_serializeDeserialize_roundTrip() {
+        ErrorResponse original = new ErrorResponse(ErrorType.SERVER_ERROR, "Test error message");
+        byte[] serialized = original.serialize();
+
+        ByteBuffer buffer = ByteBuffer.wrap(serialized);
+        BaseResponse deserialized = BaseResponse.deserialize(buffer);
+
+        assertTrue(deserialized instanceof ErrorResponse, "Should deserialize to ErrorResponse");
+        ErrorResponse errorResponse = (ErrorResponse) deserialized;
+        assertEquals(ErrorType.SERVER_ERROR, errorResponse.errorType());
+        assertEquals("Test error message", errorResponse.message());
     }
 }

@@ -21,7 +21,7 @@ public interface Command {
         if (type.equals(CommandType.PUT)) return PutCommand.deserialize(bytes);
         if (type.equals(CommandType.GET)) return GetCommand.deserialize(bytes);
 
-        throw new IllegalArgumentException("Unknown command type: " + typeValue);
+        throw new IllegalArgumentException("Unknown command errorType: " + typeValue);
     }
 
     static ArrayList<Command> deserializeList(byte[] bytes) {
@@ -59,7 +59,7 @@ public interface Command {
 
                 command = GetCommand.deserialize(commandBuffer.array());
             } else {
-                throw new IllegalArgumentException("Unknown command type: " + type);
+                throw new IllegalArgumentException("Unknown command errorType: " + type);
             }
             commands.add(command);
 

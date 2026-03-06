@@ -35,7 +35,7 @@ public record RequestVote(
             int typeValue = buffer.getInt();
             MessageType messageType = MessageType.fromValue(typeValue);
             if (!messageType.equals(MessageType.REQUEST_VOTE)) {
-                throw new IllegalArgumentException("Invalid message type " + messageType);
+                throw new IllegalArgumentException("Invalid message errorType " + messageType);
             }
 
             long term = buffer.getLong();
@@ -52,7 +52,7 @@ public record RequestVote(
     @Override
     public String toString() {
         return "RequestVote{" +
-                "type=" + type +
+                "errorType=" + type +
                 ", term=" + term +
                 ", candidateId=" + candidateId +
                 ", logId=" + logId +

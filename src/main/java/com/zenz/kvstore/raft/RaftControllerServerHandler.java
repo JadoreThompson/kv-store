@@ -48,6 +48,7 @@ public class RaftControllerServerHandler implements SocketHandler {
         loadLogs();
     }
 
+    @Override
     public void handleWakeUp() {
         final String debugPrefix = DEBUG_PREFIX + "[handleWakeUp] ";
         // Process pending command tasks from the queue
@@ -369,7 +370,6 @@ public class RaftControllerServerHandler implements SocketHandler {
 
         return null;
     }
-
 
     private AbstractMap.SimpleEntry<byte[], String> loadSnapshotBytes() throws IOException {
         Path snapshotDir = snapshotter.getDir();

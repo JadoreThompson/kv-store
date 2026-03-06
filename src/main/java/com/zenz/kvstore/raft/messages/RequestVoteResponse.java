@@ -27,7 +27,7 @@ public record RequestVoteResponse(MessageType type, boolean voteGranted, long te
             int typeValue = buffer.getInt();
             MessageType type = MessageType.fromValue(typeValue);
             if (!type.equals(MessageType.REQUEST_VOTE_RESPONSE)) {
-                throw new IllegalStateException("Invalid message type " + type);
+                throw new IllegalStateException("Invalid message errorType " + type);
             }
 
             int voteGranted = buffer.get();

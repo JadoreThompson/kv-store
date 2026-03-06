@@ -23,7 +23,7 @@ public record HeartbeatRequest(MessageType type) implements BaseMessage {
             int typeValue = buffer.getInt();
             MessageType type = MessageType.fromValue(typeValue);
             if (!type.equals(MessageType.HEARTBEAT_REQUEST)) {
-                throw new IllegalArgumentException("Invalid message type");
+                throw new IllegalArgumentException("Invalid message errorType");
             }
             return new HeartbeatRequest();
         } catch (BufferUnderflowException e) {
@@ -36,7 +36,7 @@ public record HeartbeatRequest(MessageType type) implements BaseMessage {
             int typeValue = buffer.getInt();
             MessageType type = MessageType.fromValue(typeValue);
             if (!type.equals(MessageType.HEARTBEAT_REQUEST)) {
-                throw new IllegalArgumentException("Invalid message type");
+                throw new IllegalArgumentException("Invalid message errorType");
             }
             return new HeartbeatRequest();
         } catch (BufferUnderflowException e) {

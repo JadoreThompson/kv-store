@@ -269,11 +269,11 @@ public class RaftControllerClient {
 
         ByteBuffer responseBuffer = null;
         if (message.type().equals(MessageType.APPEND_ENTRY)) {
-            responseBuffer = handleAppendEntry(key, (AppendEntry) message);
+            responseBuffer = handleAppendEntry((AppendEntry) message);
         } else if (message.type().equals(MessageType.INSTALL_SNAPSHOT)) {
-            responseBuffer = handleAppendSnapshot(key, (InstallSnapshot) message);
+            responseBuffer = handleAppendSnapshot((InstallSnapshot) message);
         } else if (message.type().equals(MessageType.HEARTBEAT_RESPONSE)) {
-            responseBuffer = handleHeartBeatResponse(key, (HeartbeatResponse) message);
+            lastHeartBeatResponse = System.currentTimeMillis();
         }
 
         if (responseBuffer != null) {
@@ -283,7 +283,7 @@ public class RaftControllerClient {
         return true;
     }
 
-    private ByteBuffer handleAppendEntry(SelectionKey key, AppendEntry message) throws IOException {
+    public ByteBuffer handleAppendEntry(AppendEntry message) throws IOException {
         long curLogId = logHandler.getLogId();
         long curTerm = logHandler.getTerm();
 
@@ -310,12 +310,11 @@ public class RaftControllerClient {
      * redundant. Return an acknowledgement containing the snapshot has been applied and send
      * the last log id and term known within the snapshot.
      *
-     * @param key
      * @param message
      * @return
      * @throws IOException
      */
-    private ByteBuffer handleAppendSnapshot(SelectionKey key, InstallSnapshot message) throws IOException {
+    private ByteBuffer handleAppendSnapshot(InstallSnapshot message) throws IOException {
         final String M = "[handleAppendSnapshot] ";
 
 
@@ -361,11 +360,6 @@ public class RaftControllerClient {
 
 
         return response;
-    }
-
-    private ByteBuffer handleHeartBeatResponse(SelectionKey key, HeartbeatResponse message) throws IOException {
-        lastHeartBeatResponse = System.currentTimeMillis();
-        return null;
     }
 
     private void handleWrite(SelectionKey key) throws IOException {

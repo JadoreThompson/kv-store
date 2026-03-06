@@ -111,12 +111,13 @@ class LeaderElectionTest {
             final int numBrokers = 3;
 
             for (int i = 0; i < numBrokers; i++) {
-                nodes.add(new RaftNode(i, new InetSocketAddress("localhost", 9000 + i), NodeState.BROKER));
+                nodes.add(new RaftNode(i, new InetSocketAddress("localhost", 9000 + i), null, NodeState.BROKER));
             }
 
             nodes.add(new RaftNode(
                     numBrokers,
                     new InetSocketAddress(controllerServer.getHost(), controllerServer.getPort()),
+                    null,
                     NodeState.CONTROLLER
             ));
 
@@ -185,12 +186,12 @@ class LeaderElectionTest {
             assertNull(manager0.getBrokerServerHandler(), "Broker server must be null");
             assertNotNull(manager0.getControllerServerHandler(), "Controller server must be running");
             assertEquals(
-                    managers.get(0).getConfig().address(),
+                    managers.get(0).getConfig().nodeAddress(),
                     managers.get(2).getControllerClient().getControllerAddress(),
                     "Manager 2 should have a controller client connection to Manager 0 as it's controller"
             );
             assertEquals(
-                    managers.get(0).getConfig().address(),
+                    managers.get(0).getConfig().nodeAddress(),
                     managers.get(1).getControllerClient().getControllerAddress(),
                     "Manager 1 should have a controller client connection to Manager 0 as it's controller"
             );
@@ -248,14 +249,16 @@ class LeaderElectionTest {
             for (int i = 0; i < numBrokers; i++) {
                 nodes.add(new RaftNode(
                         i,
-                        new InetSocketAddress("localhost", 9000 + i)
-                        , NodeState.BROKER
+                        new InetSocketAddress("localhost", 9000 + i),
+                        null,
+                        NodeState.BROKER
                 ));
             }
 
             nodes.add(new RaftNode(
                     numBrokers,
                     new InetSocketAddress(controllerServer.getHost(), controllerServer.getPort()),
+                    null,
                     NodeState.CONTROLLER
             ));
 
@@ -389,6 +392,7 @@ class LeaderElectionTest {
                 nodes.add(new RaftNode(
                         i,
                         new InetSocketAddress("localhost", 9000 + i),
+                        null,
                         NodeState.BROKER
                 ));
             }
@@ -396,6 +400,7 @@ class LeaderElectionTest {
             nodes.add(new RaftNode(
                     numBrokers,
                     new InetSocketAddress(controllerServer.getHost(), controllerServer.getPort()),
+                    null,
                     NodeState.CONTROLLER
             ));
 

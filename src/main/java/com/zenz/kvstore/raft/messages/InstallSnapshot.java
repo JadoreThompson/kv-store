@@ -33,7 +33,7 @@ public record InstallSnapshot(
             int typeValue = buffer.getInt();
             MessageType messageType = MessageType.fromValue(typeValue);
             if (!messageType.equals(MessageType.INSTALL_SNAPSHOT)) {
-                throw new IllegalArgumentException("Invalid message type " + messageType);
+                throw new IllegalArgumentException("Invalid message errorType " + messageType);
             }
 
             long logId = buffer.getLong();
@@ -51,7 +51,7 @@ public record InstallSnapshot(
     @Override
     public String toString() {
         return "InstallSnapshot{" +
-                "type=" + type +
+                "errorType=" + type +
                 ", snapshot=" + (snapshot != null ? snapshot.length + " bytes" : "null") +
                 ", logId=" + logId +
                 ", term=" + term +

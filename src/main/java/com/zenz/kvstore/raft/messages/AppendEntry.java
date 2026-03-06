@@ -59,7 +59,7 @@ public record AppendEntry(
             int typeValue = buffer.getInt();
             MessageType messageType = MessageType.fromValue(typeValue);
             if (!messageType.equals(MessageType.APPEND_ENTRY)) {
-                throw new IllegalArgumentException("Invalid message type " + messageType);
+                throw new IllegalArgumentException("Invalid message errorType " + messageType);
             }
 
             long id = buffer.getLong();
@@ -88,7 +88,7 @@ public record AppendEntry(
     @Override
     public String toString() {
         return "AppendEntry{" +
-                "type=" + type +
+                "errorType=" + type +
                 ", id=" + id +
                 ", term=" + term +
                 ", entries=" + entries +

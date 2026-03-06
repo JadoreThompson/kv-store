@@ -27,7 +27,7 @@ public record LeaderElected(MessageType type, long term, long leaderId) implemen
             int typeValue = buffer.getInt();
             MessageType messageType = MessageType.fromValue(typeValue);
             if (!messageType.equals(MessageType.LEADER_ELECTED)) {
-                throw new IllegalArgumentException("Invalid message type " + messageType);
+                throw new IllegalArgumentException("Invalid message errorType " + messageType);
             }
 
             long term = buffer.getLong();
@@ -42,7 +42,7 @@ public record LeaderElected(MessageType type, long term, long leaderId) implemen
     @Override
     public String toString() {
         return "LeaderElected{" +
-                "type=" + type +
+                "errorType=" + type +
                 ", term=" + term +
                 ", leaderId=" + leaderId +
                 '}';
