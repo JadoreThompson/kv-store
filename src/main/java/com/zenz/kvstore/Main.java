@@ -3,6 +3,7 @@ package com.zenz.kvstore;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.zenz.kvstore.commandHandlers.CommandHandler;
+import com.zenz.kvstore.logHandlers.LogHandler;
 import com.zenz.kvstore.logHandlers.RaftLogHandler;
 import com.zenz.kvstore.raft.NodeState;
 import com.zenz.kvstore.raft.RaftManager;
@@ -80,9 +81,11 @@ public class Main {
 
         System.out.println("Starting KV Server (single node) on " + host + ":" + port);
 
-        Restorer restorer = new Restorer();
-        KVStore.Builder builder = new KVStore.Builder();
-        KVStore store = restorer.restore(builder);
+        KVStore.Builder builder = new KVStore.Builder()
+                .setSnapshotter(new KVMapSnapshotter(snapshotsDir))
+                .setSnapshotEnabled(true)
+                .setLogHandler(new LogHandler(new WALogger(logsDir.resolve("0.log"))));
+        KVStore store = new Restorer().restore(builder);
 
         CommandHandler commandHandler = new CommandHandler(store);
         KVServer server = new KVServer(host, port, commandHandler);
