@@ -6,10 +6,8 @@ import com.zenz.kvstore.logHandlers.RaftLogHandler;
 import com.zenz.kvstore.raft.messages.LeaderElected;
 import com.zenz.kvstore.raft.messages.RequestVote;
 import com.zenz.kvstore.raft.messages.RequestVoteResponse;
-import com.zenz.kvstore.raft.messages.SwitchMessage;
 
 import java.io.IOException;
-import java.net.InetSocketAddress;
 import java.util.ArrayList;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
@@ -163,7 +161,7 @@ public class RaftManager {
         executor.shutdown();
         executor.awaitTermination(5, TimeUnit.SECONDS);
 
-        joinFut.complete(true);
+        if (joinFut != null) joinFut.complete(true);
     }
 
     public void join() {
@@ -199,27 +197,6 @@ public class RaftManager {
 
         state = NodeState.CANDIDATE;
         handleVoteResponse(new RequestVoteResponse(true, electionMeta.getTerm()));
-    }
-
-    /**
-     * DO NOT USE!!!
-     * <p>
-     * Triggers an election cycle within the cluster. This method
-     * launches the broker server for this node. Establishes broker
-     * client connections to all other nodes within the cluster.
-     * Finally stopping the controller. This will then trigger the election
-     * process in all following nodes with this current node transitioned from
-     * leader to follower and participating within the election.
-     *
-     * @throws IOException
-     */
-    public void initiateElectionAsController() throws IOException {
-//        brokerServerHandler = new RaftBrokerServerHandler(nodeServer, this);
-//        for (RaftNode broker : brokerConfigs) {
-//            startBrokerClient(broker);
-//        }
-//        nodeServer.setSocketHandler(brokerServerHandler);
-//        controllerServerHandler = null;
     }
 
     public boolean shouldGrantVote(RequestVote message) {
@@ -375,16 +352,6 @@ public class RaftManager {
 
     public RaftBrokerServerHandler getBrokerServerHandler() {
         return brokerServerHandler;
-    }
-
-    public void handleSwitchMessage(SwitchMessage message) throws IOException {
-        if (message.nodeId() != controllerNode.id()) {
-            throw new IllegalArgumentException("Message contains node id different to current controller node id");
-        }
-
-        brokerConfigs.add(controllerNode);
-        startBrokerClient(controllerNode);
-        controllerNode = null;
     }
 
     public void convertControllerToFollower() {

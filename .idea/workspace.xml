@@ -6,10 +6,11 @@
   <component name="ChangeListManager">
     <list default="true" id="113ca11e-a295-4741-aad7-90962967a262" name="Changes" comment="saving - wip: Implementing leader election - Implemented controller client led election">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/example.txt" beforeDir="false" afterPath="$PROJECT_DIR$/config.example.json" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/pom.xml" beforeDir="false" afterPath="$PROJECT_DIR$/pom.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/com/zenz/kvstore/Main.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/zenz/kvstore/Main.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/zenz/kvstore/raft/RaftControllerClient.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/zenz/kvstore/raft/RaftControllerClient.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/zenz/kvstore/raft/RaftControllerServerHandler.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/zenz/kvstore/raft/RaftControllerServerHandler.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/com/zenz/kvstore/raft/RaftManager.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/zenz/kvstore/raft/RaftManager.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/zenz/kvstore/raft/messages/SwitchMessage.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/test/java/main/java/com/zenz/kvstore/LeaderElectionTest.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/test/java/main/java/com/zenz/kvstore/LeaderElectionTest.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -87,7 +88,7 @@
     "RunOnceActivity.git.unshallow": "true",
     "RunOnceActivity.typescript.service.memoryLimit.init": "true",
     "com.intellij.ml.llm.matterhorn.ej.ui.settings.DefaultModelSelectionForGA.v1": "true",
-    "git-widget-placeholder": "feature/raft",
+    "git-widget-placeholder": "main",
     "junie.onboarding.icon.badge.shown": "true",
     "kotlin-language-version-configured": "true",
     "last_opened_file_path": "C:/Users/ADMIN/MyProjects/kv-store",

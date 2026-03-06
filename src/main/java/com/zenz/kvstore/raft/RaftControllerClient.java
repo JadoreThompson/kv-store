@@ -274,9 +274,6 @@ public class RaftControllerClient {
             responseBuffer = handleAppendSnapshot(key, (InstallSnapshot) message);
         } else if (message.type().equals(MessageType.HEARTBEAT_RESPONSE)) {
             responseBuffer = handleHeartBeatResponse(key, (HeartbeatResponse) message);
-        } else if (message.type().equals(MessageType.SWITCH)) {
-            manager.handleSwitchMessage((SwitchMessage) message);
-            stop();
         }
 
         if (responseBuffer != null) {
@@ -422,15 +419,11 @@ public class RaftControllerClient {
         queueWrite(socketChannel, ByteBuffer.wrap(new HeartbeatRequest().serialize()));
     }
 
-    private void handleSwitchMessage(SwitchMessage message) throws IOException {
-        stop();
-        manager.convertControllerToFollower();
-    }
-
     private void cleanup(SelectionKey key) throws IOException {
         if (!key.isValid()) return;
 
         SelectableChannel channel = key.channel();
+        channel.close();
         key.cancel();
         stop();
     }

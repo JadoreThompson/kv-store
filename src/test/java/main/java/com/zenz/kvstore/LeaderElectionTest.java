@@ -507,66 +507,6 @@ class LeaderElectionTest {
         }
     }
 
-    /**
-     * Tests the full controller led election cycle.
-     * <p>
-     * The controller receives an entry request containing a greater
-     * term number than it's current term. Forcing it to be dethroned
-     * and convert itself from leader to follower.
-     * TODO
-     */
-    @Test
-    @DisplayName("Tests controller led election when receiving an entry request containing a larger term number")
-    @Disabled
-    public void testControllerLedElection_higherTerm() throws Exception {
-        ArrayList<RaftManager> managers = new ArrayList<>();
-
-        try {
-            ArrayList<RaftNode> nodes = new ArrayList<>();
-            final int numBrokers = 3;
-
-            for (int i = 0; i < numBrokers; i++) {
-                nodes.add(new RaftNode(
-                        i,
-                        new InetSocketAddress("localhost", 9000 + i),
-                        NodeState.BROKER
-                ));
-            }
-
-            nodes.add(new RaftNode(
-                    numBrokers,
-                    new InetSocketAddress("localhost", 9000 + numBrokers),
-                    NodeState.CONTROLLER
-            ));
-            for (int i = 0; i < nodes.size(); i++) {
-                // Creating snapshotter and store
-                Path logPath = logsFolderPath.resolve(String.format("integration-4-%s.log", i));
-                WALogger logger = new WALogger(logPath);
-                RaftLogHandler logHandler = new RaftLogHandler(logger);
-
-                Path dir = snapshotFolderPath.resolve(String.format("integration-4-%s-snapshots", i));
-                Files.createDirectories(dir);
-                KVMapSnapshotter snapshotter = new KVMapSnapshotter(dir);
-                logHandler.setTerm(1L);
-                KVStore store = createStore(logHandler, snapshotter);
-
-                RaftManager manager = new RaftManager(i, nodes, store);
-                managers.add(manager);
-                manager.start();
-            }
-
-            RaftManager controllerManager = managers.getLast();
-            assertEquals(NodeState.CONTROLLER, controllerManager.getState(), "Manager should be controller");
-
-            controllerManager.initiateElectionAsController();
-            RaftControllerServerHandler controllerServerHandler = controllerManager.getControllerServerHandler();
-
-        } finally {
-            for (RaftManager manager : managers) {
-                manager.stop();
-            }
-        }
-    }
 
     /**
      * Heartbeat server as a replacement for a full RaftControllerServer

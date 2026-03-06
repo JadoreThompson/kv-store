@@ -240,17 +240,13 @@ public class RaftControllerServerHandler implements SocketHandler {
         long currentLogId = logHandler.getLogId();
         long currentTerm = logHandler.getTerm();
 
-        // TODO: Leader needs to be dethroned and converted to a follower.
         if (request.term() > currentTerm) {
-            manager.initiateElectionAsController();
             return ByteBuffer.wrap(new ErrorMessage(
                     RaftErrorType.GREATER_TERM, null
             ).serialize());
         }
 
-        // TODO: Leader needs to be dethroned and converted to a follower.
         if (request.term() == currentTerm && request.id() > currentLogId) {
-            manager.initiateElectionAsController();
             return ByteBuffer.wrap(new ErrorMessage(
                     RaftErrorType.GREATER_LOG_ID, null
             ).serialize());
