@@ -11,6 +11,7 @@ import com.zenz.kvstore.raft.messages.SwitchMessage;
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.util.ArrayList;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
@@ -31,6 +32,7 @@ public class RaftManager {
     private ElectionMeta electionMeta;
     private long votedTerm;
     private long lastTerm;
+    private CompletableFuture<Boolean> joinFut;
 
     private final String DEBUG_PREFIX;
 
@@ -132,6 +134,8 @@ public class RaftManager {
         );
         executor.submit(() -> wrapper(controllerClient::start));
         brokerConfigs.remove(controllerNode);
+
+        joinFut = new CompletableFuture<>();
     }
 
     public void stop() throws IOException, InterruptedException {
@@ -158,6 +162,15 @@ public class RaftManager {
 
         executor.shutdown();
         executor.awaitTermination(5, TimeUnit.SECONDS);
+
+        joinFut.complete(true);
+    }
+
+    public void join() {
+        try {
+            joinFut.get();
+        } catch (Exception e) {
+        }
     }
 
     /**
