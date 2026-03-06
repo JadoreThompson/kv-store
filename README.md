@@ -1,8 +1,177 @@
-# KVStore System Design Diagram
+# KVStore System Design
 
-This document provides a comprehensive system design overview of the KVStore, including class relationships, command flows, and Raft consensus interactions.
+## Overview
+
+This is a KV store inspired by Redis, with support for failover via a Raft implementation. This project serves as a
+learning platform for Java, distributed systems, and systems design. The project uses one external dependency: `jackson`
+for JSON deserialization.
+
+### Deployment Modes
+
+The KVStore supports two deployment modes:
+
+| Mode             | Command                                | Description                                          |
+|------------------|----------------------------------------|------------------------------------------------------|
+| **Single-Node**  | `run -h <host> -p <port>`              | Standalone server with direct command execution      |
+| **Raft Cluster** | `raft -f <config-file> --id <node-id>` | Distributed cluster with consensus-based replication |
+
+### Supported Commands
+
+| Command             | Description           | Raft Consensus          |
+|---------------------|-----------------------|-------------------------|
+| `GET <key>`         | Retrieve value by key | No (direct read)        |
+| `PUT <key> <value>` | Store key-value pair  | Yes (requires majority) |
+
+---
+
+## Architecture
+
+### Core Engine
+
+The core engine is designed for high throughput and low latency, with two key optimizations:
+
+#### Incremental Rehashing
+
+To bypass the "stop the world" map resizes, the KVStore implements gradual resizing inspired
+by [Redis](https://github.com/redis/redis/blob/unstable/src/dict.h) and separate chaining for handling hash collisions.
+
+When resizing the underlying array to accommodate more keys, instead of moving all keys into the new array at once, a
+portion of keys are moved from `ht1` to `ht2` upon each interaction. This is a much more scalable solution compared to
+the default implementation within Java, which would force the program to halt causing latency spikes and drops in
+throughput.
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│                      KVMap Rehashing                         │
+├─────────────────────────────────────────────────────────────┤
+│                                                              │
+│   ht1 (old)              ht2 (new, larger)                  │
+│   ┌───────────┐          ┌───────────────────┐              │
+│   │ bucket 0  │ ───────► │ bucket 0          │              │
+│   │ bucket 1  │          │ bucket 1          │              │
+│   │ ...       │          │ ...               │              │
+│   │ bucket N  │          │ bucket M (M > N)  │              │
+│   └───────────┘          └───────────────────┘              │
+│                                                              │
+│   rehashIdx tracks progress                                 │
+│   Each GET/PUT moves REHASH_BUCKETS entries                 │
+│                                                              │
+└─────────────────────────────────────────────────────────────┘
+```
+
+#### Write-Ahead Logging (WAL) & Snapshotting
+
+Upon each operation, a log entry is made describing the operation, containing all parameters used. This is used during
+the restoration process. Snapshotting is done periodically based on the number of commands processed to prevent
+ever-growing logs and reduce start-up time when the store is being restored.
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│                    Durability Pipeline                       │
+├─────────────────────────────────────────────────────────────┤
+│                                                              │
+│   Command ──► Log to WAL ──► Apply to KVMap ──► Response    │
+│                 │                                            │
+│                 ▼                                            │
+│           [log file]                                        │
+│                 │                                            │
+│                 │ (when logCount >= threshold)               │
+│                 ▼                                            │
+│           [snapshot file]                                   │
+│                 │                                            │
+│                 ▼                                            │
+│           Reset WAL                                          │
+│                                                              │
+└─────────────────────────────────────────────────────────────┘
+```
+
+---
+
+### Raft Consensus
+
+**Paper
+**: [In Search of an Understandable Consensus Algorithm](https://classpages.cselabs.umn.edu/Spring-2018/csci8980/Papers/Consensus/Raft.pdf)
+
+As per the official Raft paper, a node can either be a follower or leader. Leaders are in charge of replicating commands
+to followers and returning responses to clients. Followers are responsible for receiving these requests to replicate
+state and applying them, along with handling the election process when the leader goes down.
+
+#### Terminology Mapping
+
+| Raft Paper Term | Code Term      | Description                                      |
+|-----------------|----------------|--------------------------------------------------|
+| Follower        | **Broker**     | Receives and applies replicated commands         |
+| Leader          | **Controller** | Accepts client commands, coordinates replication |
+| Candidate       | **Candidate**  | Transitional state during election               |
+
+#### RaftManager: The Coordinator
+
+The `RaftManager` is the coordinator. It maintains:
+
+- Clients connected to brokers and/or controller depending on the node's role
+- The node's server (instantiated once, handler replaced on role switch)
+
+Each handler provides common methods for handling events within an NIO server.
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│                    RaftManager Roles                         │
+├─────────────────────────────────────────────────────────────┤
+│                                                              │
+│   BROKER (Follower)          CONTROLLER (Leader)            │
+│   ┌─────────────────┐        ┌─────────────────┐            │
+│   │ RaftBroker      │        │ RaftController  │            │
+│   │ ServerHandler   │        │ ServerHandler   │            │
+│   └────────┬────────┘        └────────┬────────┘            │
+│            │                          │                      │
+│            ▼                          ▼                      │
+│   ┌─────────────────┐        ┌─────────────────┐            │
+│   │ RaftController  │        │ RaftController  │            │
+│   │ Client          │        │ ServerHandler   │            │
+│   │ (to leader)     │        │ (from followers)│            │
+│   └─────────────────┘        └─────────────────┘            │
+│                                                              │
+│   Role switch: Replace handler, reuse server                │
+│                                                              │
+└─────────────────────────────────────────────────────────────┘
+```
+
+#### Command Replication Flow
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│              PUT Command Replication (Raft)                  │
+├─────────────────────────────────────────────────────────────┤
+│                                                              │
+│   Client                                                     │
+│     │                                                        │
+│     │ PUT key=value                                          │
+│     ▼                                                        │
+│   ┌─────────────────────────────────────────────┐           │
+│   │           CONTROLLER (Leader)                │           │
+│   │  1. Log command locally                     │           │
+│   │  2. Broadcast AppendEntry to all followers  │           │
+│   │  3. Wait for majority ACK                   │           │
+│   │  4. Apply to KVStore                        │           │
+│   │  5. Respond to client                       │           │
+│   └─────────────────────────────────────────────┘           │
+│     │                                                        │
+│     │ AppendEntry(id, term, [command])                       │
+│     ▼                                                        │
+│   ┌─────────────────────────────────────────────┐           │
+│   │           BROKER (Follower)                  │           │
+│   │  1. Log command                             │           │
+│   │  2. Apply to local KVStore                  │           │
+│   │  3. Send AppendEntryResponse                │           │
+│   └─────────────────────────────────────────────┘           │
+│                                                              │
+└─────────────────────────────────────────────────────────────┘
+```
+
+---
 
 ## Table of Contents
+
 1. [Architecture Overview](#architecture-overview)
 2. [Class Diagram](#class-diagram)
 3. [Command Flow Diagrams](#command-flow-diagrams)
@@ -14,6 +183,7 @@ This document provides a comprehensive system design overview of the KVStore, in
 ## Architecture Overview
 
 The KVStore is a distributed key-value store supporting two deployment modes:
+
 - **Single-node mode**: Standalone server with direct command execution
 - **Raft mode**: Distributed cluster with consensus-based replication
 
@@ -802,22 +972,31 @@ classDiagram
 ## Key Design Decisions
 
 ### 1. Dual Hash Table (Incremental Rehashing)
-The `KVMap` uses two hash tables (`ht1` and `ht2`) for incremental rehashing, similar to Redis. This allows the store to grow without blocking operations.
+
+The `KVMap` uses two hash tables (`ht1` and `ht2`) for incremental rehashing, similar to Redis. This allows the store to
+grow without blocking operations.
 
 ### 2. Write-Ahead Logging (WAL)
-All mutations are logged before being applied, ensuring durability. In Raft mode, the log includes term and log ID for consensus.
+
+All mutations are logged before being applied, ensuring durability. In Raft mode, the log includes term and log ID for
+consensus.
 
 ### 3. Snapshotting
+
 Periodic snapshots compact the log and reduce recovery time. Snapshots are named with `logId_term.snapshot` format.
 
 ### 4. Non-blocking I/O
-Both `KVServer` and Raft components use Java NIO with `Selector` for handling multiple concurrent connections efficiently.
+
+Both `KVServer` and Raft components use Java NIO with `Selector` for handling multiple concurrent connections
+efficiently.
 
 ### 5. Raft Consensus
+
 - **GET**: Direct read from local store (no consensus required)
 - **PUT**: Requires majority acknowledgment before applying
 
 ### 6. Node States
+
 - **BROKER**: Follower, connects to leader, applies replicated commands
 - **CONTROLLER**: Leader, accepts client commands, coordinates replication
 - **CANDIDATE**: Transitional state during leader election
