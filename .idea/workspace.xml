@@ -6,6 +6,7 @@
   <component name="ChangeListManager">
     <list default="true" id="113ca11e-a295-4741-aad7-90962967a262" name="Changes" comment="saving - wip: Implementing leader election - Implemented controller client led election">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/zenz/kvstore/raft/RaftControllerServerHandler.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/zenz/kvstore/raft/RaftControllerServerHandler.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -83,7 +84,7 @@
     "RunOnceActivity.git.unshallow": "true",
     "RunOnceActivity.typescript.service.memoryLimit.init": "true",
     "com.intellij.ml.llm.matterhorn.ej.ui.settings.DefaultModelSelectionForGA.v1": "true",
-    "git-widget-placeholder": "main",
+    "git-widget-placeholder": "feature/broker-forwarding",
     "junie.onboarding.icon.badge.shown": "true",
     "kotlin-language-version-configured": "true",
     "last_opened_file_path": "C:/Users/ADMIN/MyProjects/kv-store",
@@ -434,7 +435,15 @@
       <option name="project" value="LOCAL" />
       <updated>1772359827615</updated>
     </task>
-    <option name="localTasksCounter" value="29" />
+    <task id="LOCAL-00029" summary="Moved docs/system-design.md to README.md">
+      <option name="closed" value="true" />
+      <created>1772802736684</created>
+      <option name="number" value="00029" />
+      <option name="presentableId" value="LOCAL-00029" />
+      <option name="project" value="LOCAL" />
+      <updated>1772802736684</updated>
+    </task>
+    <option name="localTasksCounter" value="30" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -452,7 +461,6 @@
     </option>
   </component>
   <component name="VcsManagerConfiguration">
-    <MESSAGE value="Added builder class to KVStore2" />
     <MESSAGE value="Modified KVStore2.Builder to return self&#10;for each method; Updated KVStore2Test" />
     <MESSAGE value="Updated KVConnectionManagerTest" />
     <MESSAGE value="Removed debug comments; Removed unused methods and constructors; Updated Main to use new Builder" />
@@ -477,6 +485,7 @@
     <MESSAGE value="wip: Implementing raft controller - Updated AppendEntries to send a list of logs instead of single logs" />
     <MESSAGE value="wip: Implementing raft controller - Implemented AppendEntryResponse handling" />
     <MESSAGE value="saving - wip: Implementing raft controller client - Implemented handling for append entry and append snapshot." />
-    <option name="LAST_COMMIT_MESSAGE" value="saving - wip: Implementing raft controller client - Implemented handling for append entry and append snapshot." />
+    <MESSAGE value="Moved docs/system-design.md to README.md" />
+    <option name="LAST_COMMIT_MESSAGE" value="Moved docs/system-design.md to README.md" />
   </component>
 </project>

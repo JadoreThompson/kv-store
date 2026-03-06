@@ -19,11 +19,6 @@ public class RaftControllerServerHandler implements SocketHandler {
     private RaftLogHandler logHandler;
     private KVMapSnapshotter snapshotter;
     private final ArrayList<RaftLogHandler.Log> logs = new ArrayList<>();
-    private long nextLogId = -1;
-    private int majority;
-    private int count;
-    private CompletableFuture<Boolean> replicationFut;
-    private volatile Command curCommand;
     private ConcurrentLinkedQueue<CommandTask> commandTasks = new ConcurrentLinkedQueue<>();
     private CommandTask curCommandTask;
     private final ArrayList<SocketChannel> followers = new ArrayList<>();
@@ -31,7 +26,6 @@ public class RaftControllerServerHandler implements SocketHandler {
     private SocketServer server;
 
     private Selector selector;
-    private ServerSocketChannel serverChannel;
     private Map<SocketChannel, Queue<ByteBuffer>> pendingWrites;
     private final String DEBUG_PREFIX;
 
@@ -174,40 +168,14 @@ public class RaftControllerServerHandler implements SocketHandler {
      */
     public void handleCommand(Command command, CompletableFuture<Boolean> fut) {
         final String debugPrefix = DEBUG_PREFIX + "[handleCommand][public] ";
-//        long currentLogId = logHandler.getLogId();
-//        ArrayList<RaftLogHandler.Log> entries = new ArrayList<>();
-//        entries.add(new RaftLogHandler.Log(logHandler.getLogId() + 1, logHandler.getTerm(), command));
-//        byte[] requestBytes = new AppendEntry(
-//                currentLogId + 1, logHandler.getTerm(), entries
-//        ).serialize();
-//
-//        int count = 0;
-//        for (SelectionKey key : selector.keys()) {
-//            ClientSession session = (ClientSession) key.attachment();
-//            if (session.logId == currentLogId) {
-//                count++;
-//                SocketChannel channel = session.getChannel();
-//                followers.add(channel);
-//                queueWrite(channel, ByteBuffer.wrap(requestBytes));
-//            }
-//        }
-//
-//        logId = currentLogId;
-//        majority = count / 2 + 1;
-//        replicationFut = fut;
 
-//        curCommand = command;
-//        replicationFut = fut;
         CommandTask task = new CommandTask(command, fut);
         commandTasks.add(task);
-        // Wake up the selector to ensure it sees the new command task
-        // This establishes a happens-before relationship for memory visibility
         selector.wakeup();
     }
 
     private void handleCommand(CommandTask task) {
         final String debugPrefix = DEBUG_PREFIX + "[handleCommand][private]";
-//        if (curCommand == null || majority > 0) return;
 
         // Forming the request
         long currentLogId = logHandler.getLogId();
@@ -288,10 +256,8 @@ public class RaftControllerServerHandler implements SocketHandler {
             }
 
             // Follower is fresh
-
             session.setLogId(currentLogId);
             session.setTerm(currentTerm);
-
 
             // Leader hasn't processed a command yet.
             return ByteBuffer.wrap(new AppendEntry(
@@ -370,35 +336,9 @@ public class RaftControllerServerHandler implements SocketHandler {
         session.setLogId(response.id());
         session.setTerm(response.term());
 
-//        if (nextLogId == 0 || response.id() != nextLogId) {
-//            if (!logs.isEmpty()) {
-//                List<RaftLogHandler.Log> commands = new ArrayList<>();
-//                long firstLogId = -1;
-//                long logTerm = -1;
-//
-//                for (RaftLogHandler.Log log : logs) {
-//                    if (log.id() > response.id()) {
-//                        if (firstLogId == -1) {
-//                            firstLogId = log.id();
-//                            logTerm = log.term();
-//                        }
-//                        commands.add(log);
-//                    }
-//                }
-//
-//                queueWrite(session.getChannel(), ByteBuffer.wrap(new AppendEntry(
-//                        firstLogId,
-//                        logTerm,
-//                        commands
-//                ).serialize()));
-//            }
-//        } else if (response.id() == nextLogId && majority > 0) {
-
-//        if (response.id() == nextLogId && majority > 0) {
         if (curCommandTask != null && response.id() == curCommandTask.logId) {
             // If true, we're currently looking to replicate a command across
             // the majority of the cluster.
-            count++;
             curCommandTask.count++;
             if (curCommandTask.count >= curCommandTask.majority) {
                 followers.clear();
@@ -493,10 +433,7 @@ public class RaftControllerServerHandler implements SocketHandler {
 
         SelectableChannel channel = key.channel();
         server.cleanup(key);
-//        followers.remove(channel);
-//        if (majority > 0) {
-//            majority--;
-//        }
+
         if (followers.remove(channel) && curCommandTask != null) {
             curCommandTask.majority--;
             if (curCommandTask.count >= curCommandTask.majority) {
@@ -540,16 +477,12 @@ public class RaftControllerServerHandler implements SocketHandler {
         }
     }
 
-//    private record CommandTask(Command command, CompletableFuture<Boolean> fut) {
-//    }
-
     private class CommandTask {
         public final Command command;
         public final CompletableFuture<Boolean> fut;
         public long logId = -1;
         public int majority;
         public int count;
-        public final ArrayList<SocketChannel> clients = new ArrayList<>();
 
         public CommandTask(
                 Command command,
