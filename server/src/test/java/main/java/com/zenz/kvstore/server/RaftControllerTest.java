@@ -3,7 +3,7 @@ package main.java.com.zenz.kvstore.server;
 import com.zenz.kvstore.server.KVMapSnapshotter;
 import com.zenz.kvstore.server.KVStore;
 import com.zenz.kvstore.server.WALogger;
-import com.zenz.kvstore.server.commands.PutCommand;
+import com.zenz.kvstore.common.commands.PutCommand;
 import com.zenz.kvstore.server.logHandlers.RaftLogHandler;
 import com.zenz.kvstore.server.raft.NodeState;
 import com.zenz.kvstore.server.raft.RaftManager;

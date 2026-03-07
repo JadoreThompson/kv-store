@@ -1,7 +1,8 @@
 package main.java.com.zenz.kvstore.server;
 
+import com.zenz.kvstore.common.enums.CommandType;
+import com.zenz.kvstore.common.commands.PutCommand;
 import com.zenz.kvstore.server.*;
-import com.zenz.kvstore.server.commands.PutCommand;
 import com.zenz.kvstore.server.logHandlers.LogHandler;
 import com.zenz.kvstore.server.restorers.Restorer;
 import org.junit.jupiter.api.AfterEach;

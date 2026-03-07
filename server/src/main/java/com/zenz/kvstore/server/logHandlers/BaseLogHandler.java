@@ -1,7 +1,7 @@
 package com.zenz.kvstore.server.logHandlers;
 
+import com.zenz.kvstore.common.commands.Command;
 import com.zenz.kvstore.server.WALogger;
-import com.zenz.kvstore.server.commands.Command;
 
 import java.io.IOException;
 

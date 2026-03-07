@@ -4,7 +4,8 @@ import com.zenz.kvstore.server.KVMapSnapshotter;
 import com.zenz.kvstore.server.KVStore;
 import com.zenz.kvstore.server.WALogger;
 import com.zenz.kvstore.server.commandHandlers.RaftCommandHandlerV2;
-import com.zenz.kvstore.server.commands.PutCommand;
+import com.zenz.kvstore.common.commands.PutCommand;
+import com.zenz.kvstore.common.commands.GetCommand;
 import com.zenz.kvstore.server.logHandlers.RaftLogHandler;
 import com.zenz.kvstore.server.raft.NodeState;
 import com.zenz.kvstore.server.raft.RaftControllerServerHandler;
@@ -14,8 +15,8 @@ import com.zenz.kvstore.server.raft.messages.AppendEntry;
 import com.zenz.kvstore.server.raft.messages.AppendEntryResponse;
 import com.zenz.kvstore.server.raft.messages.BaseMessage;
 import com.zenz.kvstore.server.raft.messages.RequestEntry;
-import com.zenz.kvstore.server.responses.*;
-import com.zenz.kvstore.server.ErrorType;
+import com.zenz.kvstore.common.responses.*;
+import com.zenz.kvstore.common.enums.ErrorType;
 import org.junit.jupiter.api.*;
 import org.junit.jupiter.api.parallel.Execution;
 import org.junit.jupiter.api.parallel.ExecutionMode;
@@ -142,7 +143,7 @@ class RaftCommandHandlerTest {
     }
 
     /**
-     * Test 1: Command completes successfully when majority of fast nodes respond quickly.
+     * Command completes successfully when majority of fast nodes respond quickly.
      * This tests the happy path where all followers respond immediately.
      */
     @Test
@@ -202,7 +203,7 @@ class RaftCommandHandlerTest {
     }
 
     /**
-     * Test 2: Command completes when slow nodes eventually respond.
+     * Command completes when slow nodes eventually respond.
      * Tests that the system handles nodes with different response times.
      */
     @Test
@@ -254,7 +255,7 @@ class RaftCommandHandlerTest {
     }
 
     /**
-     * Test 3: Command with large value is handled correctly.
+     * Command with large value is handled correctly.
      * Tests handling of commands with different argument sizes.
      */
     @Test
@@ -308,7 +309,7 @@ class RaftCommandHandlerTest {
     }
 
     /**
-     * Test 4: Multiple sequential commands are handled correctly.
+     * Multiple sequential commands are handled correctly.
      * Tests the system handles multiple commands in sequence.
      */
     @Test
@@ -361,7 +362,7 @@ class RaftCommandHandlerTest {
     }
 
     /**
-     * Test 5: Command completes with minimum majority (exactly half + 1).
+     * Command completes with minimum majority (exactly half + 1).
      * Tests edge case where exactly majority is reached.
      */
     @Test
@@ -421,7 +422,7 @@ class RaftCommandHandlerTest {
     }
 
     /**
-     * Test 6: RaftCommandHandler.handleCommand returns correct response for PUT.
+     * RaftCommandHandler.handleCommand returns correct response for PUT.
      * Tests the full integration of RaftCommandHandler.
      */
     @Test
@@ -434,7 +435,6 @@ class RaftCommandHandlerTest {
         Thread.sleep(500);
 
         RaftControllerServerHandler controller = manager.getControllerServerHandler();
-//        commandHandler = new RaftCommandHandler(kvStore, controller);
         commandHandler = new RaftCommandHandlerV2(kvStore, manager);
 
         SocketChannel client1 = connectClient();
@@ -446,7 +446,6 @@ class RaftCommandHandlerTest {
         AtomicReference<ByteBuffer> responseRef = new AtomicReference<>();
         Thread handlerThread = new Thread(() -> {
             PutCommand command = new PutCommand("handlerKey", "handlerValue".getBytes(StandardCharsets.UTF_8));
-//            ByteBuffer response = commandHandler.handleCommand(command);
             ByteBuffer response = commandHandler.handleCommand(client1, command);
             responseRef.set(response);
         });
@@ -473,7 +472,7 @@ class RaftCommandHandlerTest {
     }
 
     /**
-     * Test 7: BROKER state returns redirect to controller address.
+     * BROKER state returns redirect to controller address.
      * When a client connects to a broker (follower), it should be redirected to the controller (leader).
      */
     @Test
@@ -606,7 +605,7 @@ class RaftCommandHandlerTest {
         RaftCommandHandlerV2 brokerHandler = new RaftCommandHandlerV2(kvStore, manager);
 
         // Send a GET command
-        com.zenz.kvstore.server.commands.GetCommand command = new com.zenz.kvstore.server.commands.GetCommand("testKey");
+        GetCommand command = new GetCommand("testKey");
         ByteBuffer responseBuffer = brokerHandler.handleCommand(null, command);
 
         assertNotNull(responseBuffer, "Response should not be null");

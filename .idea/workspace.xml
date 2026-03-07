@@ -5,25 +5,39 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="113ca11e-a295-4741-aad7-90962967a262" name="Changes" comment="Removed unused properties and code from RaftControllerServerHandler">
-      <change afterPath="$PROJECT_DIR$/common/src/main/java/com/zenz/kvstore/common/CheckedRunnable.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/common/src/main/java/com/zenz/kvstore/common/commands/Command.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/common/src/main/java/com/zenz/kvstore/common/commands/GetCommand.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/common/src/main/java/com/zenz/kvstore/common/commands/PutCommand.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/common/src/main/java/com/zenz/kvstore/common/enums/CommandType.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/common/src/main/java/com/zenz/kvstore/common/enums/ErrorType.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/common/src/main/java/com/zenz/kvstore/common/responses/BaseResponse.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/common/src/main/java/com/zenz/kvstore/common/responses/ErrorResponse.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/common/src/main/java/com/zenz/kvstore/common/responses/GetResponse.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/common/src/main/java/com/zenz/kvstore/common/responses/PutResponse.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/common/src/main/java/com/zenz/kvstore/common/utils/Utils.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/compiler.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/compiler.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/encodings.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/encodings.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/common/pom.xml" beforeDir="false" afterPath="$PROJECT_DIR$/common/pom.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/server/pom.xml" beforeDir="false" afterPath="$PROJECT_DIR$/server/pom.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/server/src/main/java/com/zenz/kvstore/server/ResponseStatus.java" beforeDir="false" afterPath="$PROJECT_DIR$/common/src/main/java/com/zenz/kvstore/common/enums/ResponseType.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/server/src/main/java/com/zenz/kvstore/server/raft/messages/BaseMessage.java" beforeDir="false" afterPath="$PROJECT_DIR$/server/src/main/java/com/zenz/kvstore/server/raft/messages/BaseMessage.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/server/src/main/java/com/zenz/kvstore/server/raft/messages/RedirectMessage.java" beforeDir="false" afterPath="$PROJECT_DIR$/common/src/main/java/com/zenz/kvstore/common/responses/RedirectResponse.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/server/src/main/java/com/zenz/kvstore/server/BaseLog.java" beforeDir="false" afterPath="$PROJECT_DIR$/server/src/main/java/com/zenz/kvstore/server/BaseLog.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/server/src/main/java/com/zenz/kvstore/server/CheckedRunnable.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/server/src/main/java/com/zenz/kvstore/server/CommandType.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/server/src/main/java/com/zenz/kvstore/server/ErrorType.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/server/src/main/java/com/zenz/kvstore/server/KVServer.java" beforeDir="false" afterPath="$PROJECT_DIR$/server/src/main/java/com/zenz/kvstore/server/KVServer.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/server/src/main/java/com/zenz/kvstore/server/KVStore.java" beforeDir="false" afterPath="$PROJECT_DIR$/server/src/main/java/com/zenz/kvstore/server/KVStore.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/server/src/main/java/com/zenz/kvstore/server/ResponseType.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/server/src/main/java/com/zenz/kvstore/server/commandHandlers/BaseCommandHandler.java" beforeDir="false" afterPath="$PROJECT_DIR$/server/src/main/java/com/zenz/kvstore/server/commandHandlers/BaseCommandHandler.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/server/src/main/java/com/zenz/kvstore/server/commandHandlers/CommandHandler.java" beforeDir="false" afterPath="$PROJECT_DIR$/server/src/main/java/com/zenz/kvstore/server/commandHandlers/CommandHandler.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/server/src/main/java/com/zenz/kvstore/server/commandHandlers/RaftCommandHandler.java" beforeDir="false" afterPath="$PROJECT_DIR$/server/src/main/java/com/zenz/kvstore/server/commandHandlers/RaftCommandHandler.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/server/src/main/java/com/zenz/kvstore/server/commandHandlers/RaftCommandHandlerV2.java" beforeDir="false" afterPath="$PROJECT_DIR$/server/src/main/java/com/zenz/kvstore/server/commandHandlers/RaftCommandHandlerV2.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/server/src/main/java/com/zenz/kvstore/server/commands/Command.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/server/src/main/java/com/zenz/kvstore/server/commands/GetCommand.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/server/src/main/java/com/zenz/kvstore/server/commands/PutCommand.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/server/src/main/java/com/zenz/kvstore/server/logHandlers/BaseLogHandler.java" beforeDir="false" afterPath="$PROJECT_DIR$/server/src/main/java/com/zenz/kvstore/server/logHandlers/BaseLogHandler.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/server/src/main/java/com/zenz/kvstore/server/logHandlers/LogHandler.java" beforeDir="false" afterPath="$PROJECT_DIR$/server/src/main/java/com/zenz/kvstore/server/logHandlers/LogHandler.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/server/src/main/java/com/zenz/kvstore/server/logHandlers/RaftLogHandler.java" beforeDir="false" afterPath="$PROJECT_DIR$/server/src/main/java/com/zenz/kvstore/server/logHandlers/RaftLogHandler.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/server/src/main/java/com/zenz/kvstore/server/raft/RaftControllerClient.java" beforeDir="false" afterPath="$PROJECT_DIR$/server/src/main/java/com/zenz/kvstore/server/raft/RaftControllerClient.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/server/src/main/java/com/zenz/kvstore/server/raft/RaftControllerServerHandler.java" beforeDir="false" afterPath="$PROJECT_DIR$/server/src/main/java/com/zenz/kvstore/server/raft/RaftControllerServerHandler.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/server/src/main/java/com/zenz/kvstore/server/responses/BaseResponse.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/server/src/main/java/com/zenz/kvstore/server/responses/ErrorResponse.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/server/src/main/java/com/zenz/kvstore/server/responses/GetResponse.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/server/src/main/java/com/zenz/kvstore/server/responses/PutResponse.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/server/src/main/java/com/zenz/kvstore/server/responses/RedirectResponse.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/server/src/main/java/com/zenz/kvstore/server/restorers/RaftRestorer.java" beforeDir="false" afterPath="$PROJECT_DIR$/server/src/main/java/com/zenz/kvstore/server/restorers/RaftRestorer.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/server/src/main/java/com/zenz/kvstore/server/restorers/Restorer.java" beforeDir="false" afterPath="$PROJECT_DIR$/server/src/main/java/com/zenz/kvstore/server/restorers/Restorer.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/server/src/main/java/com/zenz/kvstore/server/utils/Utils.java" beforeDir="false" afterPath="$PROJECT_DIR$/server/src/main/java/com/zenz/kvstore/server/utils/Utils.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/server/src/test/java/main/java/com/zenz/kvstore/server/KVServerTest.java" beforeDir="false" afterPath="$PROJECT_DIR$/server/src/test/java/main/java/com/zenz/kvstore/server/KVServerTest.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/server/src/test/java/main/java/com/zenz/kvstore/server/KVStoreTest.java" beforeDir="false" afterPath="$PROJECT_DIR$/server/src/test/java/main/java/com/zenz/kvstore/server/KVStoreTest.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/server/src/test/java/main/java/com/zenz/kvstore/server/RaftCommandHandlerTest.java" beforeDir="false" afterPath="$PROJECT_DIR$/server/src/test/java/main/java/com/zenz/kvstore/server/RaftCommandHandlerTest.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/server/src/test/java/main/java/com/zenz/kvstore/server/RaftControllerTest.java" beforeDir="false" afterPath="$PROJECT_DIR$/server/src/test/java/main/java/com/zenz/kvstore/server/RaftControllerTest.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/server/src/test/java/main/java/com/zenz/kvstore/server/RestorerTest.java" beforeDir="false" afterPath="$PROJECT_DIR$/server/src/test/java/main/java/com/zenz/kvstore/server/RestorerTest.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -89,40 +103,41 @@
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent"><![CDATA[{
-  "keyToString": {
-    "Application.Main.executor": "Debug",
-    "Application.com.zenz.Main.executor": "Run",
-    "Docker.Dockerfile builder.executor": "Run",
-    "JUnit.RaftCommandHandlerTest.executor": "Debug",
-    "Maven.kv-store [compile].executor": "Run",
-    "ModuleVcsDetector.initialDetectionPerformed": "true",
-    "RunOnceActivity.MCP Project settings loaded": "true",
-    "RunOnceActivity.ShowReadmeOnStart": "true",
-    "RunOnceActivity.TerminalTabsStorage.copyFrom.TerminalArrangementManager.252": "true",
-    "RunOnceActivity.git.unshallow": "true",
-    "RunOnceActivity.typescript.service.memoryLimit.init": "true",
-    "com.intellij.ml.llm.matterhorn.ej.ui.settings.DefaultModelSelectionForGA.v1": "true",
-    "git-widget-placeholder": "feature/client",
-    "junie.onboarding.icon.badge.shown": "true",
-    "kotlin-language-version-configured": "true",
-    "last_opened_file_path": "C:/Users/ADMIN/MyProjects/kv-store/server/common/src/main/java/com/zenz/kvstore/common",
-    "node.js.detected.package.eslint": "true",
-    "node.js.detected.package.tslint": "true",
-    "node.js.selected.package.eslint": "(autodetect)",
-    "node.js.selected.package.tslint": "(autodetect)",
-    "nodejs_package_manager_path": "npm",
-    "onboarding.tips.debug.path": "C:/Users/ADMIN/MyProjects/kv-store/server/server/src/main/java/com/zenz/Main.java",
-    "project.structure.last.edited": "Modules",
-    "project.structure.proportion": "0.0",
-    "project.structure.side.proportion": "0.0",
-    "settings.editor.selected.configurable": "actions.on.save",
-    "to.speed.mode.migration.done": "true",
-    "vue.rearranger.settings.migration": "true"
+  <component name="PropertiesComponent">{
+  &quot;keyToString&quot;: {
+    &quot;Application.Main.executor&quot;: &quot;Debug&quot;,
+    &quot;Application.com.zenz.Main.executor&quot;: &quot;Run&quot;,
+    &quot;Docker.Dockerfile builder.executor&quot;: &quot;Run&quot;,
+    &quot;JUnit.RaftCommandHandlerTest.executor&quot;: &quot;Debug&quot;,
+    &quot;Maven.kv-store [compile].executor&quot;: &quot;Run&quot;,
+    &quot;ModuleVcsDetector.initialDetectionPerformed&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.MCP Project settings loaded&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.TerminalTabsStorage.copyFrom.TerminalArrangementManager.252&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.git.unshallow&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.typescript.service.memoryLimit.init&quot;: &quot;true&quot;,
+    &quot;com.intellij.ml.llm.matterhorn.ej.ui.settings.DefaultModelSelectionForGA.v1&quot;: &quot;true&quot;,
+    &quot;git-widget-placeholder&quot;: &quot;feature/client&quot;,
+    &quot;junie.onboarding.icon.badge.shown&quot;: &quot;true&quot;,
+    &quot;kotlin-language-version-configured&quot;: &quot;true&quot;,
+    &quot;last_opened_file_path&quot;: &quot;C:/Users/ADMIN/MyProjects/kv-store/server/common&quot;,
+    &quot;node.js.detected.package.eslint&quot;: &quot;true&quot;,
+    &quot;node.js.detected.package.tslint&quot;: &quot;true&quot;,
+    &quot;node.js.selected.package.eslint&quot;: &quot;(autodetect)&quot;,
+    &quot;node.js.selected.package.tslint&quot;: &quot;(autodetect)&quot;,
+    &quot;nodejs_package_manager_path&quot;: &quot;npm&quot;,
+    &quot;onboarding.tips.debug.path&quot;: &quot;C:/Users/ADMIN/MyProjects/kv-store/server/server/src/main/java/com/zenz/Main.java&quot;,
+    &quot;project.structure.last.edited&quot;: &quot;Modules&quot;,
+    &quot;project.structure.proportion&quot;: &quot;0.0&quot;,
+    &quot;project.structure.side.proportion&quot;: &quot;0.0&quot;,
+    &quot;settings.editor.selected.configurable&quot;: &quot;actions.on.save&quot;,
+    &quot;to.speed.mode.migration.done&quot;: &quot;true&quot;,
+    &quot;vue.rearranger.settings.migration&quot;: &quot;true&quot;
   }
-}]]></component>
+}</component>
   <component name="RecentsManager">
     <key name="CopyFile.RECENT_KEYS">
+      <recent name="C:\Users\ADMIN\MyProjects\kv-store\server\common" />
       <recent name="C:\Users\ADMIN\MyProjects\kv-store\server\common\src\main\java\com\zenz\kvstore\common" />
       <recent name="C:\Users\ADMIN\MyProjects\kv-store\server\common\src\main\java\com\zenz\kvstore\common\enums" />
       <recent name="C:\Users\ADMIN\MyProjects\kv-store\server\common\src\main\java\com\zenz\kvstore\common\utils" />
@@ -278,6 +293,7 @@
       <workItem from="1772697264271" duration="14193000" />
       <workItem from="1772716780884" duration="25005000" />
       <workItem from="1772782883709" duration="8976000" />
+      <workItem from="1772878297476" duration="2055000" />
     </task>
     <task id="LOCAL-00001" summary="Added content length check in KVMapSnapshotter.applyLogs">
       <option name="closed" value="true" />

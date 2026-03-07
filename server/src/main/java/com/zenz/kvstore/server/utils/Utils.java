@@ -1,6 +1,6 @@
 package com.zenz.kvstore.server.utils;
 
-import com.zenz.kvstore.server.CheckedRunnable;
+import com.zenz.kvstore.common.CheckedRunnable;
 
 public class Utils {
     public static void runnableWrapper(CheckedRunnable runnable) {

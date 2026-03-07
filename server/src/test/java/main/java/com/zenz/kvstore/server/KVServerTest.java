@@ -1,12 +1,15 @@
 package main.java.com.zenz.kvstore.server;
 
+import com.zenz.kvstore.common.enums.CommandType;
+import com.zenz.kvstore.common.enums.ErrorType;
+import com.zenz.kvstore.common.enums.ResponseType;
+import com.zenz.kvstore.common.commands.Command;
+import com.zenz.kvstore.common.commands.GetCommand;
+import com.zenz.kvstore.common.commands.PutCommand;
+import com.zenz.kvstore.common.responses.*;
 import com.zenz.kvstore.server.*;
 import com.zenz.kvstore.server.commandHandlers.CommandHandler;
-import com.zenz.kvstore.server.commands.Command;
-import com.zenz.kvstore.server.commands.GetCommand;
-import com.zenz.kvstore.server.commands.PutCommand;
 import com.zenz.kvstore.server.logHandlers.LogHandler;
-import com.zenz.kvstore.server.responses.*;
 import com.zenz.kvstore.server.restorers.Restorer;
 import org.junit.jupiter.api.*;
 

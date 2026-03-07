@@ -1,6 +1,6 @@
 package com.zenz.kvstore.server.commandHandlers;
 
-import com.zenz.kvstore.server.commands.Command;
+import com.zenz.kvstore.common.commands.Command;
 
 import java.nio.ByteBuffer;
 import java.nio.channels.SocketChannel;

@@ -1,15 +1,15 @@
 package com.zenz.kvstore.server.commandHandlers;
 
-import com.zenz.kvstore.server.CommandType;
-import com.zenz.kvstore.server.ErrorType;
+import com.zenz.kvstore.common.enums.CommandType;
+import com.zenz.kvstore.common.enums.ErrorType;
+import com.zenz.kvstore.common.commands.Command;
+import com.zenz.kvstore.common.commands.GetCommand;
+import com.zenz.kvstore.common.commands.PutCommand;
+import com.zenz.kvstore.common.responses.ErrorResponse;
+import com.zenz.kvstore.common.responses.GetResponse;
+import com.zenz.kvstore.common.responses.PutResponse;
 import com.zenz.kvstore.server.KVMap;
 import com.zenz.kvstore.server.KVStore;
-import com.zenz.kvstore.server.commands.Command;
-import com.zenz.kvstore.server.commands.GetCommand;
-import com.zenz.kvstore.server.commands.PutCommand;
-import com.zenz.kvstore.server.responses.ErrorResponse;
-import com.zenz.kvstore.server.responses.GetResponse;
-import com.zenz.kvstore.server.responses.PutResponse;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;

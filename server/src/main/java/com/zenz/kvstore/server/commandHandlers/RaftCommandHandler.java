@@ -1,11 +1,11 @@
 package com.zenz.kvstore.server.commandHandlers;
 
-import com.zenz.kvstore.server.CommandType;
+import com.zenz.kvstore.common.enums.CommandType;
+import com.zenz.kvstore.common.commands.Command;
+import com.zenz.kvstore.common.commands.GetCommand;
+import com.zenz.kvstore.common.commands.PutCommand;
 import com.zenz.kvstore.server.KVMap;
 import com.zenz.kvstore.server.KVStore;
-import com.zenz.kvstore.server.commands.Command;
-import com.zenz.kvstore.server.commands.GetCommand;
-import com.zenz.kvstore.server.commands.PutCommand;
 import com.zenz.kvstore.server.raft.RaftControllerServerHandler;
 
 import java.io.IOException;

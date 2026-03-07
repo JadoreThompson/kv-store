@@ -1,7 +1,7 @@
 package com.zenz.kvstore.server.raft;
 
+import com.zenz.kvstore.common.commands.Command;
 import com.zenz.kvstore.server.*;
-import com.zenz.kvstore.server.commands.Command;
 import com.zenz.kvstore.server.logHandlers.RaftLogHandler;
 import com.zenz.kvstore.server.raft.messages.*;
 
