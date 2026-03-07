@@ -1,19 +1,16 @@
-package com.zenz.kvstore.server.raft.messages;
+package com.zenz.kvstore.common.responses;
 
-import com.zenz.kvstore.server.MessageType;
+import com.zenz.kvstore.common.enums.ResponseType;
 
 import java.net.InetSocketAddress;
 import java.nio.BufferUnderflowException;
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
 
-public record RedirectMessage(
-        MessageType type,
-        InetSocketAddress address
-) implements BaseMessage {
+public record RedirectResponse(ResponseType type, InetSocketAddress address) implements BaseResponse {
 
-    public RedirectMessage(InetSocketAddress address) {
-        this(MessageType.REDIRECT, address);
+    public RedirectResponse(InetSocketAddress address) {
+        this(ResponseType.REDIRECT_RESPONSE, address);
     }
 
     @Override
@@ -32,34 +29,28 @@ public record RedirectMessage(
         return buffer.array();
     }
 
-    public static RedirectMessage deserialize(ByteBuffer buffer) {
+    public static RedirectResponse deserialize(ByteBuffer buffer) {
         try {
             int typeValue = buffer.getInt();
-            MessageType messageType = MessageType.fromValue(typeValue);
-            if (!messageType.equals(MessageType.REDIRECT)) {
-                throw new IllegalArgumentException("Invalid message errorType " + messageType);
+            ResponseType type = ResponseType.fromValue(typeValue);
+
+            if (!type.equals(ResponseType.REDIRECT_RESPONSE)) {
+                throw new IllegalArgumentException("Invalid response type " + type);
             }
 
             int hostLength = buffer.getInt();
             byte[] hostBytes = new byte[hostLength];
             buffer.get(hostBytes);
-            String host = new String(hostBytes, StandardCharsets.UTF_8);
 
+            String host = new String(hostBytes, StandardCharsets.UTF_8);
             int port = buffer.getInt();
 
             InetSocketAddress address = new InetSocketAddress(host, port);
 
-            return new RedirectMessage(messageType, address);
+            return new RedirectResponse(address);
+
         } catch (BufferUnderflowException e) {
             return null;
         }
-    }
-
-    @Override
-    public String toString() {
-        return "RedirectMessage{" +
-                "errorType=" + type +
-                ", nodeAddress=" + address +
-                '}';
     }
 }
