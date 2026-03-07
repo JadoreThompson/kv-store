@@ -7,7 +7,7 @@ import java.nio.BufferUnderflowException;
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
 
-public record ErrorResponse(ResponseType type, ErrorType errorType, String message) implements BaseResponse {
+public record ErrorResponse(ResponseType type, ErrorType errorType, String message) implements BaseErrorResponse {
 
     public ErrorResponse(ErrorType errorType, String message) {
         this(ResponseType.ERROR_RESPONSE, errorType, message);
@@ -27,7 +27,7 @@ public record ErrorResponse(ResponseType type, ErrorType errorType, String messa
         return buffer.array();
     }
 
-    public static ErrorResponse deserialize(ByteBuffer buffer) {
+    public static BaseErrorResponse deserialize(ByteBuffer buffer) {
         try {
             int typeValue = buffer.getInt();
             ResponseType type = ResponseType.fromValue(typeValue);
@@ -38,6 +38,11 @@ public record ErrorResponse(ResponseType type, ErrorType errorType, String messa
 
             int errorTypeValue = buffer.getInt();
             ErrorType errorType = ErrorType.fromValue(errorTypeValue);
+
+            if (errorType.equals(ErrorType.NOT_CONTROLLER)) {
+                buffer.rewind();
+                return RedirectResponse.deserialize(buffer);
+            }
 
             int messageLength = buffer.getInt();
             byte[] messageBytes = new byte[messageLength];

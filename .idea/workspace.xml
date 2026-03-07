@@ -5,9 +5,14 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="113ca11e-a295-4741-aad7-90962967a262" name="Changes" comment="Removed unused properties and code from RaftControllerServerHandler">
+      <change afterPath="$PROJECT_DIR$/client/src/main/java/com/zenz/kvstore/client/A.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/client/src/main/java/com/zenz/kvstore/client/KVStoreClientException.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/common/src/main/java/com/zenz/kvstore/common/responses/BaseErrorResponse.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/client/src/main/java/com/zenz/kvstore/client/KVStoreClient.java" beforeDir="false" afterPath="$PROJECT_DIR$/client/src/main/java/com/zenz/kvstore/client/KVStoreClient.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/pom.xml" beforeDir="false" afterPath="$PROJECT_DIR$/pom.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/common/src/main/java/com/zenz/kvstore/common/enums/ErrorType.java" beforeDir="false" afterPath="$PROJECT_DIR$/common/src/main/java/com/zenz/kvstore/common/enums/ErrorType.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/common/src/main/java/com/zenz/kvstore/common/responses/ErrorResponse.java" beforeDir="false" afterPath="$PROJECT_DIR$/common/src/main/java/com/zenz/kvstore/common/responses/ErrorResponse.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/common/src/main/java/com/zenz/kvstore/common/responses/RedirectResponse.java" beforeDir="false" afterPath="$PROJECT_DIR$/common/src/main/java/com/zenz/kvstore/common/responses/RedirectResponse.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />

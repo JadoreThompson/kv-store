@@ -1,5 +1,6 @@
 package com.zenz.kvstore.common.responses;
 
+import com.zenz.kvstore.common.enums.ErrorType;
 import com.zenz.kvstore.common.enums.ResponseType;
 
 import java.net.InetSocketAddress;
@@ -7,10 +8,14 @@ import java.nio.BufferUnderflowException;
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
 
-public record RedirectResponse(ResponseType type, InetSocketAddress address) implements BaseResponse {
+public record RedirectResponse(
+        ResponseType type,
+        ErrorType errorType,
+        InetSocketAddress address
+) implements BaseErrorResponse {
 
     public RedirectResponse(InetSocketAddress address) {
-        this(ResponseType.REDIRECT_RESPONSE, address);
+        this(ResponseType.ERROR_RESPONSE, ErrorType.NOT_CONTROLLER, address);
     }
 
     @Override
@@ -19,9 +24,10 @@ public record RedirectResponse(ResponseType type, InetSocketAddress address) imp
         int port = address.getPort();
         byte[] hostBytes = host.getBytes(StandardCharsets.UTF_8);
 
-        ByteBuffer buffer = ByteBuffer.allocate(4 + 4 + hostBytes.length + 4);
+        ByteBuffer buffer = ByteBuffer.allocate(4 + 4 + 4 + hostBytes.length + 4);
 
         buffer.putInt(type.getValue());
+        buffer.putInt(errorType.getValue());
         buffer.putInt(hostBytes.length);
         buffer.put(hostBytes);
         buffer.putInt(port);
@@ -36,6 +42,12 @@ public record RedirectResponse(ResponseType type, InetSocketAddress address) imp
 
             if (!type.equals(ResponseType.REDIRECT_RESPONSE)) {
                 throw new IllegalArgumentException("Invalid response type " + type);
+            }
+
+            int errorTypeValue = buffer.getInt();
+            ErrorType errorType = ErrorType.fromValue(errorTypeValue);
+            if (!errorType.equals(ErrorType.NOT_CONTROLLER)) {
+                throw new IllegalArgumentException("Invalid error type " + errorType);
             }
 
             int hostLength = buffer.getInt();
