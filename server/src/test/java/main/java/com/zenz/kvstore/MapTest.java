@@ -1,5 +1,6 @@
-package com.zenz.kvstore;
+package main.java.com.zenz.kvstore;
 
+import com.zenz.kvstore.KVMap;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 

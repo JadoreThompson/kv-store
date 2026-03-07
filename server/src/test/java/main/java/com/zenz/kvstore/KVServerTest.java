@@ -138,7 +138,7 @@ class KVServerTest {
         SocketChannel client = connectClient();
         sendCommand(client, new PutCommand("testkey", "testvalue".getBytes(StandardCharsets.UTF_8)));
         BaseResponse response = receiveResponse(client);
-        
+
         assertTrue(response instanceof PutResponse, "Response should be PutResponse");
         assertEquals(ResponseType.PUT_RESPONSE, response.type());
         client.close();
@@ -367,7 +367,7 @@ class KVServerTest {
         ByteBuffer result = handler.handleCommand(command);
         result.rewind();
         BaseResponse response = BaseResponse.deserialize(result);
-        
+
         assertTrue(response instanceof GetResponse, "Response should be GetResponse");
         GetResponse getResponse = (GetResponse) response;
         assertTrue(getResponse.isNull(), "Response should indicate null value");

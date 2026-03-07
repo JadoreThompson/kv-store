@@ -44,7 +44,7 @@ public record GetResponse(ResponseType type, byte[] value) implements BaseRespon
             }
 
             int valueLength = buffer.getInt();
-            
+
             // Handle null case: -1 indicates null
             if (valueLength == -1) {
                 return new GetResponse(null);
