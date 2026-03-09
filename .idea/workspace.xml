@@ -4,16 +4,7 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="113ca11e-a295-4741-aad7-90962967a262" name="Changes" comment="Removed unused properties and code from RaftControllerServerHandler">
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/common/src/main/java/com/zenz/kvstore/common/CheckedRunnable.java" beforeDir="false" afterPath="$PROJECT_DIR$/common/src/main/java/com/zenz/kvstore/common/CheckedRunnable.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/server/src/main/java/com/zenz/kvstore/server/ClientSession.java" beforeDir="false" afterPath="$PROJECT_DIR$/server/src/main/java/com/zenz/kvstore/server/ClientSession.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/server/src/main/java/com/zenz/kvstore/server/KVMap.java" beforeDir="false" afterPath="$PROJECT_DIR$/server/src/main/java/com/zenz/kvstore/server/KVMap.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/server/src/main/java/com/zenz/kvstore/server/KVServer.java" beforeDir="false" afterPath="$PROJECT_DIR$/server/src/main/java/com/zenz/kvstore/server/KVServer.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/server/src/main/java/com/zenz/kvstore/server/raft/RaftManager.java" beforeDir="false" afterPath="$PROJECT_DIR$/server/src/main/java/com/zenz/kvstore/server/raft/RaftManager.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/server/src/main/java/com/zenz/kvstore/server/utils/Utils.java" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/server/src/test/java/main/java/com/zenz/kvstore/server/LeaderElectionTest.java" beforeDir="false" afterPath="$PROJECT_DIR$/server/src/test/java/main/java/com/zenz/kvstore/server/LeaderElectionTest.java" afterDir="false" />
-    </list>
+    <list default="true" id="113ca11e-a295-4741-aad7-90962967a262" name="Changes" comment="Removed unused properties and code from RaftControllerServerHandler" />
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -273,7 +264,7 @@
       <workItem from="1772881703160" duration="16000" />
       <workItem from="1772909263800" duration="73000" />
       <workItem from="1772915748749" duration="1457000" />
-      <workItem from="1773046326945" duration="2475000" />
+      <workItem from="1773046326945" duration="3188000" />
     </task>
     <task id="LOCAL-00001" summary="Added content length check in KVMapSnapshotter.applyLogs">
       <option name="closed" value="true" />

@@ -40,7 +40,7 @@ public record RedirectResponse(
             int typeValue = buffer.getInt();
             ResponseType type = ResponseType.fromValue(typeValue);
 
-            if (!type.equals(ResponseType.REDIRECT_RESPONSE)) {
+            if (!type.equals(ResponseType.ERROR_RESPONSE)) {
                 throw new IllegalArgumentException("Invalid response type " + type);
             }
 
