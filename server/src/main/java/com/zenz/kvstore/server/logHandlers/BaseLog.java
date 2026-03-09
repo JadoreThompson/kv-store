@@ -1,4 +1,4 @@
-package com.zenz.kvstore.server;
+package com.zenz.kvstore.server.logHandlers;
 
 import com.zenz.kvstore.common.commands.Command;
 
