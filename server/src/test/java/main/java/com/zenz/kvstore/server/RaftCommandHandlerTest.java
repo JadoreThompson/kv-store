@@ -3,7 +3,7 @@ package main.java.com.zenz.kvstore.server;
 import com.zenz.kvstore.server.KVMapSnapshotter;
 import com.zenz.kvstore.server.KVStore;
 import com.zenz.kvstore.server.logging.WALogger;
-import com.zenz.kvstore.server.commandHandlers.RaftCommandHandlerV2;
+import com.zenz.kvstore.server.commandHandlers.RaftCommandHandler;
 import com.zenz.kvstore.common.commands.PutCommand;
 import com.zenz.kvstore.common.commands.GetCommand;
 import com.zenz.kvstore.server.logging.handlers.RaftLogHandler;
@@ -58,7 +58,7 @@ class RaftCommandHandlerTest {
     private RaftLogHandler logHandler;
     private KVStore kvStore;
     //    private RaftCommandHandler commandHandler;
-    private RaftCommandHandlerV2 commandHandler;
+    private RaftCommandHandler commandHandler;
 
     @BeforeEach
     void beforeEach() throws IOException, InterruptedException {
@@ -78,7 +78,7 @@ class RaftCommandHandlerTest {
         manager = new RaftManager(0, nodes, kvStore);
         startManager();
         Thread.sleep(500);
-        commandHandler = new RaftCommandHandlerV2(kvStore, manager);
+        commandHandler = new RaftCommandHandler(kvStore, manager);
     }
 
     @AfterEach
@@ -432,7 +432,7 @@ class RaftCommandHandlerTest {
         Thread.sleep(500);
 
         RaftControllerServerHandler controller = manager.getControllerServerHandler();
-        commandHandler = new RaftCommandHandlerV2(kvStore, manager);
+        commandHandler = new RaftCommandHandler(kvStore, manager);
 
         SocketChannel client1 = connectClient();
         SocketChannel client2 = connectClient();
@@ -511,7 +511,7 @@ class RaftCommandHandlerTest {
         assertEquals(NodeState.BROKER, manager.getState(), "Manager should be in BROKER state");
 
         // Create command handler for the broker
-        RaftCommandHandlerV2 brokerHandler = new RaftCommandHandlerV2(kvStore, manager);
+        RaftCommandHandler brokerHandler = new RaftCommandHandler(kvStore, manager);
 
         // Create a command
         PutCommand command = new PutCommand("testKey", "testValue".getBytes(StandardCharsets.UTF_8));
@@ -544,7 +544,7 @@ class RaftCommandHandlerTest {
         assertEquals(NodeState.CANDIDATE, manager.getState(), "Manager should be in CANDIDATE state");
 
         // Create command handler
-        RaftCommandHandlerV2 candidateHandler = new RaftCommandHandlerV2(kvStore, manager);
+        RaftCommandHandler candidateHandler = new RaftCommandHandler(kvStore, manager);
 
         // Send a command
         PutCommand command = new PutCommand("testKey", "testValue".getBytes(StandardCharsets.UTF_8));
@@ -599,7 +599,7 @@ class RaftCommandHandlerTest {
         Thread.sleep(500);
 
         // Create command handler for the broker
-        RaftCommandHandlerV2 brokerHandler = new RaftCommandHandlerV2(kvStore, manager);
+        RaftCommandHandler brokerHandler = new RaftCommandHandler(kvStore, manager);
 
         // Send a GET command
         GetCommand command = new GetCommand("testKey");
