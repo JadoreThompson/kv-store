@@ -1,8 +1,9 @@
-package com.zenz.kvstore.server.raft;
+package com.zenz.kvstore.server.raft.server.handlers;
 
 import com.zenz.kvstore.server.ClientSession;
-import com.zenz.kvstore.server.SocketHandler;
-import com.zenz.kvstore.server.SocketServer;
+import com.zenz.kvstore.server.raft.MessageType;
+import com.zenz.kvstore.server.raft.RaftManager;
+import com.zenz.kvstore.server.raft.server.SocketServer;
 import com.zenz.kvstore.server.raft.messages.BaseMessage;
 import com.zenz.kvstore.server.raft.messages.LeaderElected;
 import com.zenz.kvstore.server.raft.messages.RequestVote;

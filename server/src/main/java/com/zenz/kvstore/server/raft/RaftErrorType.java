@@ -9,7 +9,7 @@ public enum RaftErrorType {
 
     private final int value;
 
-    private RaftErrorType(int value) {
+    RaftErrorType(int value) {
         this.value = value;
     }
 

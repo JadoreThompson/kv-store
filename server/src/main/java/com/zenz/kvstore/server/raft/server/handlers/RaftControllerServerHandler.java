@@ -1,9 +1,13 @@
-package com.zenz.kvstore.server.raft;
+package com.zenz.kvstore.server.raft.server.handlers;
 
 import com.zenz.kvstore.common.commands.Command;
 import com.zenz.kvstore.server.*;
 import com.zenz.kvstore.server.logging.handlers.RaftLogHandler;
+import com.zenz.kvstore.server.raft.MessageType;
+import com.zenz.kvstore.server.raft.RaftErrorType;
+import com.zenz.kvstore.server.raft.RaftManager;
 import com.zenz.kvstore.server.raft.messages.*;
+import com.zenz.kvstore.server.raft.server.SocketServer;
 
 import java.io.File;
 import java.io.IOException;

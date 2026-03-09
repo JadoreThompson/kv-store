@@ -12,6 +12,7 @@ import com.zenz.kvstore.common.responses.RedirectResponse;
 import com.zenz.kvstore.server.KVMap;
 import com.zenz.kvstore.server.KVStore;
 import com.zenz.kvstore.server.raft.*;
+import com.zenz.kvstore.server.raft.server.handlers.RaftControllerServerHandler;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
@@ -40,11 +41,6 @@ public class RaftCommandHandler implements BaseCommandHandler {
                 if (commandType.equals(CommandType.GET)) {
                     GetCommand comm = (GetCommand) command;
                     KVMap.Node node = store.get(comm.key());
-//                    ByteBuffer buffer = ByteBuffer.allocate(3 + node.value.length);
-//                    buffer.put("OK ".getBytes(StandardCharsets.UTF_8));
-//                    buffer.put(node.value);
-//                    buffer.flip();
-//                    return buffer;
                     return ByteBuffer.wrap(new GetResponse(node.value).serialize());
                 }
 
@@ -55,21 +51,15 @@ public class RaftCommandHandler implements BaseCommandHandler {
                 if (commandType.equals(CommandType.PUT)) {
                     PutCommand comm = (PutCommand) command;
                     store.put(comm.key(), comm.value());
-//                    return ByteBuffer.wrap("OK".getBytes(StandardCharsets.UTF_8));
                     return ByteBuffer.wrap(new PutResponse().serialize());
                 }
 
-//                return ByteBuffer.wrap("ERROR Unsupported command".getBytes(StandardCharsets.UTF_8));
                 return ByteBuffer.wrap(new ErrorResponse(ErrorType.UNSUPPORTED_OPERATION, null).serialize());
             }
 
             if (nodeState.equals(NodeState.CANDIDATE)) {
-//                return ByteBuffer.wrap("ERROR In election".getBytes(StandardCharsets.UTF_8));
                 return ByteBuffer.wrap(new ErrorResponse(ErrorType.IN_ELECTION, null).serialize());
             }
-
-//            RaftControllerClient controllerClient = manager.getControllerClient();
-//            InetSocketAddress controllerAddress = controllerClient.getControllerAddress();
 
             RaftNode controllerNode = manager.getControllerNode();
             InetSocketAddress controllerAddress = controllerNode.serverAddress();

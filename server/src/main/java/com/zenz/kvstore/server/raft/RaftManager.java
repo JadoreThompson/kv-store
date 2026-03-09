@@ -1,12 +1,14 @@
 package com.zenz.kvstore.server.raft;
 
 import com.zenz.kvstore.server.KVStore;
-import com.zenz.kvstore.server.SocketServer;
+import com.zenz.kvstore.server.raft.server.SocketServer;
 import com.zenz.kvstore.server.logging.handlers.RaftLogHandler;
 import com.zenz.kvstore.server.raft.messages.LeaderElected;
 import com.zenz.kvstore.server.raft.messages.RequestVote;
 import com.zenz.kvstore.server.raft.messages.RequestVoteResponse;
 import com.zenz.kvstore.common.utils.Utils;
+import com.zenz.kvstore.server.raft.server.handlers.RaftBrokerServerHandler;
+import com.zenz.kvstore.server.raft.server.handlers.RaftControllerServerHandler;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -90,14 +92,6 @@ public class RaftManager {
             );
             nodeServer.setSocketHandler(controllerServerHandler);
             executor.submit(() -> Utils.runnableWrapper(nodeServer::start));
-        }
-    }
-
-    private void wrapper(CheckedRunnable r) {
-        try {
-            r.run();
-        } catch (Exception e) {
-            e.printStackTrace();
         }
     }
 
@@ -282,7 +276,6 @@ public class RaftManager {
         RaftNode brokerNode = null;
         for (RaftNode broker : brokerConfigs) {
             if (broker.id() == message.leaderId()) {
-//                remoteAddr = broker.nodeAddress();
                 brokerNode = broker;
                 break;
             }
