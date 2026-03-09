@@ -1,4 +1,4 @@
-package com.zenz.kvstore.server;
+package com.zenz.kvstore.server.raft;
 
 public enum MessageType {
     APPEND_ENTRY(1),

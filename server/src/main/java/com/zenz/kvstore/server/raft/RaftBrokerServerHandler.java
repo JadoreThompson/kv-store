@@ -1,7 +1,6 @@
 package com.zenz.kvstore.server.raft;
 
 import com.zenz.kvstore.server.ClientSession;
-import com.zenz.kvstore.server.MessageType;
 import com.zenz.kvstore.server.SocketHandler;
 import com.zenz.kvstore.server.SocketServer;
 import com.zenz.kvstore.server.raft.messages.BaseMessage;

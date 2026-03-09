@@ -1,7 +1,6 @@
 package com.zenz.kvstore.server.raft;
 
 import com.zenz.kvstore.server.ClientStatus;
-import com.zenz.kvstore.server.MessageType;
 import com.zenz.kvstore.server.raft.messages.*;
 
 import java.io.IOException;
