@@ -1,4 +1,4 @@
-package com.zenz.kvstore.server;
+package com.zenz.kvstore.server.logging;
 
 import java.io.File;
 import java.io.IOException;

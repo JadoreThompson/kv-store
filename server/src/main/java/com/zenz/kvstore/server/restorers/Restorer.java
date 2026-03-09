@@ -4,7 +4,8 @@ import com.zenz.kvstore.common.enums.CommandType;
 import com.zenz.kvstore.common.commands.Command;
 import com.zenz.kvstore.common.commands.PutCommand;
 import com.zenz.kvstore.server.*;
-import com.zenz.kvstore.server.logHandlers.LogHandler;
+import com.zenz.kvstore.server.logging.WALogger;
+import com.zenz.kvstore.server.logging.handlers.LogHandler;
 
 import java.io.IOException;
 import java.nio.file.Files;

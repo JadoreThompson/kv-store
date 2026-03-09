@@ -1,8 +1,9 @@
 package com.zenz.kvstore.server;
 
 import com.zenz.kvstore.common.commands.PutCommand;
-import com.zenz.kvstore.server.logHandlers.BaseLogHandler;
-import com.zenz.kvstore.server.logHandlers.RaftLogHandler;
+import com.zenz.kvstore.server.logging.WALogger;
+import com.zenz.kvstore.server.logging.handlers.BaseLogHandler;
+import com.zenz.kvstore.server.logging.handlers.RaftLogHandler;
 
 import java.io.*;
 import java.nio.file.Files;

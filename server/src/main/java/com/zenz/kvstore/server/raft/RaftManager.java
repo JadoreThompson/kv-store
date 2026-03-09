@@ -2,7 +2,7 @@ package com.zenz.kvstore.server.raft;
 
 import com.zenz.kvstore.server.KVStore;
 import com.zenz.kvstore.server.SocketServer;
-import com.zenz.kvstore.server.logHandlers.RaftLogHandler;
+import com.zenz.kvstore.server.logging.handlers.RaftLogHandler;
 import com.zenz.kvstore.server.raft.messages.LeaderElected;
 import com.zenz.kvstore.server.raft.messages.RequestVote;
 import com.zenz.kvstore.server.raft.messages.RequestVoteResponse;

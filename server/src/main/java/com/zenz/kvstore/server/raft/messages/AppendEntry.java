@@ -1,7 +1,7 @@
 package com.zenz.kvstore.server.raft.messages;
 
 import com.zenz.kvstore.server.raft.MessageType;
-import com.zenz.kvstore.server.logHandlers.RaftLogHandler;
+import com.zenz.kvstore.server.logging.handlers.RaftLogHandler;
 
 import java.nio.BufferUnderflowException;
 import java.nio.ByteBuffer;

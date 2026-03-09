@@ -9,7 +9,8 @@ import com.zenz.kvstore.common.commands.PutCommand;
 import com.zenz.kvstore.common.responses.*;
 import com.zenz.kvstore.server.*;
 import com.zenz.kvstore.server.commandHandlers.CommandHandler;
-import com.zenz.kvstore.server.logHandlers.LogHandler;
+import com.zenz.kvstore.server.logging.WALogger;
+import com.zenz.kvstore.server.logging.handlers.LogHandler;
 import com.zenz.kvstore.server.restorers.Restorer;
 import org.junit.jupiter.api.*;
 
