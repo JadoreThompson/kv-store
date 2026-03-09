@@ -1,7 +1,7 @@
 package com.zenz.kvstore.server;
 
 import com.zenz.kvstore.common.commands.Command;
-import com.zenz.kvstore.server.commandHandlers.BaseCommandHandler;
+import com.zenz.kvstore.server.command.handlers.BaseCommandHandler;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;

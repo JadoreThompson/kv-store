@@ -8,7 +8,7 @@ import com.zenz.kvstore.common.commands.GetCommand;
 import com.zenz.kvstore.common.commands.PutCommand;
 import com.zenz.kvstore.common.responses.*;
 import com.zenz.kvstore.server.*;
-import com.zenz.kvstore.server.commandHandlers.CommandHandler;
+import com.zenz.kvstore.server.command.handlers.CommandHandler;
 import com.zenz.kvstore.server.logging.WALogger;
 import com.zenz.kvstore.server.logging.handlers.LogHandler;
 import com.zenz.kvstore.server.restorers.Restorer;

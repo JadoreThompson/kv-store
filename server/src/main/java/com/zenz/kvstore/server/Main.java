@@ -2,7 +2,7 @@ package com.zenz.kvstore.server;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.core.type.TypeReference;
-import com.zenz.kvstore.server.commandHandlers.CommandHandler;
+import com.zenz.kvstore.server.command.handlers.CommandHandler;
 import com.zenz.kvstore.server.logging.WALogger;
 import com.zenz.kvstore.server.logging.handlers.LogHandler;
 import com.zenz.kvstore.server.logging.handlers.RaftLogHandler;
