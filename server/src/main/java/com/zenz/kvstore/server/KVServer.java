@@ -27,7 +27,7 @@ public class KVServer {
     private Selector selector;
     private ServerSocketChannel serverChannel;
     private final Map<SocketChannel, Queue<ByteBuffer>> pendingWrites = new HashMap<>();
-    private volatile boolean running = true;
+    private volatile boolean running = false;
 
     public KVServer(String host, int port, BaseCommandHandler commandHandler) {
         this.commandHandler = commandHandler;
@@ -36,15 +36,16 @@ public class KVServer {
     }
 
     public void start() throws IOException {
+        if (running) return;
+
         selector = Selector.open();
         serverChannel = ServerSocketChannel.open();
         serverChannel.configureBlocking(false);
         serverChannel.socket().bind(new InetSocketAddress(host, port));
         serverChannel.register(selector, SelectionKey.OP_ACCEPT);
-
+        running = true;
         System.out.println("KV Server started on " + host + ":" + port);
 
-        // Main event loop
         while (running) {
             int readyCount = selector.select();
 
@@ -76,7 +77,10 @@ public class KVServer {
     }
 
     public void stop() throws IOException {
+        if (!running) return;
+
         running = false;
+
         if (selector != null) {
             selector.wakeup();
         }
@@ -153,7 +157,6 @@ public class KVServer {
         try {
             ArrayList<Command> commands = Command.deserializeList(bytes);
             for (Command command : commands) {
-//                ByteBuffer responseBuffer = commandHandler.handleCommand(command);
                 ByteBuffer responseBuffer = commandHandler.handleCommand(channel, command);
                 if (responseBuffer != null) {
                     queueWrite(session.getChannel(), responseBuffer);

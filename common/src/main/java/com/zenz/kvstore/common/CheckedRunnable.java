@@ -1,6 +1,5 @@
 package com.zenz.kvstore.common;
 
-public class CheckedRunnable {
-    public void run() throws Exception {
-    }
+public interface CheckedRunnable {
+    void run() throws Exception;
 }

@@ -4,6 +4,7 @@ import com.zenz.kvstore.server.*;
 import com.zenz.kvstore.server.logHandlers.RaftLogHandler;
 import com.zenz.kvstore.server.raft.*;
 import com.zenz.kvstore.server.raft.messages.*;
+import com.zenz.kvstore.common.utils.Utils;
 import org.junit.jupiter.api.*;
 import org.junit.jupiter.api.parallel.Execution;
 import org.junit.jupiter.api.parallel.ExecutionMode;
@@ -87,7 +88,7 @@ class LeaderElectionTest {
 
         try {
             // Starting controller server so brokers have something to connect to
-            executor.execute(() -> wrapper(controllerServer::start));
+            executor.execute(() -> Utils.runnableWrapper(controllerServer::start));
 
             // Wait for sever startup
             Thread.sleep(500);
@@ -225,7 +226,7 @@ class LeaderElectionTest {
 
         try {
             // Starting controller server so brokers have something to connect to.
-            executor.execute(() -> wrapper(controllerServer::start));
+            executor.execute(() -> Utils.runnableWrapper(controllerServer::start));
 
             final int maxAttempts = 5;
             int attempts = 0;
@@ -276,7 +277,7 @@ class LeaderElectionTest {
                 // Creating manager
                 RaftManager manager = new RaftManager(i, nodes, store);
                 managers.add(manager);
-                executor.execute(() -> wrapper(manager::start));
+                executor.execute(() -> Utils.runnableWrapper(manager::start));
             }
 
             // Waiting for brokers to spin up
@@ -365,7 +366,7 @@ class LeaderElectionTest {
         final int maxAttempts = 5;
 
         try {
-            executor.execute(() -> wrapper(controllerServer::start));
+            executor.execute(() -> Utils.runnableWrapper(controllerServer::start));
 
             int attempts = 0;
             while (attempts < maxAttempts) {
@@ -414,7 +415,7 @@ class LeaderElectionTest {
                 // Creating manager
                 RaftManager manager = new RaftManager(i, nodes, store);
                 managers.add(manager);
-                executor.execute(() -> wrapper(manager::start));
+                executor.execute(() -> Utils.runnableWrapper(manager::start));
             }
 
             Thread.sleep(500);

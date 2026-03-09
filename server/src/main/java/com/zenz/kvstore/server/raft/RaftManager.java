@@ -6,6 +6,7 @@ import com.zenz.kvstore.server.logHandlers.RaftLogHandler;
 import com.zenz.kvstore.server.raft.messages.LeaderElected;
 import com.zenz.kvstore.server.raft.messages.RequestVote;
 import com.zenz.kvstore.server.raft.messages.RequestVoteResponse;
+import com.zenz.kvstore.common.utils.Utils;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -75,7 +76,7 @@ public class RaftManager {
 
             brokerServerHandler = new RaftBrokerServerHandler(nodeServer, this);
             nodeServer.setSocketHandler(brokerServerHandler);
-            executor.submit(() -> wrapper(nodeServer::start));
+            executor.submit(() -> Utils.runnableWrapper(nodeServer::start));
 
             for (RaftNode broker : brokerConfigs) {
                 startBrokerClient(broker);
@@ -88,7 +89,7 @@ public class RaftManager {
                     this
             );
             nodeServer.setSocketHandler(controllerServerHandler);
-            executor.submit(() -> wrapper(nodeServer::start));
+            executor.submit(() -> Utils.runnableWrapper(nodeServer::start));
         }
     }
 
@@ -107,7 +108,7 @@ public class RaftManager {
                 this
         );
         brokerClients.add(brokerClient);
-        executor.submit(() -> wrapper(brokerClient::start));
+        executor.submit(() -> Utils.runnableWrapper(brokerClient::start));
     }
 
     private void startControllerClient() {
@@ -130,7 +131,7 @@ public class RaftManager {
                 store,
                 this
         );
-        executor.submit(() -> wrapper(controllerClient::start));
+        executor.submit(() -> Utils.runnableWrapper(controllerClient::start));
         brokerConfigs.remove(controllerNode);
 
         joinFut = new CompletableFuture<>();
@@ -303,7 +304,7 @@ public class RaftManager {
                 store,
                 this
         );
-        executor.submit(() -> wrapper(controllerClient::start));
+        executor.submit(() -> Utils.runnableWrapper(controllerClient::start));
 
         brokerConfigs.remove(brokerNode);
     }

@@ -15,7 +15,7 @@ public class ClientSession {
 
     public ClientSession(SocketChannel channel, int bufferSize) {
         this.channel = channel;
-        this.readBuffer = ByteBuffer.allocate(BUFFER_SIZE);
+        this.readBuffer = ByteBuffer.allocate(bufferSize);
     }
 
     public SocketChannel getChannel() {

@@ -144,7 +144,6 @@ public class KVMap {
     }
 
     public static class Node {
-        //        public final String key;
         public String key;
         public byte[] value;
         public Node next;
