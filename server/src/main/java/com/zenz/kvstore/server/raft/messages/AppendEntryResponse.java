@@ -49,7 +49,7 @@ public record AppendEntryResponse(
     @Override
     public String toString() {
         return "AppendEntryResponse{" +
-                "errorType=" + type +
+                "type=" + type +
                 ", id=" + id +
                 ", term=" + term +
                 ", success=" + success +

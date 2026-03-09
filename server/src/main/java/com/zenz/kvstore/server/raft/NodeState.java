@@ -7,7 +7,7 @@ public enum NodeState {
 
     private final int value;
 
-    private NodeState(int value) {
+    NodeState(int value) {
         this.value = value;
     }
 

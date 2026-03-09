@@ -52,7 +52,7 @@ public record RequestVote(
     @Override
     public String toString() {
         return "RequestVote{" +
-                "errorType=" + type +
+                "type=" + type +
                 ", term=" + term +
                 ", candidateId=" + candidateId +
                 ", logId=" + logId +

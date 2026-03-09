@@ -42,7 +42,7 @@ public record LeaderElected(MessageType type, long term, long leaderId) implemen
     @Override
     public String toString() {
         return "LeaderElected{" +
-                "errorType=" + type +
+                "type=" + type +
                 ", term=" + term +
                 ", leaderId=" + leaderId +
                 '}';

@@ -42,7 +42,7 @@ public record RequestEntry(MessageType type, long id, long term) implements Base
     @Override
     public String toString() {
         return "RequestEntry{" +
-                "errorType=" + type +
+                "type=" + type +
                 ", id=" + id +
                 ", term=" + term +
                 '}';

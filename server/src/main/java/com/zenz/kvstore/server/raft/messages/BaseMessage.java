@@ -9,7 +9,7 @@ public interface BaseMessage {
 
     byte[] serialize();
 
-    public static BaseMessage deserialize(ByteBuffer buffer) {
+    static BaseMessage deserialize(ByteBuffer buffer) {
         final String debugPrefix = "[BaseMessage][deserialize] ";
         int typeValue = buffer.getInt();
         MessageType type = MessageType.fromValue(typeValue);

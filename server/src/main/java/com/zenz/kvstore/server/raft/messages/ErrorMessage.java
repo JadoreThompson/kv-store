@@ -51,7 +51,7 @@ public record ErrorMessage(
     @Override
     public String toString() {
         return "ErrorMessage{" +
-                "errorType=" + type +
+                "type=" + type +
                 ", errorType=" + errorType +
                 ", message='" + message + '\'' +
                 '}';
