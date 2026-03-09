@@ -61,8 +61,6 @@ class KVStoreTest {
         return (KVMap) mapField.get(store);
     }
 
-    // --- put / get ---
-
     @Test
     void put_thenGet_returnsNode() throws Exception {
         byte[] value = "hello".getBytes(StandardCharsets.UTF_8);
@@ -103,8 +101,6 @@ class KVStoreTest {
         assertArrayEquals("london".getBytes(StandardCharsets.UTF_8), store.get("city").value);
     }
 
-    // --- byte[] values ---
-
     @Test
     void put_integerAsBytes_retrievesCorrectly() throws Exception {
         byte[] value = ByteBuffer.allocate(4).putInt(99).array();
@@ -126,8 +122,6 @@ class KVStoreTest {
         assertArrayEquals(new byte[0], node.value);
     }
 
-    // --- large number of entries ---
-
     @Test
     void put_manyEntries_allRetrievable() throws Exception {
         int count = 500;
@@ -141,8 +135,6 @@ class KVStoreTest {
             assertEquals(i, ByteBuffer.wrap(node.value).getInt());
         }
     }
-
-    // --- WAL logging ---
 
     @Test
     void put_logsOperationToWAL() throws Exception {
@@ -211,8 +203,6 @@ class KVStoreTest {
         assertEquals("k2", putCmd2.key(), "Line 2 should be PUT k2");
     }
 
-    // --- Integration: Snapshotting ---
-
     @Test
     void snapshotter_createsSnapshotFromWAL() throws Exception {
         // Add some data
@@ -247,7 +237,6 @@ class KVStoreTest {
         store.setSnapshotter(snapshotter);
         KVMap map = getMap(store);
         Path fpath = snapshotter.getDir().resolve(store.getLogHandler().getLogId() + ".snapshot");
-//        Path fpath = Path.of(store.getLogHandler().getLogId() + ".snapshot");
         snapshotter.snapshot(map, fpath);
 
         // Load snapshot - need to create new logger and logHandler for the restored store

@@ -78,9 +78,6 @@ class RaftCommandHandlerTest {
         manager = new RaftManager(0, nodes, kvStore);
         startManager();
         Thread.sleep(500);
-
-        RaftControllerServerHandler controller = manager.getControllerServerHandler();
-//        commandHandler = new RaftCommandHandler(kvStore, controller);
         commandHandler = new RaftCommandHandlerV2(kvStore, manager);
     }
 
@@ -228,9 +225,9 @@ class RaftCommandHandlerTest {
         PutCommand command = new PutCommand("slowKey", "slowValue".getBytes(StandardCharsets.UTF_8));
         CompletableFuture<Boolean> fut = new CompletableFuture<>();
 
-        Thread commandThread = new Thread(() -> {
-            manager.getControllerServerHandler().handleCommand(command, fut);
-        });
+        Thread commandThread = new Thread(() ->
+                manager.getControllerServerHandler().handleCommand(command, fut)
+        );
         commandThread.start();
 
         Thread.sleep(100);

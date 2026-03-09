@@ -93,9 +93,6 @@ class RaftControllerTest {
         return response;
     }
 
-    private void createSnapshot(byte[] data) throws IOException {
-    }
-
     private void startManager() {
         manager = new RaftManager(0, nodes, kvStore);
         managerThread = new Thread(() -> {
@@ -174,11 +171,6 @@ class RaftControllerTest {
     @DisplayName("Fresh follower when controller has logs but no snapshot - returns first log")
     void freshFollower_noSnapshot_returnsFirstLog() throws Exception {
         // Setup: controller has processed some commands
-//        List<LogEntry> entries = new ArrayList<>();
-//        entries.add(new LogEntry(1L, 1L, "firstKey", "firstValue".getBytes(StandardCharsets.UTF_8)));
-//        entries.add(new LogEntry(2L, 1L, "secondKey", "secondValue".getBytes(StandardCharsets.UTF_8)));
-//        entries.add(new LogEntry(3L, 1L, "thirdKey", "thirdValue".getBytes(StandardCharsets.UTF_8)));
-//        createLogs(entries);
         logHandler.setDisabled(false);
         logHandler.setTerm(1);
         kvStore.put("firstKey", "firstValue".getBytes(StandardCharsets.UTF_8));
@@ -318,67 +310,8 @@ class RaftControllerTest {
         assertTrue(resp instanceof AppendEntry, "Expected append entry. Received " + resp.getClass().getName());
         AppendEntry response = (AppendEntry) resp;
         assertNotNull(response);
-//        assertNotNull(response.command());
         assertFalse(response.entries().isEmpty());
 
-        client.close();
-    }
-//
-//    @Test
-//    @DisplayName("Finding next log - first log in sequence")
-//    void findingNextLog_firstLogInSequence() throws Exception {
-//        // Setup
-//        List<LogEntry> entries = new ArrayList<>();
-//        entries.add(new LogEntry(1L, 1L, "key1", "value1".getBytes(StandardCharsets.UTF_8)));
-//        entries.add(new LogEntry(2L, 1L, "key2", "value2".getBytes(StandardCharsets.UTF_8)));
-//        entries.add(new LogEntry(3L, 1L, "key3", "value3".getBytes(StandardCharsets.UTF_8)));
-//        createLogs(entries);
-//
-//        // Restart controller to reload logs
-//        restartController();
-//
-//        SocketChannel client = connectClient();
-//        // Request with logId 1 - follower has processed log 1, needs log 2
-//        sendMessage(client, new RequestEntry(1, 1));
-//
-//        BaseMessage resp = receiveMessage(client);
-//        assertTrue(resp instanceof AppendEntry, "Expected append entry");
-//        AppendEntry response = (AppendEntry) resp;
-//        assertNotNull(response);
-
-    /// /        assertNotNull(response.command());
-//        assertFalse(response.commands().isEmpty());
-//
-//        client.close();
-//    }
-//
-//
-
-    /**
-     * TODO: Implement controller led election
-     *
-     * @throws Exception
-     */
-    @Test
-    @DisplayName("Terms match but log id is greater. Controller terminates before converting to follower.")
-    @Disabled
-    void termsMatching_logIdLarge_terminatesController() throws Exception {
-        // Setup
-        logHandler.setTerm(1L);
-        for (long i = 1; i <= 5; i++) {
-            kvStore.put("key" + i, ("value" + i).getBytes(StandardCharsets.UTF_8));
-        }
-
-        // Restart controller to reload logs
-        stopManager();
-        startManager();
-        Thread.sleep(500);
-
-        SocketChannel client = connectClient();
-        sendMessage(client, new RequestEntry(10, 1));
-        Thread.sleep(500);
-
-        // TODO: Assertions
         client.close();
     }
 
@@ -663,9 +596,7 @@ class RaftControllerTest {
         client.close();
     }
 
-    // ============================================
     // Integration Tests for handleAppendEntryResponse
-    // ============================================
 
     @Test
     @DisplayName("Majority reached completes future")
@@ -846,8 +777,5 @@ class RaftControllerTest {
         client1.close();
         client2.close();
         client3.close();
-    }
-
-    private record LogEntry(long id, long term, String key, byte[] value) {
     }
 }

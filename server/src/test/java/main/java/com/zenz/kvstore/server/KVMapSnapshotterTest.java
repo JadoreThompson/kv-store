@@ -18,18 +18,18 @@ import static org.junit.jupiter.api.Assertions.*;
 
 class KVMapSnapshotterTest {
 
-    private Path snapshotFolder;
+    private Path snapshotsDir;
     private KVMapSnapshotter snapshotter;
 
     @BeforeEach
     void setUp() throws IOException {
-        snapshotFolder = Files.createTempDirectory("tmp-snapshots-");
-        snapshotter = new KVMapSnapshotter(snapshotFolder);
+        snapshotsDir = Files.createTempDirectory("tmp-snapshots-");
+        snapshotter = new KVMapSnapshotter(snapshotsDir);
     }
 
     @AfterEach
     void tearDown() throws IOException {
-        deleteDirectory(snapshotFolder.toFile());
+        deleteDirectory(snapshotsDir.toFile());
     }
 
     private void deleteDirectory(java.io.File directory) {
@@ -46,34 +46,27 @@ class KVMapSnapshotterTest {
         directory.delete();
     }
 
-    // --- Unit Tests ---
-
     @Test
     void snapshot_createsFile() throws IOException {
-        // Create a map with data
         KVMap map = new KVMap();
         map.put("testkey", "testvalue".getBytes(StandardCharsets.UTF_8));
 
-        // Run snapshot
         snapshotter.snapshot(map, snapshotter.getDir().resolve("snapshot"));
 
         // Verify snapshot file was created
-        java.io.File[] files = snapshotFolder.toFile().listFiles();
+        java.io.File[] files = snapshotsDir.toFile().listFiles();
         assertNotNull(files, "Snapshot folder should not be null");
         assertTrue(files.length > 0, "Snapshot file should be created");
     }
 
     @Test
     void snapshot_containsKVPair() throws IOException {
-        // Create a map with data
         KVMap map = new KVMap();
         map.put("mykey", "myvalue".getBytes(StandardCharsets.UTF_8));
 
-        // Run snapshot
         snapshotter.snapshot(map, snapshotter.getDir().resolve("snapshot"));
 
-        // Read snapshot file
-        File[] files = snapshotFolder.toFile().listFiles();
+        File[] files = snapshotsDir.toFile().listFiles();
         assertNotNull(files, "Snapshot folder should not be null");
         assertTrue(files.length > 0, "Snapshot file should be created");
 
@@ -83,8 +76,7 @@ class KVMapSnapshotterTest {
 
     @Test
     void loadSnapshot_restoresData() throws IOException {
-        // Create a snapshot file manually
-        Path snapshotFile = snapshotFolder.resolve("0.snapshot");
+        Path snapshotFile = snapshotsDir.resolve("0.snapshot");
 
         KVMap map = new KVMap();
         map.put("key1", "value2".getBytes(StandardCharsets.UTF_8));
@@ -95,7 +87,6 @@ class KVMapSnapshotterTest {
             snapshotter.writeNodes(channel, map);
         }
 
-        // Load the snapshot using the public API
         KVMap restored = snapshotter.loadSnapshot(snapshotFile);
 
         // Verify data was restored
@@ -105,16 +96,13 @@ class KVMapSnapshotterTest {
 
     @Test
     void roundTrip_saveAndLoad() throws IOException {
-        // Create a map with data
         KVMap map = new KVMap();
         map.put("alpha", "beta".getBytes(StandardCharsets.UTF_8));
         map.put("gamma", "delta".getBytes(StandardCharsets.UTF_8));
 
-        // Create snapshot
         Path fpath = snapshotter.getDir().resolve("snapshot");
         snapshotter.snapshot(map, fpath);
 
-        // Load the snapshot
         KVMap restoredMap = snapshotter.loadSnapshot(fpath);
 
         // Verify data
@@ -126,19 +114,17 @@ class KVMapSnapshotterTest {
 
     @Test
     void snapshot_handlesMultipleEntries() throws IOException {
-        // Create a map with multiple entries
         KVMap map = new KVMap();
         map.put("k1", "v1".getBytes(StandardCharsets.UTF_8));
         map.put("k2", "v2".getBytes(StandardCharsets.UTF_8));
         map.put("k3", "v3".getBytes(StandardCharsets.UTF_8));
 
-        // Create snapshot
         Path fpath = snapshotter.getDir().resolve("snapshot");
         snapshotter.snapshot(map, fpath);
 
-        // Load the snapshot
         KVMap restoredMap = snapshotter.loadSnapshot(fpath);
 
+        // Verify entries
         assertNotNull(restoredMap.get("k1"));
         assertNotNull(restoredMap.get("k2"));
         assertNotNull(restoredMap.get("k3"));
@@ -146,7 +132,6 @@ class KVMapSnapshotterTest {
 
     @Test
     void snapshot_handlesEmptyMap() throws IOException {
-        // Create an empty map
         KVMap map = new KVMap();
 
         // Run snapshot - should not throw
@@ -156,15 +141,13 @@ class KVMapSnapshotterTest {
 
     @Test
     void loadSnapshot_handlesMultipleEntries() throws IOException {
-        // Create a snapshot file with multiple entries
         KVMap map = new KVMap();
         for (int i = 0; i < 10; i++) {
             map.put("key" + i, ("value" + i).getBytes(StandardCharsets.UTF_8));
         }
-        Path snapshotFile = snapshotFolder.resolve("0.snapshot");
+        Path snapshotFile = snapshotsDir.resolve("0.snapshot");
         snapshotter.snapshot(map, snapshotFile);
 
-        // Load the snapshot using the public API
         KVMap restored = snapshotter.loadSnapshot(snapshotFile);
 
         // Verify all entries
@@ -177,7 +160,6 @@ class KVMapSnapshotterTest {
 
     @Test
     void loadSnapshot_returnsNullWhenNoSnapshots() throws IOException {
-        // Don't create any snapshot files
         Path fpath = snapshotter.getDir().resolve("snapshot");
         KVMap map = snapshotter.loadSnapshot(fpath);
         assertNull(map, "Should return null when no snapshots exist");
@@ -185,6 +167,6 @@ class KVMapSnapshotterTest {
 
     @Test
     void getFolderPath_returnsCorrectPath() {
-        assertEquals(snapshotFolder, snapshotter.getDir());
+        assertEquals(snapshotsDir, snapshotter.getDir());
     }
 }

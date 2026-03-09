@@ -214,9 +214,6 @@ class LeaderElectionTest {
      * 2. First vote denied (simulating broker already voted for another candidate)
      * 3. Additional votes come in until majority is reached
      * 4. Election eventually succeeds despite initial rejection
-     * <p>
-     * This test follows the multi-broker simulation approach from
-     * completeElectionCycle_fromInitiationToCompletion_with3Nodes.
      */
     @Test
     @DisplayName("Election succeeds despite initial vote denial")
@@ -355,9 +352,6 @@ class LeaderElectionTest {
      * - Each election increments the term
      * - Vote granting respects the highest seen term
      * - A second election can be initiated after the first completes
-     * <p>
-     * This test follows the multi-broker simulation approach from
-     * completeElectionCycle_fromInitiationToCompletion_with3Nodes.
      */
     @Test
     @DisplayName("Multiple election cycles with increasing terms")
@@ -472,7 +466,7 @@ class LeaderElectionTest {
             assertEquals(NodeState.BROKER, managers.get(2).getState(),
                     "Manager 2 should be follower after first election");
 
-            // ===== Second election cycle =====
+            // Second election cycle
             // For a second election, we need to simulate a scenario where a new election is needed.
             // We'll use manager1 to initiate a new election with an updated term.
             RaftManager manager1 = managers.get(1);

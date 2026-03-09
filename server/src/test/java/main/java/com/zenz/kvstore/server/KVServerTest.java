@@ -134,8 +134,6 @@ class KVServerTest {
         client3.close();
     }
 
-    // --- PUT Tests ---
-
     @Test
     void put_returnsOk() throws IOException {
         SocketChannel client = connectClient();

@@ -131,7 +131,7 @@ class RestorerTest {
         assertNotNull(loadedMap.get("existingKey"), "existingKey should exist in snapshot");
     }
 
-    // --- Edge Case: Snapshot saved but old log not cleared ---
+    // Edge Case: Snapshot saved but old log not cleared
 
     @Test
     void restore_snapshotSavedButLogNotCleared_doesNotReplayOldLogs() throws Exception {
@@ -228,7 +228,7 @@ class RestorerTest {
         assertDoesNotThrow(() -> restorer.restore(builder));
     }
 
-    // --- Stress Tests for Filename Prefix Checks ---
+    // Stress Tests for Filename Prefix Checks
 
     @Test
     void restore_variousSnapshotFilenamePrefixes_parsesCorrectly() throws Exception {
@@ -335,7 +335,7 @@ class RestorerTest {
         assertNotNull(loaded, "Should load a snapshot");
     }
 
-    // --- Log Handler Integration Tests ---
+    // Log Handler Integration Tests
 
     @Test
     void logHandler_serializeDeserialize_maintainsData() throws IOException {
@@ -384,7 +384,7 @@ class RestorerTest {
         assertEquals(101, logs.get(0).id(), "Log ID should be 101 (100 + 1)");
     }
 
-    // --- Full Integration Tests ---
+    // Full Integration Tests
 
     @Test
     void fullCycle_putSnapshotRestore_maintainsData() throws Exception {
