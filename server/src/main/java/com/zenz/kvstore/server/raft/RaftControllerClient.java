@@ -22,19 +22,19 @@ public class RaftControllerClient {
     private final InetSocketAddress controllerAddress;
     private Selector selector;
     private SocketChannel socketChannel;
-    private Queue<ByteBuffer> pendingWrites = new LinkedList<>();
+    private final Queue<ByteBuffer> pendingWrites = new LinkedList<>();
     private ByteBuffer readBuffer = ByteBuffer.allocate(1024);
     private boolean isRunning;
 
-    private KVStore store;
-    private RaftLogHandler logHandler;
+    private final KVStore store;
+    private final RaftLogHandler logHandler;
     private ArrayList<RaftLogHandler.Log> logs = new ArrayList<>();
     private CompletableFuture<Boolean> onDisconnect;
-    private Random random = new Random();
-    private RaftManager manager;
+    private final Random random = new Random();
+    private final RaftManager manager;
     private long lastHeartBeatResponse;
     private final String DEBUG_PREFIX;
-    private CompletableFuture<Boolean> joinFut = new CompletableFuture<>();
+    private final CompletableFuture<Boolean> joinFut = new CompletableFuture<>();
 
     public RaftControllerClient(
             String host,

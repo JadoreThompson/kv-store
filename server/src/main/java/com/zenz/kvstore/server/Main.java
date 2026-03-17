@@ -25,7 +25,6 @@ public class Main {
     private static final Path snapshotsDir = Path.of("snapshots");
 
     public static void main(String[] args) throws Exception {
-
         if (args.length == 0) {
             printUsage();
             System.exit(1);
