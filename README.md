@@ -90,7 +90,7 @@ ever-growing logs and reduce start-up time when the store is being restored.
 ### Raft Consensus
 
 **Paper
-**: [In Search of an Understandable Consensus Algorithm](https://classpages.cselabs.umn.edu/Spring-2018/csci8980/Papers/Consensus/Raft.pdf)
+**: [In Search of an Understandable Consensus Algorithm](https://raft.github.io/raft.pdf)
 
 As per the official Raft paper, a node can either be a follower or leader. Leaders are in charge of replicating commands
 to followers and returning responses to clients. Followers are responsible for receiving these requests to replicate
