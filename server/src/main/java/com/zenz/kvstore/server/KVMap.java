@@ -60,23 +60,13 @@ public class KVMap {
                 return;
             }
         }
-
-        Node cur = nodeList.head;
-
-        if (cur.key.equals(key)) {
-            cur.value = value;
-            return;
+        
+        Node node = find(key, nodeList);
+        if (node != null) {
+            node.value = value;
+        } else {
+            nodeList.add(new Node(key, value));
         }
-
-        while (cur.next != null) {
-            if (cur.key.equals(key)) {
-                cur.value = value;
-                return;
-            }
-            cur = cur.next;
-        }
-
-        cur.next = new Node(key, value);
     }
 
     private Node find(String key, NodeList nodeList) {
@@ -184,12 +174,26 @@ public class KVMap {
 
     public static class NodeList {
         public Node head;
+        public Node tail;
 
         public NodeList() {
         }
 
         public NodeList(Node node) {
             head = node;
+            tail = node;
+        }
+
+        public void add(Node node) {
+            if (head == null) {
+                head = node;
+                tail = node;
+                return;
+            }
+
+            tail.next = node;
+            node.prev = tail;
+            tail = node;
         }
 
         public void remove(Node node) {

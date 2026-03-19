@@ -4,9 +4,8 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="113ca11e-a295-4741-aad7-90962967a262" name="Changes" comment="Created DeleteCommand">
+    <list default="true" id="113ca11e-a295-4741-aad7-90962967a262" name="Changes" comment="Removed setNull method from KVArray ; Added docs to checkIsRehashing and rehash methods within KVMap">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/server/src/main/java/com/zenz/kvstore/server/KVArray.java" beforeDir="false" afterPath="$PROJECT_DIR$/server/src/main/java/com/zenz/kvstore/server/KVArray.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/server/src/main/java/com/zenz/kvstore/server/KVMap.java" beforeDir="false" afterPath="$PROJECT_DIR$/server/src/main/java/com/zenz/kvstore/server/KVMap.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
@@ -278,7 +277,7 @@
       <workItem from="1773847751131" duration="1350000" />
       <workItem from="1773852618057" duration="27000" />
       <workItem from="1773872932336" duration="28000" />
-      <workItem from="1773908783405" duration="3535000" />
+      <workItem from="1773908783405" duration="4270000" />
     </task>
     <task id="LOCAL-00001" summary="Added content length check in KVMapSnapshotter.applyLogs">
       <option name="closed" value="true" />
@@ -544,7 +543,15 @@
       <option name="project" value="LOCAL" />
       <updated>1773910295712</updated>
     </task>
-    <option name="localTasksCounter" value="34" />
+    <task id="LOCAL-00034" summary="Removed setNull method from KVArray ; Added docs to checkIsRehashing and rehash methods within KVMap">
+      <option name="closed" value="true" />
+      <created>1773912780750</created>
+      <option name="number" value="00034" />
+      <option name="presentableId" value="LOCAL-00034" />
+      <option name="project" value="LOCAL" />
+      <updated>1773912780750</updated>
+    </task>
+    <option name="localTasksCounter" value="35" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -562,7 +569,6 @@
     </option>
   </component>
   <component name="VcsManagerConfiguration">
-    <MESSAGE value="Renamed KVStore2 to KVStore" />
     <MESSAGE value="Renamed operation to command and ConnectionManager to Server" />
     <MESSAGE value="Renamed fromLine method in Command.java to deserialize" />
     <MESSAGE value="Added serialise and deserialise interface methods in Command" />
@@ -587,7 +593,8 @@
     <MESSAGE value="Removed unused properties and code from RaftControllerServerHandler" />
     <MESSAGE value="Finalised properties in RaftControllerClient" />
     <MESSAGE value="Created DeleteCommand" />
-    <option name="LAST_COMMIT_MESSAGE" value="Created DeleteCommand" />
+    <MESSAGE value="Removed setNull method from KVArray ; Added docs to checkIsRehashing and rehash methods within KVMap" />
+    <option name="LAST_COMMIT_MESSAGE" value="Removed setNull method from KVArray ; Added docs to checkIsRehashing and rehash methods within KVMap" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
