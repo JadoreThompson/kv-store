@@ -1,5 +1,6 @@
 package com.zenz.kvstore.server.raft;
 
+import com.zenz.kvstore.common.commands.DeleteCommand;
 import com.zenz.kvstore.common.enums.CommandType;
 import com.zenz.kvstore.common.commands.PutCommand;
 import com.zenz.kvstore.server.*;
@@ -295,10 +296,16 @@ public class RaftControllerClient {
         // Processing all commands.
         List<RaftLogHandler.Log> commands = message.entries();
         for (RaftLogHandler.Log command : commands) {
-            if (command.term() != logHandler.getTerm()) logHandler.setTerm(command.term());
+            if (command.term() != logHandler.getTerm()) {
+                logHandler.setTerm(command.term());
+            }
+
             if (command.command().type().equals(CommandType.PUT)) {
                 PutCommand comm = (PutCommand) command.command();
                 store.put(comm.key(), comm.value());
+            } else if (command.command().type().equals(CommandType.DELETE)) {
+                DeleteCommand comm = (DeleteCommand) command.command();
+                store.delete(comm.key());
             }
         }
 

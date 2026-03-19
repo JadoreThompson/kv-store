@@ -1,10 +1,12 @@
 package com.zenz.kvstore.server.command.handlers;
 
+import com.zenz.kvstore.common.commands.DeleteCommand;
 import com.zenz.kvstore.common.enums.CommandType;
 import com.zenz.kvstore.common.enums.ErrorType;
 import com.zenz.kvstore.common.commands.Command;
 import com.zenz.kvstore.common.commands.GetCommand;
 import com.zenz.kvstore.common.commands.PutCommand;
+import com.zenz.kvstore.common.responses.DeleteResponse;
 import com.zenz.kvstore.common.responses.ErrorResponse;
 import com.zenz.kvstore.common.responses.GetResponse;
 import com.zenz.kvstore.common.responses.PutResponse;
@@ -44,7 +46,13 @@ public class CommandHandler implements BaseCommandHandler {
                     return ByteBuffer.wrap(new GetResponse(null).serialize());
                 }
 
-                return ByteBuffer.wrap(new GetResponse(node.value).serialize());
+                return ByteBuffer.wrap(new GetResponse(node.value()).serialize());
+            }
+
+            if (command.type().equals(CommandType.DELETE)) {
+                DeleteCommand comm = (DeleteCommand) command;
+                boolean success = store.delete(comm.key());
+                return ByteBuffer.wrap(new DeleteResponse(success).serialize());
             }
 
             return ByteBuffer.wrap(new ErrorResponse(

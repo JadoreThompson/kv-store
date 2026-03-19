@@ -1,14 +1,12 @@
 package com.zenz.kvstore.server.command.handlers;
 
+import com.zenz.kvstore.common.commands.DeleteCommand;
 import com.zenz.kvstore.common.enums.CommandType;
 import com.zenz.kvstore.common.enums.ErrorType;
 import com.zenz.kvstore.common.commands.Command;
 import com.zenz.kvstore.common.commands.GetCommand;
 import com.zenz.kvstore.common.commands.PutCommand;
-import com.zenz.kvstore.common.responses.ErrorResponse;
-import com.zenz.kvstore.common.responses.GetResponse;
-import com.zenz.kvstore.common.responses.PutResponse;
-import com.zenz.kvstore.common.responses.RedirectResponse;
+import com.zenz.kvstore.common.responses.*;
 import com.zenz.kvstore.server.KVMap;
 import com.zenz.kvstore.server.KVStore;
 import com.zenz.kvstore.server.raft.*;
@@ -41,7 +39,7 @@ public class RaftCommandHandler implements BaseCommandHandler {
                 if (commandType.equals(CommandType.GET)) {
                     GetCommand comm = (GetCommand) command;
                     KVMap.Node node = store.get(comm.key());
-                    return ByteBuffer.wrap(new GetResponse(node.value).serialize());
+                    return ByteBuffer.wrap(new GetResponse(node.value()).serialize());
                 }
 
                 CompletableFuture<Boolean> fut = new CompletableFuture<Boolean>();
@@ -52,6 +50,10 @@ public class RaftCommandHandler implements BaseCommandHandler {
                     PutCommand comm = (PutCommand) command;
                     store.put(comm.key(), comm.value());
                     return ByteBuffer.wrap(new PutResponse().serialize());
+                } else if (commandType.equals(CommandType.DELETE)) {
+                    DeleteCommand comm = (DeleteCommand) command;
+                    boolean success = store.delete(comm.key());
+                    return ByteBuffer.wrap(new DeleteResponse(success).serialize());
                 }
 
                 return ByteBuffer.wrap(new ErrorResponse(ErrorType.UNSUPPORTED_OPERATION, null).serialize());

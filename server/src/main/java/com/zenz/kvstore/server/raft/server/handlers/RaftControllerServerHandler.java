@@ -52,6 +52,9 @@ public class RaftControllerServerHandler implements SocketHandler {
         loadLogs();
     }
 
+    /**
+     * Broadcasts a command to followers if present.
+     */
     @Override
     public void handleWakeUp() {
         final String debugPrefix = DEBUG_PREFIX + "[handleWakeUp] ";
@@ -172,16 +175,12 @@ public class RaftControllerServerHandler implements SocketHandler {
      * @param command
      */
     public void handleCommand(Command command, CompletableFuture<Boolean> fut) {
-        final String debugPrefix = DEBUG_PREFIX + "[handleCommand][public] ";
-
         CommandTask task = new CommandTask(command, fut);
         commandTasks.add(task);
         selector.wakeup();
     }
 
     private void handleCommand(CommandTask task) {
-        final String debugPrefix = DEBUG_PREFIX + "[handleCommand][private]";
-
         // Forming the request
         long currentLogId = logHandler.getLogId();
         ArrayList<RaftLogHandler.Log> entries = new ArrayList<>();
@@ -203,11 +202,9 @@ public class RaftControllerServerHandler implements SocketHandler {
                 queueWrite(channel, ByteBuffer.wrap(requestBytes));
             }
         }
-
         task.logId = entry.id();
         task.majority = count / 2 + 1;
     }
-
 
     private ByteBuffer handleEntryRequest(ClientSession session, RequestEntry request) throws IOException {
         long currentLogId = logHandler.getLogId();
@@ -337,7 +334,6 @@ public class RaftControllerServerHandler implements SocketHandler {
     }
 
     private ByteBuffer handleAppendEntryResponse(ClientSession session, AppendEntryResponse response) {
-        final String debugPrefix = DEBUG_PREFIX + "[handleAppendEntryResponse] ";
         session.setLogId(response.id());
         session.setTerm(response.term());
 
@@ -345,6 +341,7 @@ public class RaftControllerServerHandler implements SocketHandler {
             // If true, we're currently looking to replicate a command across
             // the majority of the cluster.
             curCommandTask.count++;
+
             if (curCommandTask.count >= curCommandTask.majority) {
                 followers.clear();
                 curCommandTask.fut.complete(true);
@@ -508,6 +505,17 @@ public class RaftControllerServerHandler implements SocketHandler {
             this.logId = logId;
             this.majority = majority;
             this.count = count;
+        }
+
+        @Override
+        public String toString() {
+            return "CommandTask{" +
+                    "command=" + command +
+                    ", fut=" + fut +
+                    ", logId=" + logId +
+                    ", majority=" + majority +
+                    ", count=" + count +
+                    '}';
         }
     }
 }

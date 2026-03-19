@@ -1,5 +1,6 @@
 package com.zenz.kvstore.server.restorers;
 
+import com.zenz.kvstore.common.commands.DeleteCommand;
 import com.zenz.kvstore.common.enums.CommandType;
 import com.zenz.kvstore.common.commands.Command;
 import com.zenz.kvstore.common.commands.PutCommand;
@@ -63,6 +64,9 @@ public class Restorer implements BaseRestorer {
             if (command.type().equals(CommandType.PUT)) {
                 PutCommand comm = (PutCommand) command;
                 store.put(comm.key(), comm.value());
+            } else if (command.type().equals(CommandType.DELETE)) {
+                DeleteCommand comm = (DeleteCommand) command;
+                store.delete(comm.key());
             }
         }
     }

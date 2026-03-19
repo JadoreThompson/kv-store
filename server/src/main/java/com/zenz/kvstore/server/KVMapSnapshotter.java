@@ -39,44 +39,33 @@ public class KVMapSnapshotter {
     }
 
     public void writeNodes(FileChannel channel, KVMap map) throws IOException {
-        KVArray arr = map.getHt2();
-        if (arr != null) {
-            for (int i = 0; i < arr.length(); i++) {
-                KVMap.NodeList nodeList = arr.get(i);
-                if (nodeList != null) {
-                    KVMap.Node node = nodeList.head;
-                    while (node != null) {
-                        serializeNode(channel, node);
-                        node = node.next;
-                    }
+        KVMap.KVArray arr;
+        if (map.isRehashing()) {
+            arr = map.getHt2();
+            for (KVMap.NodeList nl : arr) {
+                for (KVMap.Node n : nl) {
+                    serializeNode(channel, n);
                 }
             }
         }
 
         arr = map.getHt1();
-        if (arr != null) {
-            for (int i = 0; i < arr.length(); i++) {
-                KVMap.NodeList nodeList = arr.get(i);
-                if (nodeList != null) {
-                    KVMap.Node node = nodeList.head;
-                    while (node != null) {
-                        serializeNode(channel, node);
-                        node = node.next;
-                    }
-                }
+        for (KVMap.NodeList nl : arr) {
+            for (KVMap.Node n : nl) {
+                serializeNode(channel, n);
             }
         }
     }
 
     private void serializeNode(FileChannel channel, KVMap.Node node) throws IOException {
-        byte[] keyBytes = node.key.getBytes(StandardCharsets.UTF_8);
-        ByteBuffer buffer = ByteBuffer.allocate(4 + 4 + keyBytes.length + 4 + node.value.length + 1);
+        byte[] keyBytes = node.key().getBytes(StandardCharsets.UTF_8);
+        ByteBuffer buffer = ByteBuffer.allocate(4 + 4 + keyBytes.length + 4 + node.value().length + 1);
 
         buffer.putInt(buffer.capacity());
         buffer.putInt(keyBytes.length);
         buffer.put(keyBytes);
-        buffer.putInt(node.value.length);
-        buffer.put(node.value);
+        buffer.putInt(node.value().length);
+        buffer.put(node.value());
         buffer.put(ByteBuffer.wrap("\n".getBytes(StandardCharsets.UTF_8)));
 
         buffer.flip();

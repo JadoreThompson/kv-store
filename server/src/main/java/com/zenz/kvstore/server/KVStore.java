@@ -1,5 +1,6 @@
 package com.zenz.kvstore.server;
 
+import com.zenz.kvstore.common.commands.DeleteCommand;
 import com.zenz.kvstore.common.commands.PutCommand;
 import com.zenz.kvstore.server.logging.WALogger;
 import com.zenz.kvstore.server.logging.handlers.BaseLogHandler;
@@ -41,11 +42,14 @@ public class KVStore {
     }
 
     public KVMap.Node get(String key) throws IOException {
-        logCount++;
+        return map.get(key);
+    }
 
+    public boolean delete(String key) throws IOException {
+        logCount++;
+        logHandler.log(new DeleteCommand(key));
         snapshot();
-        KVMap.Node result = map.get(key);
-        return result;
+        return map.remove(key);
     }
 
     private void snapshot() throws IOException {
