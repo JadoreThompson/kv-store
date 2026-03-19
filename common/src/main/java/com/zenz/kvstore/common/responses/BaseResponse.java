@@ -20,6 +20,9 @@ public interface BaseResponse {
         if (type.equals(ResponseType.GET_RESPONSE)) {
             return GetResponse.deserialize(buffer);
         }
+        if (type.equals(ResponseType.DELETE_RESPONSE)) {
+            return DeleteResponse.deserialize(buffer);
+        }
         if (type.equals(ResponseType.REDIRECT_RESPONSE)) {
             return RedirectResponse.deserialize(buffer);
         }

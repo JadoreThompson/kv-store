@@ -4,7 +4,8 @@ public enum ResponseType {
     PUT_RESPONSE(1),
     GET_RESPONSE(2),
     REDIRECT_RESPONSE(3),
-    ERROR_RESPONSE(4);
+    ERROR_RESPONSE(4),
+    DELETE_RESPONSE(5);
 
     private final int value;
 

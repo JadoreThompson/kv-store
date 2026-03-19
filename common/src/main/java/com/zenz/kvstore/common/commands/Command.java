@@ -20,6 +20,7 @@ public interface Command {
 
         if (type.equals(CommandType.PUT)) return PutCommand.deserialize(bytes);
         if (type.equals(CommandType.GET)) return GetCommand.deserialize(bytes);
+        if (type.equals(CommandType.DELETE)) return DeleteCommand.deserialize(bytes);
 
         throw new IllegalArgumentException("Unknown command errorType: " + typeValue);
     }
