@@ -1,6 +1,5 @@
-package main.java.com.zenz.kvstore.server;
+package com.zenz.kvstore.server;
 
-import com.zenz.kvstore.server.*;
 import com.zenz.kvstore.server.logging.WALogger;
 import com.zenz.kvstore.server.logging.handlers.RaftLogHandler;
 import com.zenz.kvstore.server.raft.*;

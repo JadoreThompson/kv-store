@@ -1,4 +1,4 @@
-package main.java.com.zenz.kvstore.server;
+package com.zenz.kvstore.server;
 
 import com.zenz.kvstore.server.KVMapSnapshotter;
 import com.zenz.kvstore.server.KVStore;
@@ -6,6 +6,7 @@ import com.zenz.kvstore.server.logging.WALogger;
 import com.zenz.kvstore.server.command.handlers.RaftCommandHandler;
 import com.zenz.kvstore.common.commands.PutCommand;
 import com.zenz.kvstore.common.commands.GetCommand;
+import com.zenz.kvstore.common.commands.DeleteCommand;
 import com.zenz.kvstore.server.logging.handlers.RaftLogHandler;
 import com.zenz.kvstore.server.raft.NodeState;
 import com.zenz.kvstore.server.raft.server.handlers.RaftControllerServerHandler;
@@ -614,5 +615,532 @@ class RaftCommandHandlerTest {
         RedirectResponse redirectResponse = (RedirectResponse) response;
         assertEquals(expectedClientAddress, redirectResponse.address(),
                 "Redirect should contain the exact controller client-facing server address");
+    }
+
+    // --- DELETE Unit Tests ---
+
+    /**
+     * Delete command in BROKER state returns redirect to controller.
+     * When a client sends a DELETE to a broker, it should be redirected.
+     */
+    @Test
+    @DisplayName("DELETE command in BROKER state returns redirect")
+    void deleteCommand_brokerState_returnsRedirect() throws Exception {
+        stopManager();
+        Thread.sleep(500);
+
+        int brokerPort = TEST_PORT + 20;
+        int controllerClientPort = TEST_PORT + 21;
+        InetSocketAddress controllerClientAddress = new InetSocketAddress(TEST_HOST, controllerClientPort);
+
+        nodes = new ArrayList<>();
+        nodes.add(new RaftNode(0, new InetSocketAddress(TEST_HOST, brokerPort),
+                controllerClientAddress, NodeState.BROKER));
+        nodes.add(new RaftNode(1, new InetSocketAddress(TEST_HOST, TEST_PORT + 22),
+                controllerClientAddress, NodeState.CONTROLLER));
+
+        manager = new RaftManager(0, nodes, kvStore);
+        managerThread = new Thread(() -> {
+            try {
+                manager.start();
+            } catch (Exception e) {
+                System.out.println("An error occurred within the server thread:");
+                e.printStackTrace();
+            }
+        });
+        managerThread.start();
+        Thread.sleep(500);
+
+        assertEquals(NodeState.BROKER, manager.getState(), "Manager should be in BROKER state");
+
+        RaftCommandHandler brokerHandler = new RaftCommandHandler(kvStore, manager);
+
+        DeleteCommand command = new DeleteCommand("deleteKey");
+        ByteBuffer responseBuffer = brokerHandler.handleCommand(null, command);
+
+        assertNotNull(responseBuffer, "Response should not be null");
+
+        BaseResponse response = BaseResponse.deserialize(responseBuffer);
+        assertTrue(response instanceof RedirectResponse, "Response should be a RedirectResponse for DELETE in BROKER state");
+    }
+
+    /**
+     * Delete command in CANDIDATE state returns IN_ELECTION error.
+     * When a node is in CANDIDATE state, DELETE should return an error.
+     */
+    @Test
+    @DisplayName("DELETE command in CANDIDATE state returns IN_ELECTION error")
+    void deleteCommand_candidateState_returnsInElectionError() throws Exception {
+        Field stateField = RaftManager.class.getDeclaredField("state");
+        stateField.setAccessible(true);
+        stateField.set(manager, NodeState.CANDIDATE);
+
+        assertEquals(NodeState.CANDIDATE, manager.getState(), "Manager should be in CANDIDATE state");
+
+        RaftCommandHandler candidateHandler = new RaftCommandHandler(kvStore, manager);
+
+        DeleteCommand command = new DeleteCommand("deleteKey");
+        ByteBuffer responseBuffer = candidateHandler.handleCommand(null, command);
+
+        assertNotNull(responseBuffer, "Response should not be null");
+
+        BaseResponse response = BaseResponse.deserialize(responseBuffer);
+        assertTrue(response instanceof ErrorResponse, "Response should be an ErrorResponse");
+
+        ErrorResponse errorResponse = (ErrorResponse) response;
+        assertEquals(ErrorType.IN_ELECTION, errorResponse.errorType(),
+                "Error type should be IN_ELECTION for DELETE in CANDIDATE state");
+    }
+
+    /**
+     * Delete command with special characters in key is handled correctly.
+     * Tests that DELETE handles keys with special characters.
+     */
+    @Test
+    @DisplayName("DELETE command with special characters in key - handled correctly")
+    void deleteCommand_specialCharactersKey_handledCorrectly() throws Exception {
+        stopManager();
+        Thread.sleep(500);
+
+        int brokerPort = TEST_PORT + 23;
+        int controllerClientPort = TEST_PORT + 24;
+        InetSocketAddress controllerClientAddress = new InetSocketAddress(TEST_HOST, controllerClientPort);
+
+        nodes = new ArrayList<>();
+        nodes.add(new RaftNode(0, new InetSocketAddress(TEST_HOST, brokerPort),
+                controllerClientAddress, NodeState.BROKER));
+        nodes.add(new RaftNode(1, new InetSocketAddress(TEST_HOST, TEST_PORT + 25),
+                controllerClientAddress, NodeState.CONTROLLER));
+
+        manager = new RaftManager(0, nodes, kvStore);
+        managerThread = new Thread(() -> {
+            try {
+                manager.start();
+            } catch (Exception e) {
+                System.out.println("An error occurred within the server thread:");
+                e.printStackTrace();
+            }
+        });
+        managerThread.start();
+        Thread.sleep(500);
+
+        RaftCommandHandler brokerHandler = new RaftCommandHandler(kvStore, manager);
+
+        String specialKey = "key-with_special.chars:123!@#$%";
+        DeleteCommand command = new DeleteCommand(specialKey);
+        ByteBuffer responseBuffer = brokerHandler.handleCommand(null, command);
+
+        assertNotNull(responseBuffer, "Response should not be null");
+
+        BaseResponse response = BaseResponse.deserialize(responseBuffer);
+        assertTrue(response instanceof RedirectResponse, "Response should be a RedirectResponse");
+    }
+
+    /**
+     * Delete command with unicode key is handled correctly.
+     * Tests that DELETE handles keys with unicode characters.
+     */
+    @Test
+    @DisplayName("DELETE command with unicode key - handled correctly")
+    void deleteCommand_unicodeKey_handledCorrectly() throws Exception {
+        stopManager();
+        Thread.sleep(500);
+
+        int brokerPort = TEST_PORT + 26;
+        int controllerClientPort = TEST_PORT + 27;
+        InetSocketAddress controllerClientAddress = new InetSocketAddress(TEST_HOST, controllerClientPort);
+
+        nodes = new ArrayList<>();
+        nodes.add(new RaftNode(0, new InetSocketAddress(TEST_HOST, brokerPort),
+                controllerClientAddress, NodeState.BROKER));
+        nodes.add(new RaftNode(1, new InetSocketAddress(TEST_HOST, TEST_PORT + 28),
+                controllerClientAddress, NodeState.CONTROLLER));
+
+        manager = new RaftManager(0, nodes, kvStore);
+        managerThread = new Thread(() -> {
+            try {
+                manager.start();
+            } catch (Exception e) {
+                System.out.println("An error occurred within the server thread:");
+                e.printStackTrace();
+            }
+        });
+        managerThread.start();
+        Thread.sleep(500);
+
+        RaftCommandHandler brokerHandler = new RaftCommandHandler(kvStore, manager);
+
+        String unicodeKey = "削除キー🔑";
+        DeleteCommand command = new DeleteCommand(unicodeKey);
+        ByteBuffer responseBuffer = brokerHandler.handleCommand(null, command);
+
+        assertNotNull(responseBuffer, "Response should not be null");
+
+        BaseResponse response = BaseResponse.deserialize(responseBuffer);
+        assertTrue(response instanceof RedirectResponse, "Response should be a RedirectResponse");
+    }
+
+    /**
+     * Delete command with empty key is handled correctly.
+     * Tests edge case of DELETE with empty key.
+     */
+    @Test
+    @DisplayName("DELETE command with empty key - handled correctly")
+    void deleteCommand_emptyKey_handledCorrectly() throws Exception {
+        stopManager();
+        Thread.sleep(500);
+
+        int brokerPort = TEST_PORT + 29;
+        int controllerClientPort = TEST_PORT + 30;
+        InetSocketAddress controllerClientAddress = new InetSocketAddress(TEST_HOST, controllerClientPort);
+
+        nodes = new ArrayList<>();
+        nodes.add(new RaftNode(0, new InetSocketAddress(TEST_HOST, brokerPort),
+                controllerClientAddress, NodeState.BROKER));
+        nodes.add(new RaftNode(1, new InetSocketAddress(TEST_HOST, TEST_PORT + 31),
+                controllerClientAddress, NodeState.CONTROLLER));
+
+        manager = new RaftManager(0, nodes, kvStore);
+        managerThread = new Thread(() -> {
+            try {
+                manager.start();
+            } catch (Exception e) {
+                System.out.println("An error occurred within the server thread:");
+                e.printStackTrace();
+            }
+        });
+        managerThread.start();
+        Thread.sleep(500);
+
+        RaftCommandHandler brokerHandler = new RaftCommandHandler(kvStore, manager);
+
+        DeleteCommand command = new DeleteCommand("");
+        ByteBuffer responseBuffer = brokerHandler.handleCommand(null, command);
+
+        assertNotNull(responseBuffer, "Response should not be null");
+
+        BaseResponse response = BaseResponse.deserialize(responseBuffer);
+        assertTrue(response instanceof RedirectResponse, "Response should be a RedirectResponse");
+    }
+
+    // --- DELETE Integration Tests ---
+
+    /**
+     * Delete command completes when majority of nodes respond.
+     * Tests the full flow of DELETE command with consensus.
+     */
+    @Test
+    @DisplayName("DELETE command with majority consensus - completes successfully")
+    void deleteCommand_majorityConsensus_completesSuccessfully() throws Exception {
+        logHandler.setTerm(1);
+
+        stopManager();
+        startManager();
+        Thread.sleep(500);
+
+        // First, store a value to delete
+        kvStore.put("deleteKey", "deleteValue".getBytes(StandardCharsets.UTF_8));
+        assertNotNull(kvStore.get("deleteKey"), "Key should exist before delete");
+
+        SocketChannel client1 = connectClient();
+        SocketChannel client2 = connectClient();
+
+        syncFollower(client1);
+        syncFollower(client2);
+
+        DeleteCommand command = new DeleteCommand("deleteKey");
+        CompletableFuture<Boolean> fut = new CompletableFuture<>();
+
+        Thread commandThread = new Thread(() -> {
+            manager.getControllerServerHandler().handleCommand(command, fut);
+        });
+        commandThread.start();
+
+        Thread.sleep(500);
+
+        // Respond from majority
+        sendMessage(client1, new AppendEntryResponse(2, 1, true));
+        sendMessage(client2, new AppendEntryResponse(2, 1, true));
+
+        boolean completed = fut.get(2, TimeUnit.SECONDS);
+        assertTrue(completed, "DELETE command should complete with majority");
+
+        commandThread.join(1000);
+
+        client1.close();
+        client2.close();
+    }
+
+    /**
+     * Delete command with slow nodes eventually completes.
+     * Tests DELETE with delayed responses from followers.
+     */
+    @Test
+    @DisplayName("DELETE command with slow nodes - completes after delay")
+    void deleteCommand_slowNodes_completesAfterDelay() throws Exception {
+        logHandler.setTerm(1);
+
+        stopManager();
+        startManager();
+        Thread.sleep(500);
+
+        kvStore.put("slowDeleteKey", "value".getBytes(StandardCharsets.UTF_8));
+
+        SocketChannel client1 = connectClient();
+        SocketChannel client2 = connectClient();
+        SocketChannel client3 = connectClient();
+
+        syncFollower(client1);
+        syncFollower(client2);
+        syncFollower(client3);
+
+        DeleteCommand command = new DeleteCommand("slowDeleteKey");
+        CompletableFuture<Boolean> fut = new CompletableFuture<>();
+
+        Thread commandThread = new Thread(() -> {
+            manager.getControllerServerHandler().handleCommand(command, fut);
+        });
+        commandThread.start();
+
+        Thread.sleep(100);
+
+        // Slow responses
+        Thread.sleep(300);
+        sendMessage(client1, new AppendEntryResponse(2, 1, true));
+
+        Thread.sleep(300);
+        sendMessage(client2, new AppendEntryResponse(2, 1, true));
+
+        boolean completed = fut.get(3, TimeUnit.SECONDS);
+        assertTrue(completed, "DELETE should complete even with slow nodes");
+
+        commandThread.join(1000);
+
+        client1.close();
+        client2.close();
+        client3.close();
+    }
+
+    /**
+     * Multiple sequential DELETE commands all complete.
+     * Tests handling of multiple DELETE commands in sequence.
+     */
+    @Test
+    @DisplayName("Multiple sequential DELETE commands - all complete")
+    void deleteCommand_multipleSequential_allComplete() throws Exception {
+        logHandler.setTerm(1);
+
+        stopManager();
+        startManager();
+        Thread.sleep(500);
+
+        // Store multiple keys
+        kvStore.put("del1", "value1".getBytes(StandardCharsets.UTF_8));
+        kvStore.put("del2", "value2".getBytes(StandardCharsets.UTF_8));
+        kvStore.put("del3", "value3".getBytes(StandardCharsets.UTF_8));
+
+        SocketChannel client1 = connectClient();
+        SocketChannel client2 = connectClient();
+
+        syncFollower(client1);
+        syncFollower(client2);
+
+        // First DELETE
+        DeleteCommand command1 = new DeleteCommand("del1");
+        CompletableFuture<Boolean> fut1 = new CompletableFuture<>();
+        manager.getControllerServerHandler().handleCommand(command1, fut1);
+
+        Thread.sleep(500);
+
+        sendMessage(client1, new AppendEntryResponse(4, 1, true));
+        sendMessage(client2, new AppendEntryResponse(4, 1, true));
+
+        assertTrue(fut1.get(2, TimeUnit.SECONDS), "First DELETE should complete");
+        kvStore.delete("del1");
+
+        // Second DELETE
+        DeleteCommand command2 = new DeleteCommand("del2");
+        CompletableFuture<Boolean> fut2 = new CompletableFuture<>();
+        manager.getControllerServerHandler().handleCommand(command2, fut2);
+
+        Thread.sleep(500);
+
+        sendMessage(client1, new AppendEntryResponse(5, 1, true));
+        sendMessage(client2, new AppendEntryResponse(5, 1, true));
+
+        assertTrue(fut2.get(2, TimeUnit.SECONDS), "Second DELETE should complete");
+        kvStore.delete("del2");
+
+        // Third DELETE
+        DeleteCommand command3 = new DeleteCommand("del3");
+        CompletableFuture<Boolean> fut3 = new CompletableFuture<>();
+        manager.getControllerServerHandler().handleCommand(command3, fut3);
+
+        Thread.sleep(500);
+
+        sendMessage(client1, new AppendEntryResponse(6, 1, true));
+        sendMessage(client2, new AppendEntryResponse(6, 1, true));
+
+        assertTrue(fut3.get(2, TimeUnit.SECONDS), "Third DELETE should complete");
+        kvStore.delete("del3");
+
+        client1.close();
+        client2.close();
+    }
+
+    /**
+     * DELETE command completes at minimum majority threshold.
+     * Tests edge case where DELETE completes exactly at majority.
+     */
+    @Test
+    @DisplayName("DELETE command at minimum majority - completes at threshold")
+    void deleteCommand_minimumMajority_completesAtThreshold() throws Exception {
+        logHandler.setTerm(1);
+
+        stopManager();
+        startManager();
+        Thread.sleep(500);
+
+        kvStore.put("majorityDeleteKey", "value".getBytes(StandardCharsets.UTF_8));
+
+        // Connect 5 followers (majority = 3)
+        SocketChannel client1 = connectClient();
+        SocketChannel client2 = connectClient();
+        SocketChannel client3 = connectClient();
+        SocketChannel client4 = connectClient();
+        SocketChannel client5 = connectClient();
+
+        syncFollower(client1);
+        syncFollower(client2);
+        syncFollower(client3);
+        syncFollower(client4);
+        syncFollower(client5);
+
+        DeleteCommand command = new DeleteCommand("majorityDeleteKey");
+        CompletableFuture<Boolean> fut = new CompletableFuture<>();
+
+        Thread commandThread = new Thread(() -> {
+            manager.getControllerServerHandler().handleCommand(command, fut);
+        });
+        commandThread.start();
+
+        Thread.sleep(100);
+
+        // Only 2 responses - not yet majority
+        sendMessage(client1, new AppendEntryResponse(2, 1, true));
+        sendMessage(client2, new AppendEntryResponse(2, 1, true));
+
+        Thread.sleep(200);
+        assertFalse(fut.isDone(), "DELETE should not complete before majority");
+
+        // Third response - now majority
+        sendMessage(client3, new AppendEntryResponse(2, 1, true));
+
+        boolean completed = fut.get(2, TimeUnit.SECONDS);
+        assertTrue(completed, "DELETE should complete exactly at majority threshold");
+
+        commandThread.join(1000);
+
+        client1.close();
+        client2.close();
+        client3.close();
+        client4.close();
+        client5.close();
+    }
+
+    /**
+     * DELETE non-existent key completes successfully.
+     * Tests that DELETE for non-existent key doesn't cause errors.
+     */
+    @Test
+    @DisplayName("DELETE non-existent key - completes successfully")
+    void deleteCommand_nonExistentKey_completesSuccessfully() throws Exception {
+        logHandler.setTerm(1);
+
+        stopManager();
+        startManager();
+        Thread.sleep(500);
+
+        // Ensure key doesn't exist
+        assertNull(kvStore.get("nonExistentDeleteKey"), "Key should not exist");
+
+        SocketChannel client1 = connectClient();
+        SocketChannel client2 = connectClient();
+
+        syncFollower(client1);
+        syncFollower(client2);
+
+        DeleteCommand command = new DeleteCommand("nonExistentDeleteKey");
+        CompletableFuture<Boolean> fut = new CompletableFuture<>();
+
+        Thread commandThread = new Thread(() -> {
+            manager.getControllerServerHandler().handleCommand(command, fut);
+        });
+        commandThread.start();
+
+        Thread.sleep(500);
+
+        sendMessage(client1, new AppendEntryResponse(1, 1, true));
+        sendMessage(client2, new AppendEntryResponse(1, 1, true));
+
+        boolean completed = fut.get(2, TimeUnit.SECONDS);
+        assertTrue(completed, "DELETE for non-existent key should complete");
+
+        commandThread.join(1000);
+
+        client1.close();
+        client2.close();
+    }
+
+    /**
+     * Mixed PUT and DELETE commands in sequence.
+     * Tests handling of interleaved PUT and DELETE operations.
+     */
+    @Test
+    @DisplayName("Mixed PUT and DELETE commands - all complete")
+    void mixedCommands_putAndDelete_allComplete() throws Exception {
+        logHandler.setTerm(1);
+
+        stopManager();
+        startManager();
+        Thread.sleep(500);
+
+        SocketChannel client1 = connectClient();
+        SocketChannel client2 = connectClient();
+
+        syncFollower(client1);
+        syncFollower(client2);
+
+        // PUT command
+        PutCommand putCommand = new PutCommand("mixedKey", "mixedValue".getBytes(StandardCharsets.UTF_8));
+        CompletableFuture<Boolean> putFut = new CompletableFuture<>();
+        manager.getControllerServerHandler().handleCommand(putCommand, putFut);
+
+        Thread.sleep(500);
+
+        sendMessage(client1, new AppendEntryResponse(1, 1, true));
+        sendMessage(client2, new AppendEntryResponse(1, 1, true));
+
+        assertTrue(putFut.get(2, TimeUnit.SECONDS), "PUT should complete");
+        kvStore.put(putCommand.key(), putCommand.value());
+
+        // DELETE command
+        DeleteCommand deleteCommand = new DeleteCommand("mixedKey");
+        CompletableFuture<Boolean> deleteFut = new CompletableFuture<>();
+        manager.getControllerServerHandler().handleCommand(deleteCommand, deleteFut);
+
+        Thread.sleep(500);
+
+        sendMessage(client1, new AppendEntryResponse(2, 1, true));
+        sendMessage(client2, new AppendEntryResponse(2, 1, true));
+
+        assertTrue(deleteFut.get(2, TimeUnit.SECONDS), "DELETE should complete");
+        kvStore.delete("mixedKey");
+
+        // Verify key is deleted
+        assertNull(kvStore.get("mixedKey"), "Key should be deleted");
+
+        client1.close();
+        client2.close();
     }
 }
