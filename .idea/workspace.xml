@@ -4,26 +4,10 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="113ca11e-a295-4741-aad7-90962967a262" name="Changes" comment="Removed unused properties and code from RaftControllerServerHandler">
-      <change beforePath="$PROJECT_DIR$/server/src/main/java/com/zenz/kvstore/server/KVStore.java" beforeDir="false" afterPath="$PROJECT_DIR$/server/src/main/java/com/zenz/kvstore/server/KVStore.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/server/src/main/java/com/zenz/kvstore/server/Main.java" beforeDir="false" afterPath="$PROJECT_DIR$/server/src/main/java/com/zenz/kvstore/server/Main.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/server/src/main/java/com/zenz/kvstore/server/WALogger.java" beforeDir="false" afterPath="$PROJECT_DIR$/server/src/main/java/com/zenz/kvstore/server/logging/WALogger.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/server/src/main/java/com/zenz/kvstore/server/logHandlers/BaseLog.java" beforeDir="false" afterPath="$PROJECT_DIR$/server/src/main/java/com/zenz/kvstore/server/logging/handlers/BaseLog.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/server/src/main/java/com/zenz/kvstore/server/logHandlers/BaseLogHandler.java" beforeDir="false" afterPath="$PROJECT_DIR$/server/src/main/java/com/zenz/kvstore/server/logging/handlers/BaseLogHandler.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/server/src/main/java/com/zenz/kvstore/server/logHandlers/LogHandler.java" beforeDir="false" afterPath="$PROJECT_DIR$/server/src/main/java/com/zenz/kvstore/server/logging/handlers/LogHandler.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/server/src/main/java/com/zenz/kvstore/server/logHandlers/RaftLogHandler.java" beforeDir="false" afterPath="$PROJECT_DIR$/server/src/main/java/com/zenz/kvstore/server/logging/handlers/RaftLogHandler.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/server/src/main/java/com/zenz/kvstore/server/raft/RaftControllerClient.java" beforeDir="false" afterPath="$PROJECT_DIR$/server/src/main/java/com/zenz/kvstore/server/raft/RaftControllerClient.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/server/src/main/java/com/zenz/kvstore/server/raft/RaftControllerServerHandler.java" beforeDir="false" afterPath="$PROJECT_DIR$/server/src/main/java/com/zenz/kvstore/server/raft/RaftControllerServerHandler.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/server/src/main/java/com/zenz/kvstore/server/raft/RaftManager.java" beforeDir="false" afterPath="$PROJECT_DIR$/server/src/main/java/com/zenz/kvstore/server/raft/RaftManager.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/server/src/main/java/com/zenz/kvstore/server/raft/messages/AppendEntry.java" beforeDir="false" afterPath="$PROJECT_DIR$/server/src/main/java/com/zenz/kvstore/server/raft/messages/AppendEntry.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/server/src/main/java/com/zenz/kvstore/server/restorers/RaftRestorer.java" beforeDir="false" afterPath="$PROJECT_DIR$/server/src/main/java/com/zenz/kvstore/server/restorers/RaftRestorer.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/server/src/main/java/com/zenz/kvstore/server/restorers/Restorer.java" beforeDir="false" afterPath="$PROJECT_DIR$/server/src/main/java/com/zenz/kvstore/server/restorers/Restorer.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/server/src/test/java/main/java/com/zenz/kvstore/server/KVServerTest.java" beforeDir="false" afterPath="$PROJECT_DIR$/server/src/test/java/main/java/com/zenz/kvstore/server/KVServerTest.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/server/src/test/java/main/java/com/zenz/kvstore/server/KVStoreTest.java" beforeDir="false" afterPath="$PROJECT_DIR$/server/src/test/java/main/java/com/zenz/kvstore/server/KVStoreTest.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/server/src/test/java/main/java/com/zenz/kvstore/server/LeaderElectionTest.java" beforeDir="false" afterPath="$PROJECT_DIR$/server/src/test/java/main/java/com/zenz/kvstore/server/LeaderElectionTest.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/server/src/test/java/main/java/com/zenz/kvstore/server/RaftCommandHandlerTest.java" beforeDir="false" afterPath="$PROJECT_DIR$/server/src/test/java/main/java/com/zenz/kvstore/server/RaftCommandHandlerTest.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/server/src/test/java/main/java/com/zenz/kvstore/server/RaftControllerTest.java" beforeDir="false" afterPath="$PROJECT_DIR$/server/src/test/java/main/java/com/zenz/kvstore/server/RaftControllerTest.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/server/src/test/java/main/java/com/zenz/kvstore/server/RestorerTest.java" beforeDir="false" afterPath="$PROJECT_DIR$/server/src/test/java/main/java/com/zenz/kvstore/server/RestorerTest.java" afterDir="false" />
+    <list default="true" id="113ca11e-a295-4741-aad7-90962967a262" name="Changes" comment="Finalised properties in RaftControllerClient">
+      <change afterPath="$PROJECT_DIR$/common/src/main/java/com/zenz/kvstore/common/commands/DeleteCommand.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/common/src/main/java/com/zenz/kvstore/common/enums/CommandType.java" beforeDir="false" afterPath="$PROJECT_DIR$/common/src/main/java/com/zenz/kvstore/common/enums/CommandType.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -89,38 +73,38 @@
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent">{
-  &quot;keyToString&quot;: {
-    &quot;Application.Main.executor&quot;: &quot;Debug&quot;,
-    &quot;Application.com.zenz.Main.executor&quot;: &quot;Run&quot;,
-    &quot;Docker.Dockerfile builder.executor&quot;: &quot;Run&quot;,
-    &quot;JUnit.RaftCommandHandlerTest.executor&quot;: &quot;Debug&quot;,
-    &quot;Maven.kv-store [compile].executor&quot;: &quot;Run&quot;,
-    &quot;ModuleVcsDetector.initialDetectionPerformed&quot;: &quot;true&quot;,
-    &quot;RunOnceActivity.MCP Project settings loaded&quot;: &quot;true&quot;,
-    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
-    &quot;RunOnceActivity.TerminalTabsStorage.copyFrom.TerminalArrangementManager.252&quot;: &quot;true&quot;,
-    &quot;RunOnceActivity.git.unshallow&quot;: &quot;true&quot;,
-    &quot;RunOnceActivity.typescript.service.memoryLimit.init&quot;: &quot;true&quot;,
-    &quot;com.intellij.ml.llm.matterhorn.ej.ui.settings.DefaultModelSelectionForGA.v1&quot;: &quot;true&quot;,
-    &quot;git-widget-placeholder&quot;: &quot;main&quot;,
-    &quot;junie.onboarding.icon.badge.shown&quot;: &quot;true&quot;,
-    &quot;kotlin-language-version-configured&quot;: &quot;true&quot;,
-    &quot;last_opened_file_path&quot;: &quot;C:/Users/ADMIN/MyProjects/kv-store/server/common&quot;,
-    &quot;node.js.detected.package.eslint&quot;: &quot;true&quot;,
-    &quot;node.js.detected.package.tslint&quot;: &quot;true&quot;,
-    &quot;node.js.selected.package.eslint&quot;: &quot;(autodetect)&quot;,
-    &quot;node.js.selected.package.tslint&quot;: &quot;(autodetect)&quot;,
-    &quot;nodejs_package_manager_path&quot;: &quot;npm&quot;,
-    &quot;onboarding.tips.debug.path&quot;: &quot;C:/Users/ADMIN/MyProjects/kvstore/client/src/main/java/com/zenz/Main.java&quot;,
-    &quot;project.structure.last.edited&quot;: &quot;Modules&quot;,
-    &quot;project.structure.proportion&quot;: &quot;0.0&quot;,
-    &quot;project.structure.side.proportion&quot;: &quot;0.0&quot;,
-    &quot;settings.editor.selected.configurable&quot;: &quot;actions.on.save&quot;,
-    &quot;to.speed.mode.migration.done&quot;: &quot;true&quot;,
-    &quot;vue.rearranger.settings.migration&quot;: &quot;true&quot;
+  <component name="PropertiesComponent"><![CDATA[{
+  "keyToString": {
+    "Application.Main.executor": "Debug",
+    "Application.com.zenz.Main.executor": "Run",
+    "Docker.Dockerfile builder.executor": "Run",
+    "JUnit.RaftCommandHandlerTest.executor": "Debug",
+    "Maven.kv-store [compile].executor": "Run",
+    "ModuleVcsDetector.initialDetectionPerformed": "true",
+    "RunOnceActivity.MCP Project settings loaded": "true",
+    "RunOnceActivity.ShowReadmeOnStart": "true",
+    "RunOnceActivity.TerminalTabsStorage.copyFrom.TerminalArrangementManager.252": "true",
+    "RunOnceActivity.git.unshallow": "true",
+    "RunOnceActivity.typescript.service.memoryLimit.init": "true",
+    "com.intellij.ml.llm.matterhorn.ej.ui.settings.DefaultModelSelectionForGA.v1": "true",
+    "git-widget-placeholder": "feature/delete-command",
+    "junie.onboarding.icon.badge.shown": "true",
+    "kotlin-language-version-configured": "true",
+    "last_opened_file_path": "C:/Users/ADMIN/MyProjects/kv-store/server/common",
+    "node.js.detected.package.eslint": "true",
+    "node.js.detected.package.tslint": "true",
+    "node.js.selected.package.eslint": "(autodetect)",
+    "node.js.selected.package.tslint": "(autodetect)",
+    "nodejs_package_manager_path": "npm",
+    "onboarding.tips.debug.path": "C:/Users/ADMIN/MyProjects/kvstore/client/src/main/java/com/zenz/Main.java",
+    "project.structure.last.edited": "Modules",
+    "project.structure.proportion": "0.0",
+    "project.structure.side.proportion": "0.0",
+    "settings.editor.selected.configurable": "actions.on.save",
+    "to.speed.mode.migration.done": "true",
+    "vue.rearranger.settings.migration": "true"
   }
-}</component>
+}]]></component>
   <component name="RecentsManager">
     <key name="CopyFile.RECENT_KEYS">
       <recent name="C:\Users\ADMIN\MyProjects\kv-store\server\common" />
@@ -285,6 +269,16 @@
       <workItem from="1772909263800" duration="73000" />
       <workItem from="1772915748749" duration="1457000" />
       <workItem from="1773046326945" duration="3971000" />
+      <workItem from="1773511200542" duration="1335000" />
+      <workItem from="1773521325944" duration="661000" />
+      <workItem from="1773590099259" duration="67000" />
+      <workItem from="1773591888785" duration="3588000" />
+      <workItem from="1773781753487" duration="1878000" />
+      <workItem from="1773844621763" duration="541000" />
+      <workItem from="1773847751131" duration="1350000" />
+      <workItem from="1773852618057" duration="27000" />
+      <workItem from="1773872932336" duration="28000" />
+      <workItem from="1773908783405" duration="1213000" />
     </task>
     <task id="LOCAL-00001" summary="Added content length check in KVMapSnapshotter.applyLogs">
       <option name="closed" value="true" />
@@ -526,7 +520,23 @@
       <option name="project" value="LOCAL" />
       <updated>1772803298589</updated>
     </task>
-    <option name="localTasksCounter" value="31" />
+    <task id="LOCAL-00031" summary="Finalised properties in RaftControllerClient">
+      <option name="closed" value="true" />
+      <created>1773782077732</created>
+      <option name="number" value="00031" />
+      <option name="presentableId" value="LOCAL-00031" />
+      <option name="project" value="LOCAL" />
+      <updated>1773782077732</updated>
+    </task>
+    <task id="LOCAL-00032" summary="Finalised properties in RaftControllerClient">
+      <option name="closed" value="true" />
+      <created>1773783015692</created>
+      <option name="number" value="00032" />
+      <option name="presentableId" value="LOCAL-00032" />
+      <option name="project" value="LOCAL" />
+      <updated>1773783015692</updated>
+    </task>
+    <option name="localTasksCounter" value="33" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -544,7 +554,6 @@
     </option>
   </component>
   <component name="VcsManagerConfiguration">
-    <MESSAGE value="Updated KVConnectionManagerTest" />
     <MESSAGE value="Removed debug comments; Removed unused methods and constructors; Updated Main to use new Builder" />
     <MESSAGE value="Renamed KVStore2 to KVStore" />
     <MESSAGE value="Renamed operation to command and ConnectionManager to Server" />
@@ -569,7 +578,8 @@
     <MESSAGE value="saving - wip: Implementing raft controller client - Implemented handling for append entry and append snapshot." />
     <MESSAGE value="Moved docs/system-design.md to README.md" />
     <MESSAGE value="Removed unused properties and code from RaftControllerServerHandler" />
-    <option name="LAST_COMMIT_MESSAGE" value="Removed unused properties and code from RaftControllerServerHandler" />
+    <MESSAGE value="Finalised properties in RaftControllerClient" />
+    <option name="LAST_COMMIT_MESSAGE" value="Finalised properties in RaftControllerClient" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
