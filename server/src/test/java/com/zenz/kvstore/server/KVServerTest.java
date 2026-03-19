@@ -1,13 +1,13 @@
-package main.java.com.zenz.kvstore.server;
+package com.zenz.kvstore.server;
 
 import com.zenz.kvstore.common.enums.CommandType;
 import com.zenz.kvstore.common.enums.ErrorType;
 import com.zenz.kvstore.common.enums.ResponseType;
 import com.zenz.kvstore.common.commands.Command;
+import com.zenz.kvstore.common.commands.DeleteCommand;
 import com.zenz.kvstore.common.commands.GetCommand;
 import com.zenz.kvstore.common.commands.PutCommand;
 import com.zenz.kvstore.common.responses.*;
-import com.zenz.kvstore.server.*;
 import com.zenz.kvstore.server.command.handlers.CommandHandler;
 import com.zenz.kvstore.server.logging.WALogger;
 import com.zenz.kvstore.server.logging.handlers.LogHandler;
@@ -278,7 +278,7 @@ class KVServerTest {
         // Verify directly in store
         KVMap.Node node = ((CommandHandler) server.getCommandHandler()).getStore().getMap().get("maptestkey");
         assertNotNull(node, "Key should exist in map");
-        assertEquals("maptestvalue", new String(node.value, StandardCharsets.UTF_8));
+        assertEquals("maptestvalue", new String(node.value(), StandardCharsets.UTF_8));
 
         client.close();
     }
@@ -308,7 +308,7 @@ class KVServerTest {
         // Verify value was stored
         KVMap.Node node = testStore.getMap().get("handlerKey");
         assertNotNull(node, "Key should exist in store");
-        assertEquals("handlerValue", new String(node.value, StandardCharsets.UTF_8));
+        assertEquals("handlerValue", new String(node.value(), StandardCharsets.UTF_8));
 
         testLogger.close();
         testLogsFolder.toFile().delete();
@@ -409,7 +409,7 @@ class KVServerTest {
 
         // Verify value was overwritten
         KVMap.Node node = testStore.getMap().get("overwriteKey");
-        assertEquals("newValue", new String(node.value, StandardCharsets.UTF_8));
+        assertEquals("newValue", new String(node.value(), StandardCharsets.UTF_8));
 
         testLogger.close();
         testLogsFolder.toFile().delete();
@@ -442,7 +442,7 @@ class KVServerTest {
         // Verify value was stored
         KVMap.Node node = testStore.getMap().get("emptyKey");
         assertNotNull(node, "Key should exist in store");
-        assertArrayEquals(new byte[0], node.value);
+        assertArrayEquals(new byte[0], node.value());
 
         testLogger.close();
         testLogsFolder.toFile().delete();
@@ -476,7 +476,7 @@ class KVServerTest {
         // Verify value was stored correctly
         KVMap.Node node = testStore.getMap().get("binaryKey");
         assertNotNull(node, "Key should exist in store");
-        assertArrayEquals(binaryValue, node.value);
+        assertArrayEquals(binaryValue, node.value());
 
         testLogger.close();
         testLogsFolder.toFile().delete();
@@ -600,5 +600,407 @@ class KVServerTest {
         ErrorResponse errorResponse = (ErrorResponse) deserialized;
         assertEquals(ErrorType.SERVER_ERROR, errorResponse.errorType());
         assertEquals("Test error message", errorResponse.message());
+    }
+
+    // --- DELETE Unit Tests ---
+
+    @Test
+    void delete_existingKey_returnsTrue() throws Exception {
+        // Create a fresh store for this test
+        Path testLogsFolder = Files.createTempDirectory("test-logs-");
+        Path testSnapshotsFolder = Files.createTempDirectory("test-snapshots-");
+        WALogger testLogger = new WALogger(testLogsFolder.resolve("app.log"));
+        KVMapSnapshotter testSnapshotter = new KVMapSnapshotter(testSnapshotsFolder);
+
+        KVStore testStore = new KVStore(new KVStore.Builder()
+                .setLogHandler(new LogHandler(testLogger))
+                .setSnapshotter(testSnapshotter));
+
+        // First store a value
+        testStore.put("deleteKey", "deleteValue".getBytes(StandardCharsets.UTF_8));
+
+        // Verify key exists
+        assertNotNull(testStore.get("deleteKey"));
+
+        // Delete the key
+        boolean result = testStore.delete("deleteKey");
+
+        assertTrue(result, "Delete should return true for existing key");
+        assertNull(testStore.get("deleteKey"), "Key should no longer exist after delete");
+
+        testLogger.close();
+        testLogsFolder.toFile().delete();
+        testSnapshotsFolder.toFile().delete();
+    }
+
+    @Test
+    void delete_nonExistingKey_returnsFalse() throws Exception {
+        // Create a fresh store for this test
+        Path testLogsFolder = Files.createTempDirectory("test-logs-");
+        Path testSnapshotsFolder = Files.createTempDirectory("test-snapshots-");
+        WALogger testLogger = new WALogger(testLogsFolder.resolve("app.log"));
+        KVMapSnapshotter testSnapshotter = new KVMapSnapshotter(testSnapshotsFolder);
+
+        KVStore testStore = new KVStore(new KVStore.Builder()
+                .setLogHandler(new LogHandler(testLogger))
+                .setSnapshotter(testSnapshotter));
+
+        // Delete a non-existent key
+        boolean result = testStore.delete("nonExistentKey");
+
+        assertFalse(result, "Delete should return false for non-existing key");
+
+        testLogger.close();
+        testLogsFolder.toFile().delete();
+        testSnapshotsFolder.toFile().delete();
+    }
+
+    @Test
+    void delete_alreadyDeletedKey_returnsFalse() throws Exception {
+        // Create a fresh store for this test
+        Path testLogsFolder = Files.createTempDirectory("test-logs-");
+        Path testSnapshotsFolder = Files.createTempDirectory("test-snapshots-");
+        WALogger testLogger = new WALogger(testLogsFolder.resolve("app.log"));
+        KVMapSnapshotter testSnapshotter = new KVMapSnapshotter(testSnapshotsFolder);
+
+        KVStore testStore = new KVStore(new KVStore.Builder()
+                .setLogHandler(new LogHandler(testLogger))
+                .setSnapshotter(testSnapshotter));
+
+        // Store and delete a key
+        testStore.put("tempKey", "tempValue".getBytes(StandardCharsets.UTF_8));
+        testStore.delete("tempKey");
+
+        // Try to delete again
+        boolean result = testStore.delete("tempKey");
+
+        assertFalse(result, "Delete should return false for already deleted key");
+
+        testLogger.close();
+        testLogsFolder.toFile().delete();
+        testSnapshotsFolder.toFile().delete();
+    }
+
+    @Test
+    void delete_emptyKey_returnsFalse() throws Exception {
+        // Create a fresh store for this test
+        Path testLogsFolder = Files.createTempDirectory("test-logs-");
+        Path testSnapshotsFolder = Files.createTempDirectory("test-snapshots-");
+        WALogger testLogger = new WALogger(testLogsFolder.resolve("app.log"));
+        KVMapSnapshotter testSnapshotter = new KVMapSnapshotter(testSnapshotsFolder);
+
+        KVStore testStore = new KVStore(new KVStore.Builder()
+                .setLogHandler(new LogHandler(testLogger))
+                .setSnapshotter(testSnapshotter));
+
+        // Try to delete with empty key
+        boolean result = testStore.delete("");
+
+        assertFalse(result, "Delete should return false for empty key that doesn't exist");
+
+        testLogger.close();
+        testLogsFolder.toFile().delete();
+        testSnapshotsFolder.toFile().delete();
+    }
+
+    @Test
+    void delete_keyWithSpecialCharacters_succeeds() throws Exception {
+        // Create a fresh store for this test
+        Path testLogsFolder = Files.createTempDirectory("test-logs-");
+        Path testSnapshotsFolder = Files.createTempDirectory("test-snapshots-");
+        WALogger testLogger = new WALogger(testLogsFolder.resolve("app.log"));
+        KVMapSnapshotter testSnapshotter = new KVMapSnapshotter(testSnapshotsFolder);
+
+        KVStore testStore = new KVStore(new KVStore.Builder()
+                .setLogHandler(new LogHandler(testLogger))
+                .setSnapshotter(testSnapshotter));
+
+        // Store with special characters in key
+        String specialKey = "key-with_special.chars:123!@#$%";
+        testStore.put(specialKey, "value".getBytes(StandardCharsets.UTF_8));
+
+        boolean result = testStore.delete(specialKey);
+
+        assertTrue(result, "Delete should succeed for key with special characters");
+        assertNull(testStore.get(specialKey), "Key should be removed");
+
+        testLogger.close();
+        testLogsFolder.toFile().delete();
+        testSnapshotsFolder.toFile().delete();
+    }
+
+    @Test
+    void delete_keyWithUnicode_succeeds() throws Exception {
+        // Create a fresh store for this test
+        Path testLogsFolder = Files.createTempDirectory("test-logs-");
+        Path testSnapshotsFolder = Files.createTempDirectory("test-snapshots-");
+        WALogger testLogger = new WALogger(testLogsFolder.resolve("app.log"));
+        KVMapSnapshotter testSnapshotter = new KVMapSnapshotter(testSnapshotsFolder);
+
+        KVStore testStore = new KVStore(new KVStore.Builder()
+                .setLogHandler(new LogHandler(testLogger))
+                .setSnapshotter(testSnapshotter));
+
+        // Store with unicode key
+        String unicodeKey = "键值ストア🔑";
+        testStore.put(unicodeKey, "value".getBytes(StandardCharsets.UTF_8));
+
+        boolean result = testStore.delete(unicodeKey);
+
+        assertTrue(result, "Delete should succeed for unicode key");
+        assertNull(testStore.get(unicodeKey), "Key should be removed");
+
+        testLogger.close();
+        testLogsFolder.toFile().delete();
+        testSnapshotsFolder.toFile().delete();
+    }
+
+    @Test
+    void delete_onlyRemovesTargetKey() throws Exception {
+        // Create a fresh store for this test
+        Path testLogsFolder = Files.createTempDirectory("test-logs-");
+        Path testSnapshotsFolder = Files.createTempDirectory("test-snapshots-");
+        WALogger testLogger = new WALogger(testLogsFolder.resolve("app.log"));
+        KVMapSnapshotter testSnapshotter = new KVMapSnapshotter(testSnapshotsFolder);
+
+        KVStore testStore = new KVStore(new KVStore.Builder()
+                .setLogHandler(new LogHandler(testLogger))
+                .setSnapshotter(testSnapshotter));
+
+        // Store multiple keys
+        testStore.put("key1", "value1".getBytes(StandardCharsets.UTF_8));
+        testStore.put("key2", "value2".getBytes(StandardCharsets.UTF_8));
+        testStore.put("key3", "value3".getBytes(StandardCharsets.UTF_8));
+
+        // Delete middle key
+        testStore.delete("key2");
+
+        // Verify other keys still exist
+        assertNotNull(testStore.get("key1"), "key1 should still exist");
+        assertNotNull(testStore.get("key3"), "key3 should still exist");
+        assertNull(testStore.get("key2"), "key2 should be deleted");
+
+        testLogger.close();
+        testLogsFolder.toFile().delete();
+        testSnapshotsFolder.toFile().delete();
+    }
+
+    // --- DELETE Integration Tests ---
+
+    @Test
+    void delete_afterPut_getReturnsNull() throws Exception {
+        // Create a fresh store for this test
+        Path testLogsFolder = Files.createTempDirectory("test-logs-");
+        Path testSnapshotsFolder = Files.createTempDirectory("test-snapshots-");
+        WALogger testLogger = new WALogger(testLogsFolder.resolve("app.log"));
+        KVMapSnapshotter testSnapshotter = new KVMapSnapshotter(testSnapshotsFolder);
+
+        KVStore testStore = new KVStore(new KVStore.Builder()
+                .setLogHandler(new LogHandler(testLogger))
+                .setSnapshotter(testSnapshotter));
+
+        CommandHandler handler = new CommandHandler(testStore);
+
+        // Store a value via command handler
+        PutCommand putCommand = new PutCommand("integKey", "integValue".getBytes(StandardCharsets.UTF_8));
+        handler.handleCommand(putCommand);
+
+        // Verify it was stored
+        GetCommand getCommand1 = new GetCommand("integKey");
+        ByteBuffer result1 = handler.handleCommand(getCommand1);
+        result1.rewind();
+        GetResponse getResponse1 = (GetResponse) BaseResponse.deserialize(result1);
+        assertEquals("integValue", new String(getResponse1.value(), StandardCharsets.UTF_8));
+
+        // Delete directly from store
+        testStore.delete("integKey");
+
+        // Verify via command handler that key is gone
+        GetCommand getCommand2 = new GetCommand("integKey");
+        ByteBuffer result2 = handler.handleCommand(getCommand2);
+        result2.rewind();
+        GetResponse getResponse2 = (GetResponse) BaseResponse.deserialize(result2);
+        assertTrue(getResponse2.isNull(), "Key should be deleted");
+
+        testLogger.close();
+        testLogsFolder.toFile().delete();
+        testSnapshotsFolder.toFile().delete();
+    }
+
+    @Test
+    void delete_multipleKeysSequentially() throws Exception {
+        // Create a fresh store for this test
+        Path testLogsFolder = Files.createTempDirectory("test-logs-");
+        Path testSnapshotsFolder = Files.createTempDirectory("test-snapshots-");
+        WALogger testLogger = new WALogger(testLogsFolder.resolve("app.log"));
+        KVMapSnapshotter testSnapshotter = new KVMapSnapshotter(testSnapshotsFolder);
+
+        KVStore testStore = new KVStore(new KVStore.Builder()
+                .setLogHandler(new LogHandler(testLogger))
+                .setSnapshotter(testSnapshotter));
+
+        // Store multiple keys
+        testStore.put("del1", "value1".getBytes(StandardCharsets.UTF_8));
+        testStore.put("del2", "value2".getBytes(StandardCharsets.UTF_8));
+        testStore.put("del3", "value3".getBytes(StandardCharsets.UTF_8));
+
+        // Delete all keys sequentially
+        assertTrue(testStore.delete("del1"));
+        assertTrue(testStore.delete("del2"));
+        assertTrue(testStore.delete("del3"));
+
+        // Verify all are gone
+        assertNull(testStore.get("del1"));
+        assertNull(testStore.get("del2"));
+        assertNull(testStore.get("del3"));
+
+        testLogger.close();
+        testLogsFolder.toFile().delete();
+        testSnapshotsFolder.toFile().delete();
+    }
+
+    @Test
+    void delete_afterOverwrite_succeeds() throws Exception {
+        // Create a fresh store for this test
+        Path testLogsFolder = Files.createTempDirectory("test-logs-");
+        Path testSnapshotsFolder = Files.createTempDirectory("test-snapshots-");
+        WALogger testLogger = new WALogger(testLogsFolder.resolve("app.log"));
+        KVMapSnapshotter testSnapshotter = new KVMapSnapshotter(testSnapshotsFolder);
+
+        KVStore testStore = new KVStore(new KVStore.Builder()
+                .setLogHandler(new LogHandler(testLogger))
+                .setSnapshotter(testSnapshotter));
+
+        // Store and overwrite
+        testStore.put("overwriteDelKey", "initial".getBytes(StandardCharsets.UTF_8));
+        testStore.put("overwriteDelKey", "overwritten".getBytes(StandardCharsets.UTF_8));
+
+        // Delete should still work
+        boolean result = testStore.delete("overwriteDelKey");
+
+        assertTrue(result, "Delete should succeed for overwritten key");
+        assertNull(testStore.get("overwriteDelKey"));
+
+        testLogger.close();
+        testLogsFolder.toFile().delete();
+        testSnapshotsFolder.toFile().delete();
+    }
+
+    @Test
+    void delete_putAfterDelete_keyCanBeRestored() throws Exception {
+        // Create a fresh store for this test
+        Path testLogsFolder = Files.createTempDirectory("test-logs-");
+        Path testSnapshotsFolder = Files.createTempDirectory("test-snapshots-");
+        WALogger testLogger = new WALogger(testLogsFolder.resolve("app.log"));
+        KVMapSnapshotter testSnapshotter = new KVMapSnapshotter(testSnapshotsFolder);
+
+        KVStore testStore = new KVStore(new KVStore.Builder()
+                .setLogHandler(new LogHandler(testLogger))
+                .setSnapshotter(testSnapshotter));
+
+        // Store, delete, then store again
+        testStore.put("restoreKey", "original".getBytes(StandardCharsets.UTF_8));
+        testStore.delete("restoreKey");
+        testStore.put("restoreKey", "restored".getBytes(StandardCharsets.UTF_8));
+
+        // Verify key was restored with new value
+        KVMap.Node node = testStore.get("restoreKey");
+        assertNotNull(node, "Key should exist after re-put");
+        assertEquals("restored", new String(node.value(), StandardCharsets.UTF_8));
+
+        testLogger.close();
+        testLogsFolder.toFile().delete();
+        testSnapshotsFolder.toFile().delete();
+    }
+
+    @Test
+    void delete_mapSizeDecreases() throws Exception {
+        // Create a fresh store for this test
+        Path testLogsFolder = Files.createTempDirectory("test-logs-");
+        Path testSnapshotsFolder = Files.createTempDirectory("test-snapshots-");
+        WALogger testLogger = new WALogger(testLogsFolder.resolve("app.log"));
+        KVMapSnapshotter testSnapshotter = new KVMapSnapshotter(testSnapshotsFolder);
+
+        KVStore testStore = new KVStore(new KVStore.Builder()
+                .setLogHandler(new LogHandler(testLogger))
+                .setSnapshotter(testSnapshotter));
+
+        // Store a key
+        testStore.put("sizeKey", "value".getBytes(StandardCharsets.UTF_8));
+        int sizeBefore = testStore.getMap().size();
+
+        // Delete the key
+        testStore.delete("sizeKey");
+        int sizeAfter = testStore.getMap().size();
+
+        assertEquals(sizeBefore - 1, sizeAfter, "Map size should decrease by 1 after delete");
+
+        testLogger.close();
+        testLogsFolder.toFile().delete();
+        testSnapshotsFolder.toFile().delete();
+    }
+
+    // --- DeleteCommand Tests ---
+
+    @Test
+    void deleteCommand_serializeDeserialize_roundTrip() {
+        String key = "deleteTestKey";
+
+        DeleteCommand original = new DeleteCommand(key);
+        byte[] serialized = original.serialize();
+
+        Command deserialized = Command.deserialize(serialized);
+
+        assertTrue(deserialized instanceof DeleteCommand, "Should deserialize to DeleteCommand");
+        DeleteCommand deleteCommand = (DeleteCommand) deserialized;
+        assertEquals(key, deleteCommand.key());
+    }
+
+    @Test
+    void deleteCommand_type_returnsDelete() {
+        DeleteCommand command = new DeleteCommand("key");
+        assertEquals(CommandType.DELETE, command.type());
+    }
+
+    @Test
+    void deleteCommand_withSpecialCharacters_serializesCorrectly() {
+        String key = "key-with_special.chars:123";
+
+        DeleteCommand original = new DeleteCommand(key);
+        byte[] serialized = original.serialize();
+
+        Command deserialized = Command.deserialize(serialized);
+
+        assertTrue(deserialized instanceof DeleteCommand);
+        DeleteCommand deleteCommand = (DeleteCommand) deserialized;
+        assertEquals(key, deleteCommand.key());
+    }
+
+    @Test
+    void deleteCommand_withUnicode_serializesCorrectly() {
+        String key = "削除キー🔑";
+
+        DeleteCommand original = new DeleteCommand(key);
+        byte[] serialized = original.serialize();
+
+        Command deserialized = Command.deserialize(serialized);
+
+        assertTrue(deserialized instanceof DeleteCommand);
+        DeleteCommand deleteCommand = (DeleteCommand) deserialized;
+        assertEquals(key, deleteCommand.key());
+    }
+
+    @Test
+    void deleteCommand_withEmptyKey_serializesCorrectly() {
+        String key = "";
+
+        DeleteCommand original = new DeleteCommand(key);
+        byte[] serialized = original.serialize();
+
+        Command deserialized = Command.deserialize(serialized);
+
+        assertTrue(deserialized instanceof DeleteCommand);
+        DeleteCommand deleteCommand = (DeleteCommand) deserialized;
+        assertEquals(key, deleteCommand.key());
     }
 }
