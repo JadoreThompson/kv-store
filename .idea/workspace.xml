@@ -4,10 +4,10 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="113ca11e-a295-4741-aad7-90962967a262" name="Changes" comment="Finalised properties in RaftControllerClient">
-      <change afterPath="$PROJECT_DIR$/common/src/main/java/com/zenz/kvstore/common/commands/DeleteCommand.java" afterDir="false" />
+    <list default="true" id="113ca11e-a295-4741-aad7-90962967a262" name="Changes" comment="Created DeleteCommand">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/common/src/main/java/com/zenz/kvstore/common/enums/CommandType.java" beforeDir="false" afterPath="$PROJECT_DIR$/common/src/main/java/com/zenz/kvstore/common/enums/CommandType.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/server/src/main/java/com/zenz/kvstore/server/KVArray.java" beforeDir="false" afterPath="$PROJECT_DIR$/server/src/main/java/com/zenz/kvstore/server/KVArray.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/server/src/main/java/com/zenz/kvstore/server/KVMap.java" beforeDir="false" afterPath="$PROJECT_DIR$/server/src/main/java/com/zenz/kvstore/server/KVMap.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -278,7 +278,7 @@
       <workItem from="1773847751131" duration="1350000" />
       <workItem from="1773852618057" duration="27000" />
       <workItem from="1773872932336" duration="28000" />
-      <workItem from="1773908783405" duration="1213000" />
+      <workItem from="1773908783405" duration="3535000" />
     </task>
     <task id="LOCAL-00001" summary="Added content length check in KVMapSnapshotter.applyLogs">
       <option name="closed" value="true" />
@@ -536,7 +536,15 @@
       <option name="project" value="LOCAL" />
       <updated>1773783015692</updated>
     </task>
-    <option name="localTasksCounter" value="33" />
+    <task id="LOCAL-00033" summary="Created DeleteCommand">
+      <option name="closed" value="true" />
+      <created>1773910295712</created>
+      <option name="number" value="00033" />
+      <option name="presentableId" value="LOCAL-00033" />
+      <option name="project" value="LOCAL" />
+      <updated>1773910295712</updated>
+    </task>
+    <option name="localTasksCounter" value="34" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -554,7 +562,6 @@
     </option>
   </component>
   <component name="VcsManagerConfiguration">
-    <MESSAGE value="Removed debug comments; Removed unused methods and constructors; Updated Main to use new Builder" />
     <MESSAGE value="Renamed KVStore2 to KVStore" />
     <MESSAGE value="Renamed operation to command and ConnectionManager to Server" />
     <MESSAGE value="Renamed fromLine method in Command.java to deserialize" />
@@ -579,7 +586,8 @@
     <MESSAGE value="Moved docs/system-design.md to README.md" />
     <MESSAGE value="Removed unused properties and code from RaftControllerServerHandler" />
     <MESSAGE value="Finalised properties in RaftControllerClient" />
-    <option name="LAST_COMMIT_MESSAGE" value="Finalised properties in RaftControllerClient" />
+    <MESSAGE value="Created DeleteCommand" />
+    <option name="LAST_COMMIT_MESSAGE" value="Created DeleteCommand" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>

@@ -80,6 +80,7 @@ public class KVMap {
     }
 
     private Node find(String key, NodeList nodeList) {
+        if (nodeList == null) return null;
         Node cur = nodeList.head;
 
         while (cur != null) {
@@ -92,6 +93,10 @@ public class KVMap {
         return null;
     }
 
+    /**
+     * Moves min(ht1.length, buckets) buckets from ht1 to ht2.
+     * Once the rehashIdx >= ht1.length the rehashIdx is set to -1.
+     */
     public void rehash() {
         for (int i = 0; i < Math.min(ht1.length(), REHASH_BUCKETS); i++) {
             NodeList nodeList = ht1.get(rehashIdx);
@@ -120,6 +125,13 @@ public class KVMap {
         return (hashCode & 0x7fffffff) % len;
     }
 
+    /**
+     * Checks if we're currently in the middle of rehashing.
+     * <ul>
+     *     <li>True: If rehash index >= 0 or ht1.size() >= capacity * load factor</li>
+     *     <li>False: Otherwise</li>
+     * </ul>
+     */
     private boolean checkIsRehashing() {
         if (rehashIdx >= 0) {
             return true;
@@ -146,6 +158,7 @@ public class KVMap {
     public static class Node {
         public String key;
         public byte[] value;
+        public Node prev;
         public Node next;
 
         public Node() {
@@ -177,6 +190,23 @@ public class KVMap {
 
         public NodeList(Node node) {
             head = node;
+        }
+
+        public void remove(Node node) {
+            if (node.prev != null) {
+                node.prev.next = node.next;
+            }
+
+            if (node.next != null) {
+                node.next.prev = node.prev;
+            }
+
+            if (node == head) {
+                head = node.next;
+            }
+
+            node.prev = null;
+            node.next = null;
         }
 
         public void forEach(Consumer<Node> consumer) {

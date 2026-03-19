@@ -21,14 +21,6 @@ public class KVArray {
         arr[index] = value;
     }
 
-    public void setNull(int index) {
-        if (arr[index] != null) {
-            size--;
-        }
-
-        arr[index] = null;
-    }
-
     public KVMap.NodeList get(int index) {
         return arr[index];
     }
