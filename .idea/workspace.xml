@@ -4,9 +4,29 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="113ca11e-a295-4741-aad7-90962967a262" name="Changes" comment="Removed setNull method from KVArray ; Added docs to checkIsRehashing and rehash methods within KVMap">
+    <list default="true" id="113ca11e-a295-4741-aad7-90962967a262" name="Changes" comment="Create DeleteResponse model">
+      <change afterPath="$PROJECT_DIR$/server/src/test/java/com/zenz/kvstore/server/KVMapSnapshotterTest.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/server/src/test/java/com/zenz/kvstore/server/KVMapTest.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/README.md" beforeDir="false" afterPath="$PROJECT_DIR$/README.md" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/server/src/main/java/com/zenz/kvstore/server/KVArray.java" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/server/src/main/java/com/zenz/kvstore/server/KVMap.java" beforeDir="false" afterPath="$PROJECT_DIR$/server/src/main/java/com/zenz/kvstore/server/KVMap.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/server/src/main/java/com/zenz/kvstore/server/KVMapSnapshotter.java" beforeDir="false" afterPath="$PROJECT_DIR$/server/src/main/java/com/zenz/kvstore/server/KVMapSnapshotter.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/server/src/main/java/com/zenz/kvstore/server/KVStore.java" beforeDir="false" afterPath="$PROJECT_DIR$/server/src/main/java/com/zenz/kvstore/server/KVStore.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/server/src/main/java/com/zenz/kvstore/server/command/handlers/CommandHandler.java" beforeDir="false" afterPath="$PROJECT_DIR$/server/src/main/java/com/zenz/kvstore/server/command/handlers/CommandHandler.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/server/src/main/java/com/zenz/kvstore/server/command/handlers/RaftCommandHandler.java" beforeDir="false" afterPath="$PROJECT_DIR$/server/src/main/java/com/zenz/kvstore/server/command/handlers/RaftCommandHandler.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/server/src/main/java/com/zenz/kvstore/server/raft/RaftControllerClient.java" beforeDir="false" afterPath="$PROJECT_DIR$/server/src/main/java/com/zenz/kvstore/server/raft/RaftControllerClient.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/server/src/main/java/com/zenz/kvstore/server/raft/server/handlers/RaftControllerServerHandler.java" beforeDir="false" afterPath="$PROJECT_DIR$/server/src/main/java/com/zenz/kvstore/server/raft/server/handlers/RaftControllerServerHandler.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/server/src/main/java/com/zenz/kvstore/server/restorers/Restorer.java" beforeDir="false" afterPath="$PROJECT_DIR$/server/src/main/java/com/zenz/kvstore/server/restorers/Restorer.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/server/src/test/java/main/java/com/zenz/kvstore/server/KVMapSnapshotterTest.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/server/src/test/java/main/java/com/zenz/kvstore/server/KVServerTest.java" beforeDir="false" afterPath="$PROJECT_DIR$/server/src/test/java/com/zenz/kvstore/server/KVServerTest.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/server/src/test/java/main/java/com/zenz/kvstore/server/KVStoreTest.java" beforeDir="false" afterPath="$PROJECT_DIR$/server/src/test/java/com/zenz/kvstore/server/KVStoreTest.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/server/src/test/java/main/java/com/zenz/kvstore/server/LeaderElectionTest.java" beforeDir="false" afterPath="$PROJECT_DIR$/server/src/test/java/com/zenz/kvstore/server/LeaderElectionTest.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/server/src/test/java/main/java/com/zenz/kvstore/server/MapTest.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/server/src/test/java/main/java/com/zenz/kvstore/server/RaftCommandHandlerTest.java" beforeDir="false" afterPath="$PROJECT_DIR$/server/src/test/java/com/zenz/kvstore/server/RaftCommandHandlerTest.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/server/src/test/java/main/java/com/zenz/kvstore/server/RaftControllerTest.java" beforeDir="false" afterPath="$PROJECT_DIR$/server/src/test/java/com/zenz/kvstore/server/RaftControllerTest.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/server/src/test/java/main/java/com/zenz/kvstore/server/RestorerTest.java" beforeDir="false" afterPath="$PROJECT_DIR$/server/src/test/java/com/zenz/kvstore/server/RestorerTest.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/server/src/test/java/main/java/com/zenz/kvstore/server/SerializationTest.java" beforeDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -77,7 +97,21 @@
     "Application.Main.executor": "Debug",
     "Application.com.zenz.Main.executor": "Run",
     "Docker.Dockerfile builder.executor": "Run",
-    "JUnit.RaftCommandHandlerTest.executor": "Debug",
+    "JUnit.KVMap2Test.executor": "Run",
+    "JUnit.KVMap2Test.remove_duringRehash_keyRemovedFromCorrectTable.executor": "Run",
+    "JUnit.KVMap2Test.remove_duringRehash_multipleRemovesSucceed.executor": "Run",
+    "JUnit.KVMap2Test.remove_oneOfMultipleKeys_onlyRemovedKeyIsGone.executor": "Run",
+    "JUnit.KVMapSnapshotterTest.executor": "Run",
+    "JUnit.KVMapSnapshotterTest.loadSnapshot_handlesMultipleEntries.executor": "Run",
+    "JUnit.KVMapTest.executor": "Run",
+    "JUnit.KVMapTest.put_thenGet_returnsNode.executor": "Run",
+    "JUnit.KVMapTest.remove_duringRehash_multipleRemovesSucceed.executor": "Run",
+    "JUnit.KVServerTest.executor": "Run",
+    "JUnit.KVStoreTest.executor": "Run",
+    "JUnit.RaftCommandHandlerTest.deleteCommand_minimumMajority_completesAtThreshold.executor": "Run",
+    "JUnit.RaftCommandHandlerTest.deleteCommand_multipleSequential_allComplete.executor": "Run",
+    "JUnit.RaftCommandHandlerTest.executor": "Run",
+    "JUnit.server in server.executor": "Run",
     "Maven.kv-store [compile].executor": "Run",
     "ModuleVcsDetector.initialDetectionPerformed": "true",
     "RunOnceActivity.MCP Project settings loaded": "true",
@@ -121,11 +155,11 @@
       <recent name="com.zenz.kvstore" />
     </key>
     <key name="CopyClassDialog.RECENTS_KEY">
+      <recent name="com.zenz.kvstore.server" />
       <recent name="com.zenz.kvstore.common.enums" />
       <recent name="com.zenz.kvstore.common" />
       <recent name="com.zenz.kvstore.raft" />
       <recent name="com.zenz.kvstore.raft.messages" />
-      <recent name="com.zenz.kvstore" />
     </key>
   </component>
   <component name="RunAnythingCache">
@@ -133,44 +167,80 @@
       <command value="mvn compile" />
     </option>
   </component>
-  <component name="RunManager" selected="Application.com.zenz.Main">
-    <configuration name="Main" type="Application" factoryName="Application" temporary="true" nameIsGenerated="true">
-      <option name="MAIN_CLASS_NAME" value="com.java.zenz.kvstore.Main" />
-      <module name="kv-store" />
+  <component name="RunManager" selected="JUnit.KVStoreTest">
+    <configuration name="KVMapSnapshotterTest" type="JUnit" factoryName="JUnit" temporary="true" nameIsGenerated="true">
+      <module name="server" />
       <extension name="coverage">
         <pattern>
-          <option name="PATTERN" value="com.java.zenz.kvstore.*" />
+          <option name="PATTERN" value="com.zenz.kvstore.server.*" />
           <option name="ENABLED" value="true" />
         </pattern>
       </extension>
+      <option name="PACKAGE_NAME" value="com.zenz.kvstore.server" />
+      <option name="MAIN_CLASS_NAME" value="com.zenz.kvstore.server.KVMapSnapshotterTest" />
+      <option name="TEST_OBJECT" value="class" />
       <method v="2">
         <option name="Make" enabled="true" />
       </method>
     </configuration>
-    <configuration name="com.zenz.Main" type="Application" factoryName="Application" temporary="true" nameIsGenerated="true">
-      <option name="MAIN_CLASS_NAME" value="com.zenz.Main" />
-      <module name="common" />
+    <configuration name="KVStoreTest" type="JUnit" factoryName="JUnit" temporary="true" nameIsGenerated="true">
+      <module name="server" />
       <extension name="coverage">
         <pattern>
-          <option name="PATTERN" value="com.zenz.*" />
+          <option name="PATTERN" value="com.zenz.kvstore.server.*" />
           <option name="ENABLED" value="true" />
         </pattern>
       </extension>
+      <option name="PACKAGE_NAME" value="com.zenz.kvstore.server" />
+      <option name="MAIN_CLASS_NAME" value="com.zenz.kvstore.server.KVStoreTest" />
+      <option name="TEST_OBJECT" value="class" />
       <method v="2">
         <option name="Make" enabled="true" />
       </method>
     </configuration>
     <configuration name="RaftCommandHandlerTest" type="JUnit" factoryName="JUnit" temporary="true" nameIsGenerated="true">
-      <module name="kv-store" />
+      <module name="server" />
       <extension name="coverage">
         <pattern>
-          <option name="PATTERN" value="main.java.com.zenz.kvstore.*" />
+          <option name="PATTERN" value="com.zenz.kvstore.server.*" />
           <option name="ENABLED" value="true" />
         </pattern>
       </extension>
-      <option name="PACKAGE_NAME" value="main.java.com.zenz.kvstore" />
-      <option name="MAIN_CLASS_NAME" value="main.java.com.zenz.kvstore.RaftCommandHandlerTest" />
+      <option name="PACKAGE_NAME" value="com.zenz.kvstore.server" />
+      <option name="MAIN_CLASS_NAME" value="com.zenz.kvstore.server.RaftCommandHandlerTest" />
       <option name="TEST_OBJECT" value="class" />
+      <method v="2">
+        <option name="Make" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="RaftCommandHandlerTest.deleteCommand_minimumMajority_completesAtThreshold" type="JUnit" factoryName="JUnit" temporary="true" nameIsGenerated="true">
+      <module name="server" />
+      <extension name="coverage">
+        <pattern>
+          <option name="PATTERN" value="com.zenz.kvstore.server.*" />
+          <option name="ENABLED" value="true" />
+        </pattern>
+      </extension>
+      <option name="PACKAGE_NAME" value="com.zenz.kvstore.server" />
+      <option name="MAIN_CLASS_NAME" value="com.zenz.kvstore.server.RaftCommandHandlerTest" />
+      <option name="METHOD_NAME" value="deleteCommand_minimumMajority_completesAtThreshold" />
+      <option name="TEST_OBJECT" value="method" />
+      <method v="2">
+        <option name="Make" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="RaftCommandHandlerTest.deleteCommand_multipleSequential_allComplete" type="JUnit" factoryName="JUnit" temporary="true" nameIsGenerated="true">
+      <module name="server" />
+      <extension name="coverage">
+        <pattern>
+          <option name="PATTERN" value="com.zenz.kvstore.server.*" />
+          <option name="ENABLED" value="true" />
+        </pattern>
+      </extension>
+      <option name="PACKAGE_NAME" value="com.zenz.kvstore.server" />
+      <option name="MAIN_CLASS_NAME" value="com.zenz.kvstore.server.RaftCommandHandlerTest" />
+      <option name="METHOD_NAME" value="deleteCommand_multipleSequential_allComplete" />
+      <option name="TEST_OBJECT" value="method" />
       <method v="2">
         <option name="Make" enabled="true" />
       </method>
@@ -186,17 +256,6 @@
       <option name="filePath" />
       <method v="2" />
     </configuration>
-    <configuration name="Dockerfile builder" type="docker-deploy" factoryName="dockerfile" temporary="true" server-name="Docker">
-      <deployment type="dockerfile">
-        <settings>
-          <option name="imageTag" value="maven3.9-eclipse-temurin-21_builder" />
-          <option name="buildCliOptions" value="--target builder" />
-          <option name="buildOnly" value="true" />
-          <option name="sourceFilePath" value="Dockerfile" />
-        </settings>
-      </deployment>
-      <method v="2" />
-    </configuration>
     <configuration default="true" type="docker-deploy" factoryName="dockerfile" temporary="true">
       <deployment type="dockerfile">
         <settings />
@@ -205,10 +264,11 @@
     </configuration>
     <recent_temporary>
       <list>
-        <item itemvalue="Application.com.zenz.Main" />
+        <item itemvalue="JUnit.KVStoreTest" />
         <item itemvalue="JUnit.RaftCommandHandlerTest" />
-        <item itemvalue="Application.Main" />
-        <item itemvalue="Docker.Dockerfile builder" />
+        <item itemvalue="JUnit.RaftCommandHandlerTest.deleteCommand_multipleSequential_allComplete" />
+        <item itemvalue="JUnit.RaftCommandHandlerTest.deleteCommand_minimumMajority_completesAtThreshold" />
+        <item itemvalue="JUnit.KVMapSnapshotterTest" />
       </list>
     </recent_temporary>
   </component>
@@ -277,7 +337,8 @@
       <workItem from="1773847751131" duration="1350000" />
       <workItem from="1773852618057" duration="27000" />
       <workItem from="1773872932336" duration="28000" />
-      <workItem from="1773908783405" duration="4270000" />
+      <workItem from="1773908783405" duration="22205000" />
+      <workItem from="1773957422383" duration="3413000" />
     </task>
     <task id="LOCAL-00001" summary="Added content length check in KVMapSnapshotter.applyLogs">
       <option name="closed" value="true" />
@@ -551,7 +612,39 @@
       <option name="project" value="LOCAL" />
       <updated>1773912780750</updated>
     </task>
-    <option name="localTasksCounter" value="35" />
+    <task id="LOCAL-00035" summary="Implemented add method within KVMap and NodeList">
+      <option name="closed" value="true" />
+      <created>1773913570218</created>
+      <option name="number" value="00035" />
+      <option name="presentableId" value="LOCAL-00035" />
+      <option name="project" value="LOCAL" />
+      <updated>1773913570218</updated>
+    </task>
+    <task id="LOCAL-00036" summary="Created method KVMap.remove">
+      <option name="closed" value="true" />
+      <created>1773913731067</created>
+      <option name="number" value="00036" />
+      <option name="presentableId" value="LOCAL-00036" />
+      <option name="project" value="LOCAL" />
+      <updated>1773913731067</updated>
+    </task>
+    <task id="LOCAL-00037" summary="saving">
+      <option name="closed" value="true" />
+      <created>1773914047882</created>
+      <option name="number" value="00037" />
+      <option name="presentableId" value="LOCAL-00037" />
+      <option name="project" value="LOCAL" />
+      <updated>1773914047882</updated>
+    </task>
+    <task id="LOCAL-00038" summary="Create DeleteResponse model">
+      <option name="closed" value="true" />
+      <created>1773960763248</created>
+      <option name="number" value="00038" />
+      <option name="presentableId" value="LOCAL-00038" />
+      <option name="project" value="LOCAL" />
+      <updated>1773960763248</updated>
+    </task>
+    <option name="localTasksCounter" value="39" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -569,10 +662,6 @@
     </option>
   </component>
   <component name="VcsManagerConfiguration">
-    <MESSAGE value="Renamed operation to command and ConnectionManager to Server" />
-    <MESSAGE value="Renamed fromLine method in Command.java to deserialize" />
-    <MESSAGE value="Added serialise and deserialise interface methods in Command" />
-    <MESSAGE value="Altered CommandType value to type int; Added serialize and deserialize methods to Command interface objects" />
     <MESSAGE value="wip - Implemented classes for KVStore restoration" />
     <MESSAGE value="Removed redundant properties from KVStore" />
     <MESSAGE value="Implemented single threaded snapshotting; Refactored snapshotting implementation to snapshot in bytes; Implemented LogHandler class for log abstraction; Added tests for Restorer" />
@@ -594,7 +683,11 @@
     <MESSAGE value="Finalised properties in RaftControllerClient" />
     <MESSAGE value="Created DeleteCommand" />
     <MESSAGE value="Removed setNull method from KVArray ; Added docs to checkIsRehashing and rehash methods within KVMap" />
-    <option name="LAST_COMMIT_MESSAGE" value="Removed setNull method from KVArray ; Added docs to checkIsRehashing and rehash methods within KVMap" />
+    <MESSAGE value="Implemented add method within KVMap and NodeList" />
+    <MESSAGE value="Created method KVMap.remove" />
+    <MESSAGE value="saving" />
+    <MESSAGE value="Create DeleteResponse model" />
+    <option name="LAST_COMMIT_MESSAGE" value="Create DeleteResponse model" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
