@@ -1,7 +1,5 @@
 package com.zenz.kvstore.server;
 
-import com.zenz.kvstore.server.KVMapSnapshotter;
-import com.zenz.kvstore.server.KVStore;
 import com.zenz.kvstore.server.logging.WALogger;
 import com.zenz.kvstore.server.command.handlers.RaftCommandHandler;
 import com.zenz.kvstore.common.commands.PutCommand;

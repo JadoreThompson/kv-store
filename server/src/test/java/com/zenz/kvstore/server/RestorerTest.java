@@ -1,8 +1,7 @@
-package main.java.com.zenz.kvstore.server;
+package com.zenz.kvstore.server;
 
 import com.zenz.kvstore.common.enums.CommandType;
 import com.zenz.kvstore.common.commands.PutCommand;
-import com.zenz.kvstore.server.*;
 import com.zenz.kvstore.server.logging.WALogger;
 import com.zenz.kvstore.server.logging.handlers.LogHandler;
 import com.zenz.kvstore.server.restorers.Restorer;

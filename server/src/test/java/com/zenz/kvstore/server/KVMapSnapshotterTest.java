@@ -143,16 +143,13 @@ class KVMapSnapshotterTest {
         for (int i = 0; i < 10; i++) {
             map.put("key" + i, ("value" + i).getBytes(StandardCharsets.UTF_8));
         }
-        System.out.println(2);
+
         Path snapshotFile = snapshotsDir.resolve("0.snapshot");
-        System.out.println(3);
         snapshotter.snapshot(map, snapshotFile);
 
-        System.out.println(4);
         KVMap restored = snapshotter.loadSnapshot(snapshotFile);
 
         // Verify all entries
-        System.out.println(5);
         for (int i = 0; i < 10; i++) {
             KVMap.Node node = restored.get("key" + i);
             assertNotNull(node, "key" + i + " should exist");

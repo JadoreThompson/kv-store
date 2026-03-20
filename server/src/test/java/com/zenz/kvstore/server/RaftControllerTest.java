@@ -1,7 +1,5 @@
-package main.java.com.zenz.kvstore.server;
+package com.zenz.kvstore.server;
 
-import com.zenz.kvstore.server.KVMapSnapshotter;
-import com.zenz.kvstore.server.KVStore;
 import com.zenz.kvstore.server.logging.WALogger;
 import com.zenz.kvstore.common.commands.PutCommand;
 import com.zenz.kvstore.server.logging.handlers.RaftLogHandler;
@@ -203,7 +201,7 @@ class RaftControllerTest {
     }
 
     @Test
-    @DisplayName("Follower up to date - same logId and term")
+    @DisplayName("Follower up to date - same prevLogId and term")
     void followerUpToDate_sameLogIdAndTerm_returnsMostRecentLog() throws Exception {
         // Setup
         logHandler.setTerm(2L);
@@ -226,7 +224,7 @@ class RaftControllerTest {
     }
 
     @Test
-    @DisplayName("Same logId but different term - returns error")
+    @DisplayName("Same prevLogId but different term - returns error")
     void sameLogIdDifferentTerm_returnsError() throws Exception {
         // Setup
         logHandler.setTerm(1L);
@@ -240,7 +238,7 @@ class RaftControllerTest {
         Thread.sleep(500);
 
         SocketChannel client = connectClient();
-        // Request with same logId but different term
+        // Request with same prevLogId but different term
         sendMessage(client, new RequestEntry(5, 2));
 
         BaseMessage resp = receiveMessage(client);
@@ -257,7 +255,7 @@ class RaftControllerTest {
      * @throws Exception
      */
     @Test
-    @DisplayName("Request logId before first log with snapshot - returns snapshot")
+    @DisplayName("Request prevLogId before first log with snapshot - returns snapshot")
     void requestLogIdBeforeFirstLog_withSnapshot_returnsSnapshot() throws Exception {
         logHandler.setTerm(2);
         logHandler.setDisabled(false);
@@ -275,7 +273,7 @@ class RaftControllerTest {
         Thread.sleep(500);
 
         SocketChannel client = connectClient();
-        // Request with logId 0 (fresh follower) - should return snapshot
+        // Request with prevLogId 0 (fresh follower) - should return snapshot
         sendMessage(client, new RequestEntry(0, 0));
 
         BaseMessage resp = receiveMessage(client);
@@ -303,7 +301,7 @@ class RaftControllerTest {
         Thread.sleep(500);
 
         SocketChannel client = connectClient();
-        // Request with logId 5 - follower has processed log 5, needs log 6
+        // Request with prevLogId 5 - follower has processed log 5, needs log 6
         sendMessage(client, new RequestEntry(5, 2));
 
         BaseMessage resp = receiveMessage(client);
@@ -316,7 +314,7 @@ class RaftControllerTest {
     }
 
     @Test
-    @DisplayName("Request with logId 0 but non-zero term")
+    @DisplayName("Request with prevLogId 0 but non-zero term")
     void logIdZeroWithNonZeroTerm() throws Exception {
         // Setup
         logHandler.setTerm(2);
@@ -525,7 +523,7 @@ class RaftControllerTest {
     }
 
     @Test
-    @DisplayName("AppendEntryResponse updates session logId and term")
+    @DisplayName("AppendEntryResponse updates session prevLogId and term")
     void appendEntryResponse_updatesSessionState() throws Exception {
         // Setup - create logs so controller has state
         logHandler.setTerm(1);
@@ -550,7 +548,7 @@ class RaftControllerTest {
         Thread.sleep(500);
 
         // Verify the session was updated by making a new request
-        // The follower should now be at logId 2, term 1
+        // The follower should now be at prevLogId 2, term 1
         sendMessage(client, new RequestEntry(2, 1));
         resp = receiveMessage(client);
         assertTrue(resp instanceof AppendEntry, "Expected append entry");
@@ -582,7 +580,7 @@ class RaftControllerTest {
         BaseMessage resp = receiveMessage(client);
         assertTrue(resp instanceof AppendEntry);
 
-        // Now send an AppendEntryResponse with id=1 (behind current logId=4)
+        // Now send an AppendEntryResponse with id=1 (behind current prevLogId=4)
         // This should trigger the controller to send catch-up entries
         sendMessage(client, new AppendEntryResponse(1, 1, true));
 
@@ -623,7 +621,7 @@ class RaftControllerTest {
         receiveMessage(client2);
         receiveMessage(client3);
 
-        // Now simulate a command broadcast by having followers at logId 1
+        // Now simulate a command broadcast by having followers at prevLogId 1
         // Send responses from 2 followers (majority)
         sendMessage(client1, new AppendEntryResponse(1, 1, true));
         Thread.sleep(50);
@@ -751,11 +749,11 @@ class RaftControllerTest {
         receiveMessage(client2);
         receiveMessage(client3);
 
-        // Follower 1 responds with current logId (up to date)
+        // Follower 1 responds with current prevLogId (up to date)
         sendMessage(client1, new AppendEntryResponse(3, 1, true));
         Thread.sleep(50);
 
-        // Follower 2 responds with older logId (behind)
+        // Follower 2 responds with older prevLogId (behind)
         sendMessage(client2, new AppendEntryResponse(1, 1, true));
         Thread.sleep(50);
 
@@ -765,7 +763,7 @@ class RaftControllerTest {
         AppendEntry catchUp = (AppendEntry) resp2;
         assertEquals(2, catchUp.id(), "Catch-up should start from log 2");
 
-        // Follower 3 responds with current logId
+        // Follower 3 responds with current prevLogId
         sendMessage(client3, new AppendEntryResponse(3, 1, true));
         Thread.sleep(50);
 
