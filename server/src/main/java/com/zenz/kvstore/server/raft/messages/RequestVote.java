@@ -9,7 +9,7 @@ public record RequestVote(
         MessageType type,
         long term,
         long candidateId,
-        long logId,
+        long prevLogId,
         long prevTerm
 ) implements BaseMessage {
 
@@ -24,7 +24,7 @@ public record RequestVote(
         buffer.putInt(type.getValue());
         buffer.putLong(term);
         buffer.putLong(candidateId);
-        buffer.putLong(logId);
+        buffer.putLong(prevLogId);
         buffer.putLong(prevTerm);
 
         return buffer.array();
@@ -55,7 +55,7 @@ public record RequestVote(
                 "type=" + type +
                 ", term=" + term +
                 ", candidateId=" + candidateId +
-                ", logId=" + logId +
+                ", prevLogId=" + prevLogId +
                 ", prevTerm=" + prevTerm +
                 '}';
     }

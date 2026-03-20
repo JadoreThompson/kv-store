@@ -78,7 +78,7 @@ public class RaftControllerClient {
 
                 if (currentTime - lastHeartBeatResponse > 2000) {
                     // Assuming controller has disconnected.
-                    manager.initiateElectionAsControllerClient();
+                    initiateElection();
                     stop();
                     break;
                 }
@@ -99,8 +99,6 @@ public class RaftControllerClient {
 
                 try {
                     if (key.isConnectable()) {
-
-
                         if (!connected) {
                             if (socketChannel.isConnectionPending()) {
 
@@ -224,8 +222,8 @@ public class RaftControllerClient {
 
             if (bytesRead == -1) {
                 cleanup(key);
+                initiateElection();
                 stop();
-                manager.initiateElectionAsControllerClient();
                 return;
             }
 
@@ -255,7 +253,12 @@ public class RaftControllerClient {
                 readBuffer.position(position);
             }
         }
+    }
 
+    private void initiateElection() throws IOException {
+        if (manager.getLastTerm() == ((RaftLogHandler) store.getLogHandler()).getTerm()) {
+            manager.initiateElection();
+        }
     }
 
     private boolean processData(SelectionKey key) throws IOException {

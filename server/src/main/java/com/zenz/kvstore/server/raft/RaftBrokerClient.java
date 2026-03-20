@@ -162,8 +162,6 @@ public class RaftBrokerClient {
     }
 
     private void handleRead(SelectionKey key) throws IOException {
-        final String debugPrefix = DEBUG_PREFIX + "[handleRead] ";
-
         SocketChannel channel = (SocketChannel) key.channel();
 
         while (true) {
@@ -202,8 +200,6 @@ public class RaftBrokerClient {
     }
 
     private boolean processData(SelectionKey key) throws IOException {
-        final String debugPrefix = DEBUG_PREFIX + "[processData] ";
-
         BaseMessage message;
         try {
             message = BaseMessage.deserialize(readBuffer);

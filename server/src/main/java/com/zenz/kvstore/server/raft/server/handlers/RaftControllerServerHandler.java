@@ -99,12 +99,12 @@ public class RaftControllerServerHandler implements SocketHandler {
         channel.socket().setKeepAlive(true);
 
         SelectionKey selectionKey = channel.register(selector, SelectionKey.OP_READ);
-        selectionKey.attach(new ClientSession(channel));
+        selectionKey.attach(new RaftClientSession(channel));
     }
 
     public void handleRead(SelectionKey key) throws IOException {
         SocketChannel client = (SocketChannel) key.channel();
-        ClientSession session = (ClientSession) key.attachment();
+        RaftClientSession session = (RaftClientSession) key.attachment();
 
         ByteBuffer buffer = session.getReadBuffer();
         int bytesRead = client.read(buffer);
@@ -131,7 +131,7 @@ public class RaftControllerServerHandler implements SocketHandler {
         }
     }
 
-    private boolean processData(ClientSession session, ByteBuffer buffer) throws IOException {
+    private boolean processData(RaftClientSession session, ByteBuffer buffer) throws IOException {
         BaseMessage message;
         try {
             message = BaseMessage.deserialize(buffer);
@@ -194,7 +194,7 @@ public class RaftControllerServerHandler implements SocketHandler {
 
         int count = 0;
         for (SelectionKey key : selector.keys()) {
-            ClientSession session = (ClientSession) key.attachment();
+            RaftClientSession session = (RaftClientSession) key.attachment();
             if (session != null && session.logId == currentLogId) {
                 count++;
                 SocketChannel channel = session.getChannel();
@@ -206,7 +206,7 @@ public class RaftControllerServerHandler implements SocketHandler {
         task.majority = count / 2 + 1;
     }
 
-    private ByteBuffer handleEntryRequest(ClientSession session, RequestEntry request) throws IOException {
+    private ByteBuffer handleEntryRequest(RaftClientSession session, RequestEntry request) throws IOException {
         long currentLogId = logHandler.getLogId();
         long currentTerm = logHandler.getTerm();
 
@@ -333,7 +333,7 @@ public class RaftControllerServerHandler implements SocketHandler {
         );
     }
 
-    private ByteBuffer handleAppendEntryResponse(ClientSession session, AppendEntryResponse response) {
+    private ByteBuffer handleAppendEntryResponse(RaftClientSession session, AppendEntryResponse response) {
         session.setLogId(response.id());
         session.setTerm(response.term());
 
@@ -453,11 +453,11 @@ public class RaftControllerServerHandler implements SocketHandler {
         return manager;
     }
 
-    private class ClientSession extends com.zenz.kvstore.server.ClientSession {
+    private class RaftClientSession extends com.zenz.kvstore.server.ClientSession {
         private long logId = -1;
         private long term = -1;
 
-        public ClientSession(SocketChannel channel) {
+        public RaftClientSession(SocketChannel channel) {
             super(channel);
         }
 
@@ -512,7 +512,7 @@ public class RaftControllerServerHandler implements SocketHandler {
             return "CommandTask{" +
                     "command=" + command +
                     ", fut=" + fut +
-                    ", logId=" + logId +
+                    ", prevLogId=" + logId +
                     ", majority=" + majority +
                     ", count=" + count +
                     '}';

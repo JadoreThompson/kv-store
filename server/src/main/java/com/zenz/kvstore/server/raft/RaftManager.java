@@ -169,9 +169,7 @@ public class RaftManager {
     /**
      * Handles the full election process when a controller crashes.
      */
-    public void initiateElectionAsControllerClient() throws IOException {
-        final String debugPrefix = DEBUG_PREFIX + "[initiateElectionAsControllerClient] ";
-
+    public void initiateElection() throws IOException {
         int count = 1;
         for (var client : brokerClients) {
             boolean running = client.isRunning();
@@ -179,37 +177,19 @@ public class RaftManager {
         }
 
         int majority = count / 2 + 1;
-        long curTerm = controllerClient.getLogHandler().getTerm();
+        long lastTerm = this.lastTerm;
 
         electionMeta = new ElectionMeta(
                 0,
-                lastTerm + 1,
+                ++this.lastTerm,
                 controllerClient.getLogHandler().getLogId(),
-                curTerm,
+                lastTerm,
                 majority,
                 System.currentTimeMillis() + 1000
         );
 
         state = NodeState.CANDIDATE;
         handleVoteResponse(new RequestVoteResponse(true, electionMeta.getTerm()));
-    }
-
-    public boolean shouldGrantVote(RequestVote message) {
-        final String DBG_PREFIX = String.format("[nodeId=%s shouldGrantVote]", node.id());
-
-        if (message.term() <= votedTerm) {
-            return false;
-        }
-
-        long currentTerm = ((RaftLogHandler) store.getLogHandler()).getTerm();
-        long currentLogId = store.getLogHandler().getLogId();
-
-
-        if ((message.term() > currentTerm) || (message.logId() > currentLogId)) {
-            votedTerm = message.term();
-            return true;
-        }
-        return false;
     }
 
     /**
@@ -222,8 +202,6 @@ public class RaftManager {
      * @throws IOException
      */
     public void handleVoteResponse(RequestVoteResponse response) throws IOException {
-        final String debugPrefix = DEBUG_PREFIX + "[handleVoteResponse] ";
-
         if (electionMeta == null) {
             return;
         }
@@ -238,7 +216,7 @@ public class RaftManager {
             electionMeta.voteCount++;
         }
 
-        if (electionMeta.voteCount >= electionMeta.majority) {
+        if (electionMeta.voteCount >= electionMeta.majority && controllerServerHandler == null) {
             controllerServerHandler = new RaftControllerServerHandler(
                     nodeServer,
                     (RaftLogHandler) store.getLogHandler(),
@@ -265,8 +243,6 @@ public class RaftManager {
      * @throws IOException
      */
     public void handleLeaderElected(LeaderElected message) throws IOException {
-        final String debugPrefix = DEBUG_PREFIX + "[handleLeaderElected] ";
-
         if (state == NodeState.CONTROLLER) {
             throw new RuntimeException("Leader elected whilst node is CONTROLLER");
         }
@@ -330,6 +306,11 @@ public class RaftManager {
         return store;
     }
 
+    /**
+     * Sets the last seen term
+     *
+     * @param term
+     */
     public void setLastTerm(long term) {
         if (term > lastTerm) {
             lastTerm = term;
@@ -353,6 +334,18 @@ public class RaftManager {
 
     public RaftNode getControllerNode() {
         return controllerNode;
+    }
+
+    public long getVotedTerm() {
+        return votedTerm;
+    }
+
+    public long getLastTerm() {
+        return lastTerm;
+    }
+
+    public void setVotedTerm(long term) {
+        votedTerm = term;
     }
 
     interface CheckedRunnable {

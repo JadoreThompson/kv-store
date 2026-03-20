@@ -30,7 +30,6 @@ public class SocketServer {
     }
 
     public void start() throws Exception {
-        final String debugPrefix = DEBUG_PREFIX + "[start] ";
         if (isRunning) return;
 
         selector = Selector.open();
@@ -74,7 +73,6 @@ public class SocketServer {
     }
 
     public void stop() throws IOException {
-        final String debugPrefix = DEBUG_PREFIX + "[stop] ";
         if (!isRunning) {
             return;
         }
