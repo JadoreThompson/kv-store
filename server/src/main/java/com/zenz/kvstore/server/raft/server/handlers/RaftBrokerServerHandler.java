@@ -42,8 +42,6 @@ public class RaftBrokerServerHandler implements SocketHandler {
     }
 
     public void handleRead(SelectionKey key) throws IOException {
-        final String debugPrefix = DEBUG_PREFIX + "[handleRead] ";
-
         ClientSession session = (ClientSession) key.attachment();
         ByteBuffer readBuffer = session.getReadBuffer();
         SocketChannel channel = (SocketChannel) key.channel();
@@ -96,8 +94,6 @@ public class RaftBrokerServerHandler implements SocketHandler {
     }
 
     private boolean processData(SelectionKey key, ByteBuffer readBuffer) throws IOException {
-        final String debugPrefix = DEBUG_PREFIX + "[processData] ";
-
         BaseMessage message;
         try {
             message = BaseMessage.deserialize(readBuffer);
@@ -115,19 +111,18 @@ public class RaftBrokerServerHandler implements SocketHandler {
 
         if (messageType.equals(MessageType.REQUEST_VOTE)) {
             RequestVote msg = (RequestVote) message;
-            manager.setLastTerm(msg.term());
-            boolean shouldGrant = manager.shouldGrantVote((RequestVote) message);
+            if (msg.term() > manager.getLastTerm() && msg.term() > manager.getVotedTerm()) {
+                manager.setLastTerm(msg.term());
 
-            if (shouldGrant) {
-                RequestVoteResponse response = new RequestVoteResponse(
-                        true, ((RequestVote) message).term()
-                );
-
-                responseBuffer = ByteBuffer.wrap(response.serialize());
+                if (msg.prevLogId() >= manager.getKVStore().getLogHandler().getLogId()) {
+                    manager.setVotedTerm(msg.term());
+                    RequestVoteResponse response = new RequestVoteResponse(true, msg.term());
+                    responseBuffer = ByteBuffer.wrap(response.serialize());
+                } else {
+                    manager.initiateElection();
+                }
             }
-
         } else if (messageType.equals(MessageType.LEADER_ELECTED)) {
-
             LeaderElected msg = (LeaderElected) message;
             manager.setLastTerm(msg.term());
             manager.handleLeaderElected((LeaderElected) message);
@@ -143,8 +138,6 @@ public class RaftBrokerServerHandler implements SocketHandler {
     }
 
     private void queueWrite(SocketChannel channel, ByteBuffer buffer) {
-        final String debugPrefix = DEBUG_PREFIX + "[queueWrite] ";
-
         Queue<ByteBuffer> queue = pendingWrites.computeIfAbsent(channel, k -> new LinkedList<>());
         queue.offer(buffer.duplicate());
 
@@ -156,7 +149,6 @@ public class RaftBrokerServerHandler implements SocketHandler {
     }
 
     public void handleWrite(SelectionKey key) throws IOException {
-        final String debugPrefix = DEBUG_PREFIX + "[handleWrite] ";
         SocketChannel client = (SocketChannel) key.channel();
 
         Queue<ByteBuffer> queue = pendingWrites.get(client);

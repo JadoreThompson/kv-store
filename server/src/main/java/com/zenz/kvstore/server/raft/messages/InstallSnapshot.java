@@ -53,7 +53,7 @@ public record InstallSnapshot(
         return "InstallSnapshot{" +
                 "errorType=" + type +
                 ", snapshot=" + (snapshot != null ? snapshot.length + " bytes" : "null") +
-                ", logId=" + logId +
+                ", prevLogId=" + logId +
                 ", term=" + term +
                 '}';
     }

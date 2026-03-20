@@ -175,7 +175,7 @@ class LeaderElectionTest {
 
             // Initiating election with the first manager
             RaftManager manager0 = managers.get(0);
-            manager0.initiateElectionAsControllerClient();
+            manager0.initiateElection();
 
             // Waiting for election to play out
             Thread.sleep(5000);
@@ -303,7 +303,7 @@ class LeaderElectionTest {
 
             // Initiating election with the first manager
             RaftManager manager0 = managers.get(0);
-            manager0.initiateElectionAsControllerClient();
+            manager0.initiateElection();
 
             // Verify initial election state with 2 running broker clients, majority should be 2
             RaftManager.ElectionMeta meta = manager0.getElectionMeta();
@@ -345,6 +345,392 @@ class LeaderElectionTest {
         }
     }
 
+
+    /**
+     * Tests edge case where a node receives a vote request with greater term but lower log id.
+     * <p>
+     * Scenario:
+     * - 6 brokers total, majority = 4
+     * - Broker 5 has a higher log id than others
+     * - Broker 5 receives a vote request with greater term but lower log id
+     * - Broker 5 should become CANDIDATE and send out vote requests
+     * - Controller client should lose connection
+     * - Since already in election, should NOT see another vote request triggered
+     */
+    @Test
+    @DisplayName("Node receiving vote request with greater term but lower log id initiates election without duplicate")
+    void nodeReceivingVoteRequest_withGreaterTermLowerLogId_initiatesElectionWithoutDuplicate() throws Exception {
+        final String debugPrefix = DEBUG_PREFIX + "[nodeReceivingVoteRequest_withGreaterTermLowerLogId_initiatesElectionWithoutDuplicate] ";
+
+        ExecutorService executor = Executors.newFixedThreadPool(8);
+        ArrayList<RaftManager> managers = new ArrayList<>();
+        TestControllerServer controllerServer = new TestControllerServer(8994);
+        TestControllerServer controllerServer1 = new TestControllerServer(8995);
+
+        final int maxAttempts = 5;
+
+        try {
+            executor.execute(() -> Utils.runnableWrapper(controllerServer::start));
+            executor.execute(() -> Utils.runnableWrapper(controllerServer1::start));
+
+            int attempts = 0;
+            while (attempts < maxAttempts) {
+                if (controllerServer.isRunning()) break;
+                Thread.sleep(500 * attempts);
+                attempts++;
+            }
+
+            assertTrue(
+                    attempts < maxAttempts,
+                    "Max attempts reached. Failed to initialise controller server"
+            );
+
+            // Create 6 brokers
+            ArrayList<RaftNode> nodes = new ArrayList<>();
+            final int numBrokers = 6;
+
+            for (int i = 0; i < numBrokers; i++) {
+                nodes.add(new RaftNode(
+                        i,
+                        new InetSocketAddress("localhost", 9000 + i),
+                        null,
+                        NodeState.BROKER
+                ));
+            }
+
+            nodes.add(new RaftNode(
+                    numBrokers,
+                    new InetSocketAddress(controllerServer.getHost(), controllerServer.getPort()),
+                    null,
+                    NodeState.CONTROLLER
+            ));
+
+            // Creating broker managers
+            for (int i = 0; i < numBrokers; i++) {
+                Path logPath = logsFolderPath.resolve(String.format("integration-6-%s.log", i));
+                WALogger logger = new WALogger(logPath);
+                RaftLogHandler logHandler = new RaftLogHandler(logger);
+
+                Path dir = snapshotFolderPath.resolve(String.format("integration-6-%s-snapshots", i));
+                Files.createDirectories(dir);
+                KVMapSnapshotter snapshotter = new KVMapSnapshotter(dir);
+                KVStore store = createStore(logHandler, snapshotter);
+
+                // Broker 5 has a higher log id (more entries) but same term
+                RaftManager manager;
+
+                if (i == 5) {
+                    logHandler.setTerm(1L);
+                    logHandler.setLogId(10L);
+                    RaftNode node = nodes.removeLast();
+                    nodes.add(new RaftNode(
+                            node.id(),
+                            new InetSocketAddress(controllerServer1.getHost(), controllerServer1.getPort()),
+                            null,
+                            NodeState.CONTROLLER
+                    ));
+                    ArrayList<RaftNode> list = new ArrayList<>(nodes.subList(0, 6));
+                    list.add(new RaftNode(
+                            node.id(),
+                            new InetSocketAddress(controllerServer1.getHost(), controllerServer1.getPort()),
+                            null,
+                            NodeState.CONTROLLER
+                    ));
+
+                    manager = new RaftManager(i, list, store);
+                } else {
+                    logHandler.setTerm(1L);
+                    logHandler.setLogId(3L);
+                    manager = new RaftManager(i, nodes, store);
+                }
+
+                managers.add(manager);
+                executor.execute(() -> Utils.runnableWrapper(manager::start));
+            }
+
+            // Waiting for brokers to spin up
+            Thread.sleep(500);
+
+            attempts = 0;
+            while (attempts < maxAttempts) {
+                boolean shouldBreak = true;
+
+                for (RaftManager manager : managers) {
+                    shouldBreak = shouldBreak && manager.isRunning();
+                }
+
+                if (shouldBreak) {
+                    break;
+                }
+
+                Thread.sleep(500 * attempts);
+                attempts++;
+            }
+
+            assertTrue(attempts < maxAttempts, "Max attempts reached waiting for managers to start");
+
+            // Verify initial state
+            RaftManager manager5 = managers.get(5);
+            RaftLogHandler logHandler5 = (RaftLogHandler) manager5.getKVStore().getLogHandler();
+            assertEquals(1L, logHandler5.getTerm(), "Broker 5 should have term 1");
+            assertEquals(10L, logHandler5.getLogId(), "Broker 5 should have logId 10");
+
+            // Verify controller client is running
+            assertNotNull(manager5.getControllerClient(), "Broker 5 should have a controller client");
+            assertTrue(manager5.getControllerClient().isRunning(), "Controller client should be running");
+
+            // Simulate receiving a vote request with greater term but lower log id
+            // Term = 5 (greater than broker 5's term of 1)
+            // prevLogId = 3 (lower than broker 5's logId of 10)
+            RequestVote voteRequest = new RequestVote(
+                    0L,  // candidateId
+                    5L,  // term (greater than broker 5's term)
+                    3L,  // prevLogId (lower than broker 5's logId of 10)
+                    1L   // prevTerm
+            );
+
+            // Process the vote request through the broker server handler
+            // This should trigger initiateElection() because prevLogId < currentLogId
+            manager5.setLastTerm(voteRequest.term());
+
+            // Verify initial state before election
+            assertNull(manager5.getElectionMeta(), "Broker 5 should not have election metadata before vote request");
+
+            // Initiate election (simulating what RaftBrokerServerHandler would do)
+            manager5.initiateElection();
+
+            // Verify broker 5 is now CANDIDATE
+            assertEquals(NodeState.CANDIDATE, manager5.getState(),
+                    "Broker 5 should be CANDIDATE after receiving vote request with lower log id");
+
+            // Verify election metadata
+            RaftManager.ElectionMeta meta5 = manager5.getElectionMeta();
+            assertNotNull(meta5, "Broker 5 should have election metadata after initiating election");
+            assertEquals(6L, meta5.getTerm(), "Broker 5's election should use term 6 (lastTerm 5 + 1)");
+            assertEquals(4, meta5.getMajority(), "Majority should be 4 with 6 brokers");
+            assertEquals(1, meta5.getVoteCount(), "Should start with self-vote");
+
+            // Store the original election term for comparison
+            long originalElectionTerm = meta5.getTerm();
+
+            // Now simulate the controller client detecting disconnection and calling initiateElection again
+            // This should NOT create a new election since we're already in one
+            controllerServer1.stop();
+
+            // Verify election metadata hasn't changed (no new election started)
+            RaftManager.ElectionMeta metaAfter = manager5.getElectionMeta();
+            assertNotNull(metaAfter, "Election metadata should still exist");
+            assertEquals(originalElectionTerm, metaAfter.getTerm(),
+                    "Election term should not change when initiateElection called during ongoing election");
+            assertEquals(1, metaAfter.getVoteCount(),
+                    "Vote count should still be 1 (self-vote only, no reset)");
+
+            // Verify broker clients are ready to send vote requests
+            ArrayList<RaftBrokerClient> brokerClients = manager5.getBrokerClients();
+            assertTrue(brokerClients.size() > 0, "Broker 5 should have broker clients");
+
+            // Simulate votes coming in to complete the election
+            RequestVoteResponse vote1 = new RequestVoteResponse(true, 6L);
+            manager5.handleVoteResponse(vote1);
+
+            RequestVoteResponse vote2 = new RequestVoteResponse(true, 6L);
+            manager5.handleVoteResponse(vote2);
+
+            RequestVoteResponse vote3 = new RequestVoteResponse(true, 6L);
+            manager5.handleVoteResponse(vote3);
+
+            // Now broker 5 should have 4 votes (1 self + 3 granted) = majority
+            assertEquals(NodeState.CONTROLLER, manager5.getState(),
+                    "Broker 5 should be CONTROLLER after reaching majority of 4 votes");
+
+        } finally {
+            for (RaftManager manager : managers) {
+                manager.stop();
+            }
+
+            controllerServer.stop();
+            executor.shutdown();
+            boolean success = executor.awaitTermination(5000, TimeUnit.MILLISECONDS);
+            if (!success) {
+                System.err.println(debugPrefix + "Executor termination failed");
+            }
+        }
+    }
+
+    /**
+     * Tests election with 6 brokers where one broker has a higher log term.
+     * <p>
+     * Scenario:
+     * - 6 brokers total, majority = 4
+     * - Broker 5 has a higher log term than others
+     * - When broker 5 receives a vote request with a smaller prevLogId,
+     * it should reject the vote and initiate its own election with a larger term
+     */
+    @Test
+    @DisplayName("Broker with higher log term initiates own election on receiving stale vote request")
+    void brokerWithHigherLogTerm_initiatesOwnElection_onStaleVoteRequest() throws Exception {
+        final String debugPrefix = DEBUG_PREFIX + "[brokerWithHigherLogTerm_initiatesOwnElection_onStaleVoteRequest] ";
+
+        ExecutorService executor = Executors.newFixedThreadPool(8);
+        ArrayList<RaftManager> managers = new ArrayList<>();
+        TestControllerServer controllerServer = new TestControllerServer(8995);
+
+        final int maxAttempts = 5;
+
+        try {
+            executor.execute(() -> Utils.runnableWrapper(controllerServer::start));
+
+            int attempts = 0;
+            while (attempts < maxAttempts) {
+                if (controllerServer.isRunning()) break;
+                Thread.sleep(500 * attempts);
+                attempts++;
+            }
+
+            assertTrue(
+                    attempts < maxAttempts,
+                    "Max attempts reached. Failed to initialise controller server"
+            );
+
+            // Create 6 brokers
+            ArrayList<RaftNode> nodes = new ArrayList<>();
+            final int numBrokers = 6;
+
+            for (int i = 0; i < numBrokers; i++) {
+                nodes.add(new RaftNode(
+                        i,
+                        new InetSocketAddress("localhost", 9000 + i),
+                        null,
+                        NodeState.BROKER
+                ));
+            }
+
+            nodes.add(new RaftNode(
+                    numBrokers,
+                    new InetSocketAddress(controllerServer.getHost(), controllerServer.getPort()),
+                    null,
+                    NodeState.CONTROLLER
+            ));
+
+            // Creating broker managers
+            for (int i = 0; i < numBrokers; i++) {
+                Path logPath = logsFolderPath.resolve(String.format("integration-5-%s.log", i));
+                WALogger logger = new WALogger(logPath);
+                RaftLogHandler logHandler = new RaftLogHandler(logger);
+
+                Path dir = snapshotFolderPath.resolve(String.format("integration-5-%s-snapshots", i));
+                Files.createDirectories(dir);
+                KVMapSnapshotter snapshotter = new KVMapSnapshotter(dir);
+
+                // Set base term for all brokers
+                logHandler.setTerm(1L);
+
+                // Broker 5 has a higher log term and more entries
+                if (i == 5) {
+                    logHandler.setTerm(3L);
+                    logHandler.setLogId(10L);
+                } else {
+                    logHandler.setTerm(1L);
+                    logHandler.setLogId(3L);
+                }
+
+                KVStore store = createStore(logHandler, snapshotter);
+
+                RaftManager manager = new RaftManager(i, nodes, store);
+                managers.add(manager);
+                executor.execute(() -> Utils.runnableWrapper(manager::start));
+            }
+
+            // Waiting for brokers to spin up
+            Thread.sleep(500);
+
+            attempts = 0;
+            while (attempts < maxAttempts) {
+                boolean shouldBreak = true;
+
+                for (RaftManager manager : managers) {
+                    shouldBreak = shouldBreak && manager.isRunning();
+                }
+
+                if (shouldBreak) {
+                    break;
+                }
+
+                Thread.sleep(500 * attempts);
+                attempts++;
+            }
+
+            assertTrue(attempts < maxAttempts, "Max attempts reached waiting for managers to start");
+
+            // Verify initial state
+            RaftManager manager5 = managers.get(5);
+            RaftLogHandler logHandler5 = (RaftLogHandler) manager5.getKVStore().getLogHandler();
+            assertEquals(3L, logHandler5.getTerm(), "Broker 5 should have term 3");
+            assertEquals(10L, logHandler5.getLogId(), "Broker 5 should have logId 10");
+
+            // Initiate election from broker 0 (which has lower log term)
+            RaftManager manager0 = managers.get(0);
+            manager0.initiateElection();
+
+            // Wait for election to propagate
+            Thread.sleep(2000);
+
+            // Verify that broker 5 has seen the vote request and updated its lastTerm
+            // The vote request from broker 0 should have term 2 (1 + 1)
+            // Broker 5 should reject this because its logId (10) > prevLogId in the request (3)
+            assertEquals(NodeState.BROKER, manager5.getState(),
+                    "Broker 5 should remain BROKER after receiving stale vote request");
+
+            // Broker 5 should have updated its lastTerm to the term from the vote request
+            assertTrue(manager5.getLastTerm() >= 2L,
+                    "Broker 5 should have updated its lastTerm");
+
+            // Now simulate broker 5 initiating its own election
+            // This would happen because it rejected the vote due to having a higher logId
+            manager5.initiateElection();
+
+            // Verify election metadata for broker 5
+            RaftManager.ElectionMeta meta5 = manager5.getElectionMeta();
+            assertNotNull(meta5, "Broker 5 should have election metadata after initiating election");
+            // Term should be 4 (lastTerm 3 + 1)
+            assertEquals(4L, meta5.getTerm(), "Broker 5's election should use term 4");
+            assertEquals(4, meta5.getMajority(), "Majority should be 4 with 6 brokers");
+
+            // Simulate votes coming in for broker 5's election
+            // Need 4 votes total (including self-vote) to reach majority
+            // After self-vote, need 3 more
+            RequestVoteResponse vote1 = new RequestVoteResponse(true, 4L);
+            manager5.handleVoteResponse(vote1);
+
+            RequestVoteResponse vote2 = new RequestVoteResponse(true, 4L);
+            manager5.handleVoteResponse(vote2);
+
+            RequestVoteResponse vote3 = new RequestVoteResponse(true, 4L);
+            manager5.handleVoteResponse(vote3);
+
+            // Now broker 5 should have 4 votes (1 self + 3 granted) = majority
+            assertEquals(NodeState.CONTROLLER, manager5.getState(),
+                    "Broker 5 should be CONTROLLER after reaching majority of 4 votes");
+
+            // Verify other brokers are still BROKERs
+            for (int i = 1; i < 4; i++) {
+                assertEquals(NodeState.BROKER, managers.get(i).getState(),
+                        "Broker " + i + " should remain BROKER");
+            }
+
+        } finally {
+            for (RaftManager manager : managers) {
+                manager.stop();
+            }
+
+            controllerServer.stop();
+            executor.shutdown();
+            boolean success = executor.awaitTermination(5000, TimeUnit.MILLISECONDS);
+            if (!success) {
+                System.err.println(debugPrefix + "Executor termination failed");
+            }
+        }
+    }
 
     /**
      * Multiple elections with increasing terms
@@ -440,7 +826,7 @@ class LeaderElectionTest {
 
             // First election cycle
             RaftManager manager0 = managers.get(0);
-            manager0.initiateElectionAsControllerClient();
+            manager0.initiateElection();
 
             // Verify first election state
             RaftManager.ElectionMeta meta = manager0.getElectionMeta();
@@ -477,7 +863,7 @@ class LeaderElectionTest {
             logHandler1.setTerm(2L);
 
             // Initiate second election from manager1
-            manager1.initiateElectionAsControllerClient();
+            manager1.initiateElection();
 
             // Verify second election state
             RaftManager.ElectionMeta meta2 = manager1.getElectionMeta();
