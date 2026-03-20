@@ -38,7 +38,8 @@ public class RaftBrokerServerHandler implements SocketHandler {
 
         channel.configureBlocking(false);
         channel.register(selector, SelectionKey.OP_READ);
-        channel.keyFor(selector).attach(new ClientSession(channel));
+//        channel.keyFor(selector).attach(new ClientSession(channel));
+        channel.keyFor(selector).attach(new RaftClientSession(channel));
     }
 
     public void handleRead(SelectionKey key) throws IOException {

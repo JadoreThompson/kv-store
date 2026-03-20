@@ -195,7 +195,7 @@ public class RaftControllerServerHandler implements SocketHandler {
         int count = 0;
         for (SelectionKey key : selector.keys()) {
             RaftClientSession session = (RaftClientSession) key.attachment();
-            if (session != null && session.logId == currentLogId) {
+            if (session != null && session.getLogId() == currentLogId) {
                 count++;
                 SocketChannel channel = session.getChannel();
                 followers.add(channel);
@@ -453,30 +453,30 @@ public class RaftControllerServerHandler implements SocketHandler {
         return manager;
     }
 
-    private class RaftClientSession extends com.zenz.kvstore.server.ClientSession {
-        private long logId = -1;
-        private long term = -1;
-
-        public RaftClientSession(SocketChannel channel) {
-            super(channel);
-        }
-
-        public long getLogId() {
-            return logId;
-        }
-
-        public void setLogId(long logId) {
-            this.logId = logId;
-        }
-
-        public long getTerm() {
-            return term;
-        }
-
-        public void setTerm(long term) {
-            this.term = term;
-        }
-    }
+//    private class RaftClientSession extends com.zenz.kvstore.server.ClientSession {
+//        private long logId = -1;
+//        private long term = -1;
+//
+//        public RaftClientSession(SocketChannel channel) {
+//            super(channel);
+//        }
+//
+//        public long getLogId() {
+//            return logId;
+//        }
+//
+//        public void setLogId(long logId) {
+//            this.logId = logId;
+//        }
+//
+//        public long getTerm() {
+//            return term;
+//        }
+//
+//        public void setTerm(long term) {
+//            this.term = term;
+//        }
+//    }
 
     private class CommandTask {
         public final Command command;

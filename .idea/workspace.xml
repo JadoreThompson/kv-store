@@ -4,11 +4,11 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="113ca11e-a295-4741-aad7-90962967a262" name="Changes" comment="saving">
+    <list default="true" id="113ca11e-a295-4741-aad7-90962967a262" name="Changes" comment="Merge branch 'feature/enhanced-leader-election'">
+      <change afterPath="$PROJECT_DIR$/server/src/main/java/com/zenz/kvstore/server/raft/server/handlers/RaftClientSession.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/server/src/main/java/com/zenz/kvstore/server/raft/RaftControllerClient.java" beforeDir="false" afterPath="$PROJECT_DIR$/server/src/main/java/com/zenz/kvstore/server/raft/RaftControllerClient.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/server/src/main/java/com/zenz/kvstore/server/raft/RaftManager.java" beforeDir="false" afterPath="$PROJECT_DIR$/server/src/main/java/com/zenz/kvstore/server/raft/RaftManager.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/server/src/test/java/com/zenz/kvstore/server/LeaderElectionTest.java" beforeDir="false" afterPath="$PROJECT_DIR$/server/src/test/java/com/zenz/kvstore/server/LeaderElectionTest.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/server/src/main/java/com/zenz/kvstore/server/raft/server/handlers/RaftBrokerServerHandler.java" beforeDir="false" afterPath="$PROJECT_DIR$/server/src/main/java/com/zenz/kvstore/server/raft/server/handlers/RaftBrokerServerHandler.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/server/src/main/java/com/zenz/kvstore/server/raft/server/handlers/RaftControllerServerHandler.java" beforeDir="false" afterPath="$PROJECT_DIR$/server/src/main/java/com/zenz/kvstore/server/raft/server/handlers/RaftControllerServerHandler.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -105,7 +105,7 @@
     "RunOnceActivity.git.unshallow": "true",
     "RunOnceActivity.typescript.service.memoryLimit.init": "true",
     "com.intellij.ml.llm.matterhorn.ej.ui.settings.DefaultModelSelectionForGA.v1": "true",
-    "git-widget-placeholder": "feature/enhanced-leader-election",
+    "git-widget-placeholder": "bugfix/stale-client-session",
     "junie.onboarding.icon.badge.shown": "true",
     "kotlin-language-version-configured": "true",
     "last_opened_file_path": "C:/Users/ADMIN/MyProjects/kv-store/server/common",
@@ -152,7 +152,7 @@
       <command value="mvn compile" />
     </option>
   </component>
-  <component name="RunManager" selected="JUnit.LeaderElectionTest.nodeReceivingVoteRequest_withGreaterTermLowerLogId_initiatesElectionWithoutDuplicate">
+  <component name="RunManager" selected="JUnit.LeaderElectionTest">
     <configuration name="KVStoreTest" type="JUnit" factoryName="JUnit" temporary="true" nameIsGenerated="true">
       <module name="server" />
       <extension name="coverage">
@@ -249,9 +249,9 @@
     </configuration>
     <recent_temporary>
       <list>
+        <item itemvalue="JUnit.LeaderElectionTest" />
         <item itemvalue="JUnit.LeaderElectionTest.nodeReceivingVoteRequest_withGreaterTermLowerLogId_initiatesElectionWithoutDuplicate" />
         <item itemvalue="JUnit.LeaderElectionTest.brokerWithHigherLogTerm_initiatesOwnElection_onStaleVoteRequest" />
-        <item itemvalue="JUnit.LeaderElectionTest" />
         <item itemvalue="JUnit.KVStoreTest" />
         <item itemvalue="JUnit.RaftCommandHandlerTest" />
       </list>
@@ -646,7 +646,15 @@
       <option name="project" value="LOCAL" />
       <updated>1774004224492</updated>
     </task>
-    <option name="localTasksCounter" value="41" />
+    <task id="LOCAL-00041" summary="Merge branch 'feature/enhanced-leader-election'">
+      <option name="closed" value="true" />
+      <created>1774008514993</created>
+      <option name="number" value="00041" />
+      <option name="presentableId" value="LOCAL-00041" />
+      <option name="project" value="LOCAL" />
+      <updated>1774008514993</updated>
+    </task>
+    <option name="localTasksCounter" value="42" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -664,7 +672,6 @@
     </option>
   </component>
   <component name="VcsManagerConfiguration">
-    <MESSAGE value="Removed redundant properties from KVStore" />
     <MESSAGE value="Implemented single threaded snapshotting; Refactored snapshotting implementation to snapshot in bytes; Implemented LogHandler class for log abstraction; Added tests for Restorer" />
     <MESSAGE value="saving - Implemented CommandHandler abstraction within KVServer" />
     <MESSAGE value="wip: Implementing raft controller - Created Message interface, subclasses and MessageType" />
@@ -689,7 +696,8 @@
     <MESSAGE value="Create DeleteResponse model" />
     <MESSAGE value="Update README" />
     <MESSAGE value="saving" />
-    <option name="LAST_COMMIT_MESSAGE" value="saving" />
+    <MESSAGE value="Merge branch 'feature/enhanced-leader-election'" />
+    <option name="LAST_COMMIT_MESSAGE" value="Merge branch 'feature/enhanced-leader-election'" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
