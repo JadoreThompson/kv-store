@@ -895,6 +895,539 @@ class LeaderElectionTest {
 
 
     /**
+     * Unit test for broker connection failure during election.
+     * <p>
+     * Tests that when a broker connection fails during an election,
+     * the vote count is incremented as if the broker voted for us.
+     * This effectively reduces the majority threshold, allowing the
+     * election to complete with fewer actual votes.
+     */
+    @Test
+    @DisplayName("Broker connection failure increments vote count during election")
+    void brokerConnectionFailure_incrementsVoteCount_duringElection() throws Exception {
+        final String debugPrefix = DEBUG_PREFIX + "[brokerConnectionFailure_incrementsVoteCount_duringElection] ";
+
+        ExecutorService executor = Executors.newFixedThreadPool(4);
+        ArrayList<RaftManager> managers = new ArrayList<>();
+        TestControllerServer controllerServer = new TestControllerServer(8997);
+
+        final int maxAttempts = 5;
+
+        try {
+            executor.execute(() -> Utils.runnableWrapper(controllerServer::start));
+
+            int attempts = 0;
+            while (attempts < maxAttempts) {
+                if (controllerServer.isRunning()) break;
+                Thread.sleep(500 * attempts);
+                attempts++;
+            }
+
+            assertTrue(
+                    attempts < maxAttempts,
+                    "Max attempts reached. Failed to initialise controller server"
+            );
+
+            // Create 3 brokers
+            ArrayList<RaftNode> nodes = new ArrayList<>();
+            final int numBrokers = 3;
+
+            for (int i = 0; i < numBrokers; i++) {
+                nodes.add(new RaftNode(
+                        i,
+                        new InetSocketAddress("localhost", 9000 + i),
+                        null,
+                        NodeState.BROKER
+                ));
+            }
+
+            nodes.add(new RaftNode(
+                    numBrokers,
+                    new InetSocketAddress(controllerServer.getHost(), controllerServer.getPort()),
+                    null,
+                    NodeState.CONTROLLER
+            ));
+
+            // Creating broker managers
+            for (int i = 0; i < numBrokers; i++) {
+                Path logPath = logsFolderPath.resolve(String.format("broker-failure-unit-%s.log", i));
+                WALogger logger = new WALogger(logPath);
+                RaftLogHandler logHandler = new RaftLogHandler(logger);
+
+                Path dir = snapshotFolderPath.resolve(String.format("broker-failure-unit-%s-snapshots", i));
+                Files.createDirectories(dir);
+                KVMapSnapshotter snapshotter = new KVMapSnapshotter(dir);
+                logHandler.setTerm(1L);
+                KVStore store = createStore(logHandler, snapshotter);
+
+                RaftManager manager = new RaftManager(i, nodes, store);
+                managers.add(manager);
+                executor.execute(() -> Utils.runnableWrapper(manager::start));
+            }
+
+            Thread.sleep(500);
+
+            attempts = 0;
+            while (attempts < maxAttempts) {
+                boolean shouldBreak = true;
+
+                for (RaftManager manager : managers) {
+                    shouldBreak = shouldBreak && manager.isRunning();
+                }
+
+                if (shouldBreak) {
+                    break;
+                }
+
+                Thread.sleep(500 * attempts);
+                attempts++;
+            }
+
+            assertTrue(attempts < maxAttempts, "Max attempts reached waiting for managers to start");
+
+            // Initiate election from manager 0
+            RaftManager manager0 = managers.get(0);
+            manager0.initiateElection();
+
+            // Verify initial election state
+            RaftManager.ElectionMeta meta = manager0.getElectionMeta();
+            assertNotNull(meta, "Election metadata should exist after initiation");
+            assertEquals(2L, meta.getTerm(), "Term should be 2 (1 + 1)");
+            assertEquals(1, meta.getVoteCount(), "Should start with self-vote");
+            assertEquals(2, meta.getMajority(), "Majority should be 2 with 2 running broker clients");
+
+            // Simulate broker connection failure by directly calling handleVoteResponse
+            // This simulates what happens in RaftBrokerClient.handleRead() when bytesRead == -1
+            RequestVoteResponse simulatedFailureVote = new RequestVoteResponse(true, 2L);
+            manager0.handleVoteResponse(simulatedFailureVote);
+
+            // Vote count should now be 2 (self-vote + failed broker treated as granted)
+            assertEquals(2, manager0.getElectionMeta().getVoteCount(),
+                    "Vote count should increment when broker connection fails");
+
+            // Election should complete since we reached majority
+            assertEquals(NodeState.CONTROLLER, manager0.getState(),
+                    "Manager 0 should be CONTROLLER after reaching majority via failed broker connection");
+
+        } finally {
+            for (RaftManager manager : managers) {
+                manager.stop();
+            }
+
+            controllerServer.stop();
+            executor.shutdown();
+            boolean success = executor.awaitTermination(5000, TimeUnit.MILLISECONDS);
+            if (!success) {
+                System.err.println(debugPrefix + "Executor termination failed");
+            }
+        }
+    }
+
+    /**
+     * Integration test for election completion with multiple broker connection failures.
+     * <p>
+     * Tests that an election can complete successfully when multiple broker
+     * connections fail during the election process. The failed brokers are
+     * treated as having voted for the candidate, effectively reducing the
+     * majority threshold.
+     * <p>
+     * Scenario:
+     * - 5 brokers total, initial majority = 3
+     * - 2 broker connections fail during election
+     * - With 2 failed brokers, effective majority becomes 2
+     * - Candidate wins with self-vote + 1 actual vote + 2 failed broker "votes"
+     */
+    @Test
+    @DisplayName("Election completes with multiple broker connection failures")
+    void electionCompletes_withMultipleBrokerConnectionFailures() throws Exception {
+        final String debugPrefix = DEBUG_PREFIX + "[electionCompletes_withMultipleBrokerConnectionFailures] ";
+
+        ExecutorService executor = Executors.newFixedThreadPool(8);
+        ArrayList<RaftManager> managers = new ArrayList<>();
+        TestControllerServer controllerServer = new TestControllerServer(8991);
+
+        final int maxAttempts = 5;
+
+        try {
+            executor.execute(() -> Utils.runnableWrapper(controllerServer::start));
+
+            int attempts = 0;
+            while (attempts < maxAttempts) {
+                if (controllerServer.isRunning()) break;
+                Thread.sleep(500 * attempts);
+                attempts++;
+            }
+
+            assertTrue(
+                    attempts < maxAttempts,
+                    "Max attempts reached. Failed to initialise controller server"
+            );
+
+            // Create 5 brokers
+            ArrayList<RaftNode> nodes = new ArrayList<>();
+            final int numBrokers = 5;
+
+            for (int i = 0; i < numBrokers; i++) {
+                nodes.add(new RaftNode(
+                        i,
+                        new InetSocketAddress("localhost", 9000 + i),
+                        null,
+                        NodeState.BROKER
+                ));
+            }
+
+            nodes.add(new RaftNode(
+                    numBrokers,
+                    new InetSocketAddress(controllerServer.getHost(), controllerServer.getPort()),
+                    null,
+                    NodeState.CONTROLLER
+            ));
+
+            // Creating broker managers
+            for (int i = 0; i < numBrokers; i++) {
+                Path logPath = logsFolderPath.resolve(String.format("multi-failure-%s.log", i));
+                WALogger logger = new WALogger(logPath);
+                RaftLogHandler logHandler = new RaftLogHandler(logger);
+
+                Path dir = snapshotFolderPath.resolve(String.format("multi-failure-%s-snapshots", i));
+                Files.createDirectories(dir);
+                KVMapSnapshotter snapshotter = new KVMapSnapshotter(dir);
+                logHandler.setTerm(1L);
+                KVStore store = createStore(logHandler, snapshotter);
+
+                RaftManager manager = new RaftManager(i, nodes, store);
+                managers.add(manager);
+                executor.execute(() -> Utils.runnableWrapper(manager::start));
+            }
+
+            Thread.sleep(500);
+
+            attempts = 0;
+            while (attempts < maxAttempts) {
+                boolean shouldBreak = true;
+
+                for (RaftManager manager : managers) {
+                    shouldBreak = shouldBreak && manager.isRunning();
+                }
+
+                if (shouldBreak) {
+                    break;
+                }
+
+                Thread.sleep(500 * attempts);
+                attempts++;
+            }
+
+            assertTrue(attempts < maxAttempts, "Max attempts reached waiting for managers to start");
+
+            // Initiate election from manager 0
+            RaftManager manager0 = managers.get(0);
+            manager0.initiateElection();
+
+            // Verify initial election state
+            // With 5 brokers, we have 4 broker clients + self = 5 total
+            // Majority = 5 / 2 + 1 = 3
+            RaftManager.ElectionMeta meta = manager0.getElectionMeta();
+            assertNotNull(meta, "Election metadata should exist after initiation");
+            assertEquals(2L, meta.getTerm(), "Term should be 2 (1 + 1)");
+            assertEquals(1, meta.getVoteCount(), "Should start with self-vote");
+            assertEquals(3, meta.getMajority(), "Majority should be 3 with 4 running broker clients + self");
+
+            // Simulate first broker connection failure
+            RequestVoteResponse failureVote1 = new RequestVoteResponse(true, 2L);
+            manager0.handleVoteResponse(failureVote1);
+
+            assertEquals(2, manager0.getElectionMeta().getVoteCount(),
+                    "Vote count should be 2 after first failure");
+
+            // Simulate second broker connection failure
+            RequestVoteResponse failureVote2 = new RequestVoteResponse(true, 2L);
+            manager0.handleVoteResponse(failureVote2);
+
+            assertEquals(3, manager0.getElectionMeta().getVoteCount(),
+                    "Vote count should be 3 after second failure");
+
+            // Election should complete since we reached majority of 3
+            assertEquals(NodeState.CONTROLLER, manager0.getState(),
+                    "Manager 0 should be CONTROLLER after reaching majority via failed broker connections");
+
+        } finally {
+            for (RaftManager manager : managers) {
+                manager.stop();
+            }
+
+            controllerServer.stop();
+            executor.shutdown();
+            boolean success = executor.awaitTermination(5000, TimeUnit.MILLISECONDS);
+            if (!success) {
+                System.err.println(debugPrefix + "Executor termination failed");
+            }
+        }
+    }
+
+    /**
+     * Tests that election completes when all broker connections fail.
+     * <p>
+     * Edge case scenario where all broker clients fail during an election.
+     * With all brokers failed, the candidate should still be able to win
+     * since each failed connection is treated as a granted vote.
+     * <p>
+     * Scenario:
+     * - 3 brokers total, initial majority = 2
+     * - All broker connections fail
+     * - Candidate wins with self-vote + 1 failed broker "vote"
+     */
+    @Test
+    @DisplayName("Election completes when all broker connections fail")
+    void electionCompletes_whenAllBrokerConnectionsFail() throws Exception {
+        final String debugPrefix = DEBUG_PREFIX + "[electionCompletes_whenAllBrokerConnectionsFail] ";
+
+        ExecutorService executor = Executors.newFixedThreadPool(4);
+        ArrayList<RaftManager> managers = new ArrayList<>();
+        TestControllerServer controllerServer = new TestControllerServer(8992);
+
+        final int maxAttempts = 5;
+
+        try {
+            executor.execute(() -> Utils.runnableWrapper(controllerServer::start));
+
+            int attempts = 0;
+            while (attempts < maxAttempts) {
+                if (controllerServer.isRunning()) break;
+                Thread.sleep(500 * attempts);
+                attempts++;
+            }
+
+            assertTrue(
+                    attempts < maxAttempts,
+                    "Max attempts reached. Failed to initialise controller server"
+            );
+
+            // Create 3 brokers
+            ArrayList<RaftNode> nodes = new ArrayList<>();
+            final int numBrokers = 3;
+
+            for (int i = 0; i < numBrokers; i++) {
+                nodes.add(new RaftNode(
+                        i,
+                        new InetSocketAddress("localhost", 9000 + i),
+                        null,
+                        NodeState.BROKER
+                ));
+            }
+
+            nodes.add(new RaftNode(
+                    numBrokers,
+                    new InetSocketAddress(controllerServer.getHost(), controllerServer.getPort()),
+                    null,
+                    NodeState.CONTROLLER
+            ));
+
+            // Creating broker managers
+            for (int i = 0; i < numBrokers; i++) {
+                Path logPath = logsFolderPath.resolve(String.format("all-fail-%s.log", i));
+                WALogger logger = new WALogger(logPath);
+                RaftLogHandler logHandler = new RaftLogHandler(logger);
+
+                Path dir = snapshotFolderPath.resolve(String.format("all-fail-%s-snapshots", i));
+                Files.createDirectories(dir);
+                KVMapSnapshotter snapshotter = new KVMapSnapshotter(dir);
+                logHandler.setTerm(1L);
+                KVStore store = createStore(logHandler, snapshotter);
+
+                RaftManager manager = new RaftManager(i, nodes, store);
+                managers.add(manager);
+                executor.execute(() -> Utils.runnableWrapper(manager::start));
+            }
+
+            Thread.sleep(500);
+
+            attempts = 0;
+            while (attempts < maxAttempts) {
+                boolean shouldBreak = true;
+
+                for (RaftManager manager : managers) {
+                    shouldBreak = shouldBreak && manager.isRunning();
+                }
+
+                if (shouldBreak) {
+                    break;
+                }
+
+                Thread.sleep(500 * attempts);
+                attempts++;
+            }
+
+            assertTrue(attempts < maxAttempts, "Max attempts reached waiting for managers to start");
+
+            // Initiate election from manager 0
+            RaftManager manager0 = managers.get(0);
+            manager0.initiateElection();
+
+            // Verify initial election state
+            RaftManager.ElectionMeta meta = manager0.getElectionMeta();
+            assertNotNull(meta, "Election metadata should exist after initiation");
+            assertEquals(2L, meta.getTerm(), "Term should be 2 (1 + 1)");
+            assertEquals(1, meta.getVoteCount(), "Should start with self-vote");
+            assertEquals(2, meta.getMajority(), "Majority should be 2 with 2 running broker clients");
+
+            // Simulate all broker connections failing
+            // With 2 broker clients, both failing should give us 2 more votes
+            RequestVoteResponse failureVote1 = new RequestVoteResponse(true, 2L);
+            manager0.handleVoteResponse(failureVote1);
+
+            // After first failure, we should have reached majority
+            assertEquals(NodeState.CONTROLLER, manager0.getState(),
+                    "Manager 0 should be CONTROLLER after first broker failure (reached majority)");
+
+        } finally {
+            for (RaftManager manager : managers) {
+                manager.stop();
+            }
+
+            controllerServer.stop();
+            executor.shutdown();
+            boolean success = executor.awaitTermination(5000, TimeUnit.MILLISECONDS);
+            if (!success) {
+                System.err.println(debugPrefix + "Executor termination failed");
+            }
+        }
+    }
+
+    /**
+     * Tests that vote responses with mismatched terms are ignored.
+     * <p>
+     * When a broker connection fails and the election term has changed,
+     * the simulated vote response should not affect the current election.
+     */
+    @Test
+    @DisplayName("Vote response with mismatched term is ignored during election")
+    void voteResponseWithMismatchedTerm_isIgnored_duringElection() throws Exception {
+        final String debugPrefix = DEBUG_PREFIX + "[voteResponseWithMismatchedTerm_isIgnored_duringElection] ";
+
+        ExecutorService executor = Executors.newFixedThreadPool(4);
+        ArrayList<RaftManager> managers = new ArrayList<>();
+        TestControllerServer controllerServer = new TestControllerServer(8993);
+
+        final int maxAttempts = 5;
+
+        try {
+            executor.execute(() -> Utils.runnableWrapper(controllerServer::start));
+
+            int attempts = 0;
+            while (attempts < maxAttempts) {
+                if (controllerServer.isRunning()) break;
+                Thread.sleep(500 * attempts);
+                attempts++;
+            }
+
+            assertTrue(
+                    attempts < maxAttempts,
+                    "Max attempts reached. Failed to initialise controller server"
+            );
+
+            // Create 3 brokers
+            ArrayList<RaftNode> nodes = new ArrayList<>();
+            final int numBrokers = 3;
+
+            for (int i = 0; i < numBrokers; i++) {
+                nodes.add(new RaftNode(
+                        i,
+                        new InetSocketAddress("localhost", 9000 + i),
+                        null,
+                        NodeState.BROKER
+                ));
+            }
+
+            nodes.add(new RaftNode(
+                    numBrokers,
+                    new InetSocketAddress(controllerServer.getHost(), controllerServer.getPort()),
+                    null,
+                    NodeState.CONTROLLER
+            ));
+
+            // Creating broker managers
+            for (int i = 0; i < numBrokers; i++) {
+                Path logPath = logsFolderPath.resolve(String.format("mismatched-term-%s.log", i));
+                WALogger logger = new WALogger(logPath);
+                RaftLogHandler logHandler = new RaftLogHandler(logger);
+
+                Path dir = snapshotFolderPath.resolve(String.format("mismatched-term-%s-snapshots", i));
+                Files.createDirectories(dir);
+                KVMapSnapshotter snapshotter = new KVMapSnapshotter(dir);
+                logHandler.setTerm(1L);
+                KVStore store = createStore(logHandler, snapshotter);
+
+                RaftManager manager = new RaftManager(i, nodes, store);
+                managers.add(manager);
+                executor.execute(() -> Utils.runnableWrapper(manager::start));
+            }
+
+            Thread.sleep(500);
+
+            attempts = 0;
+            while (attempts < maxAttempts) {
+                boolean shouldBreak = true;
+
+                for (RaftManager manager : managers) {
+                    shouldBreak = shouldBreak && manager.isRunning();
+                }
+
+                if (shouldBreak) {
+                    break;
+                }
+
+                Thread.sleep(500 * attempts);
+                attempts++;
+            }
+
+            assertTrue(attempts < maxAttempts, "Max attempts reached waiting for managers to start");
+
+            // Initiate election from manager 0
+            RaftManager manager0 = managers.get(0);
+            manager0.initiateElection();
+
+            // Verify initial election state
+            RaftManager.ElectionMeta meta = manager0.getElectionMeta();
+            assertNotNull(meta, "Election metadata should exist after initiation");
+            assertEquals(2L, meta.getTerm(), "Term should be 2 (1 + 1)");
+            assertEquals(1, meta.getVoteCount(), "Should start with self-vote");
+
+            // Simulate a vote response with a mismatched term (old term)
+            RequestVoteResponse mismatchedVote = new RequestVoteResponse(true, 1L);
+            manager0.handleVoteResponse(mismatchedVote);
+
+            // Vote count should remain unchanged
+            assertEquals(1, manager0.getElectionMeta().getVoteCount(),
+                    "Vote count should not change for mismatched term");
+
+            // Simulate a vote response with a future term
+            RequestVoteResponse futureTermVote = new RequestVoteResponse(true, 5L);
+            manager0.handleVoteResponse(futureTermVote);
+
+            // Vote count should still remain unchanged
+            assertEquals(1, manager0.getElectionMeta().getVoteCount(),
+                    "Vote count should not change for future term");
+
+            // State should still be CANDIDATE
+            assertEquals(NodeState.CANDIDATE, manager0.getState(),
+                    "Should remain CANDIDATE after mismatched term votes");
+
+        } finally {
+            for (RaftManager manager : managers) {
+                manager.stop();
+            }
+
+            controllerServer.stop();
+            executor.shutdown();
+            boolean success = executor.awaitTermination(5000, TimeUnit.MILLISECONDS);
+            if (!success) {
+                System.err.println(debugPrefix + "Executor termination failed");
+            }
+        }
+    }
+
+    /**
      * Heartbeat server as a replacement for a full RaftControllerServer
      */
     private class TestControllerServer {

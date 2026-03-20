@@ -4,69 +4,33 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="113ca11e-a295-4741-aad7-90962967a262" name="Changes" comment="Merge branch 'feature/enhanced-leader-election'">
-      <change afterPath="$PROJECT_DIR$/server/src/main/java/com/zenz/kvstore/server/raft/server/handlers/RaftClientSession.java" afterDir="false" />
+    <list default="true" id="f2a63f83-7187-4a54-8703-b4d1ce6944cf" name="Changes" comment="saving - Handling broker disconnect during election">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/server/src/main/java/com/zenz/kvstore/server/raft/server/handlers/RaftBrokerServerHandler.java" beforeDir="false" afterPath="$PROJECT_DIR$/server/src/main/java/com/zenz/kvstore/server/raft/server/handlers/RaftBrokerServerHandler.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/server/src/main/java/com/zenz/kvstore/server/raft/server/handlers/RaftControllerServerHandler.java" beforeDir="false" afterPath="$PROJECT_DIR$/server/src/main/java/com/zenz/kvstore/server/raft/server/handlers/RaftControllerServerHandler.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
     <option name="LAST_RESOLUTION" value="IGNORE" />
   </component>
-  <component name="FileTemplateManagerImpl">
-    <option name="RECENT_TEMPLATES">
-      <list>
-        <option value="Enum" />
-        <option value="Dockerfile" />
-        <option value="Interface" />
-        <option value="Record" />
-        <option value="Class" />
-      </list>
-    </option>
-  </component>
-  <component name="FormatOnSaveOptions">
-    <option name="myRunOnSave" value="true" />
-  </component>
   <component name="Git.Settings">
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
   </component>
-  <component name="GitHubPullRequestSearchHistory">{
-  &quot;lastFilter&quot;: {
-    &quot;state&quot;: &quot;OPEN&quot;,
-    &quot;assignee&quot;: &quot;JadoreThompson&quot;
+  <component name="GitHubPullRequestSearchHistory"><![CDATA[{
+  "lastFilter": {
+    "state": "OPEN",
+    "assignee": "JadoreThompson"
   }
-}</component>
-  <component name="GithubPullRequestsUISettings">{
-  &quot;selectedUrlAndAccountId&quot;: {
-    &quot;url&quot;: &quot;https://github.com/JadoreThompson/kv-store.git&quot;,
-    &quot;accountId&quot;: &quot;1f8b3808-e4a8-4946-9225-280343a681cb&quot;
+}]]></component>
+  <component name="GithubPullRequestsUISettings"><![CDATA[{
+  "selectedUrlAndAccountId": {
+    "url": "https://github.com/JadoreThompson/kv-store.git",
+    "accountId": "1f8b3808-e4a8-4946-9225-280343a681cb"
   }
-}</component>
-  <component name="HighlightingSettingsPerFile">
-    <setting file="jar://$PROJECT_DIR$/../../../../Program Files/Java/jdk-22/lib/src.zip!/java.base/java/util/ArrayList.java" root0="SKIP_INSPECTION" />
-  </component>
-  <component name="JsbtTreeLayoutManager">
-    <layout place="tools.popupGrunt">
-      <scroll-view-position x="0" y="0" />
-    </layout>
-  </component>
-  <component name="KubernetesApiPersistence">{}</component>
-  <component name="KubernetesApiProvider">{
-  &quot;isMigrated&quot;: true
-}</component>
-  <component name="McpProjectServerCommands">
-    <commands />
-    <urls />
-  </component>
-  <component name="ProblemsViewState">
-    <option name="selectedTabId" value="CurrentFile" />
-  </component>
-  <component name="ProjectColorInfo">{
-  &quot;associatedIndex&quot;: 1
-}</component>
-  <component name="ProjectId" id="39ocsc23eCn0G3G5o2ccwkxCUQH" />
+}]]></component>
+  <component name="ProjectColorInfo"><![CDATA[{
+  "associatedIndex": 2
+}]]></component>
+  <component name="ProjectId" id="3BD4nVipPFOw8IZF14l9piRxcQM" />
   <component name="ProjectLevelVcsManager">
     <ConfirmationsSetting value="2" id="Add" />
   </component>
@@ -76,98 +40,15 @@
   </component>
   <component name="PropertiesComponent"><![CDATA[{
   "keyToString": {
-    "Application.Main.executor": "Debug",
-    "Application.com.zenz.Main.executor": "Run",
-    "Docker.Dockerfile builder.executor": "Run",
-    "JUnit.KVMap2Test.executor": "Run",
-    "JUnit.KVMap2Test.remove_duringRehash_keyRemovedFromCorrectTable.executor": "Run",
-    "JUnit.KVMap2Test.remove_duringRehash_multipleRemovesSucceed.executor": "Run",
-    "JUnit.KVMap2Test.remove_oneOfMultipleKeys_onlyRemovedKeyIsGone.executor": "Run",
-    "JUnit.KVMapSnapshotterTest.executor": "Run",
-    "JUnit.KVMapSnapshotterTest.loadSnapshot_handlesMultipleEntries.executor": "Run",
-    "JUnit.KVMapTest.executor": "Run",
-    "JUnit.KVMapTest.put_thenGet_returnsNode.executor": "Run",
-    "JUnit.KVMapTest.remove_duringRehash_multipleRemovesSucceed.executor": "Run",
-    "JUnit.KVServerTest.executor": "Run",
-    "JUnit.KVStoreTest.executor": "Run",
-    "JUnit.LeaderElectionTest.brokerWithHigherLogTerm_initiatesOwnElection_onStaleVoteRequest.executor": "Run",
-    "JUnit.LeaderElectionTest.executor": "Run",
-    "JUnit.LeaderElectionTest.nodeReceivingVoteRequest_withGreaterTermLowerLogId_initiatesElectionWithoutDuplicate.executor": "Run",
-    "JUnit.RaftCommandHandlerTest.deleteCommand_minimumMajority_completesAtThreshold.executor": "Run",
-    "JUnit.RaftCommandHandlerTest.deleteCommand_multipleSequential_allComplete.executor": "Run",
-    "JUnit.RaftCommandHandlerTest.executor": "Run",
-    "JUnit.server in server.executor": "Run",
-    "Maven.kv-store [compile].executor": "Run",
-    "ModuleVcsDetector.initialDetectionPerformed": "true",
-    "RunOnceActivity.MCP Project settings loaded": "true",
     "RunOnceActivity.ShowReadmeOnStart": "true",
-    "RunOnceActivity.TerminalTabsStorage.copyFrom.TerminalArrangementManager.252": "true",
     "RunOnceActivity.git.unshallow": "true",
     "RunOnceActivity.typescript.service.memoryLimit.init": "true",
-    "com.intellij.ml.llm.matterhorn.ej.ui.settings.DefaultModelSelectionForGA.v1": "true",
-    "git-widget-placeholder": "bugfix/stale-client-session",
-    "junie.onboarding.icon.badge.shown": "true",
+    "git-widget-placeholder": "main",
     "kotlin-language-version-configured": "true",
-    "last_opened_file_path": "C:/Users/ADMIN/MyProjects/kv-store/server/common",
-    "node.js.detected.package.eslint": "true",
-    "node.js.detected.package.tslint": "true",
-    "node.js.selected.package.eslint": "(autodetect)",
-    "node.js.selected.package.tslint": "(autodetect)",
-    "nodejs_package_manager_path": "npm",
-    "onboarding.tips.debug.path": "C:/Users/ADMIN/MyProjects/kvstore/client/src/main/java/com/zenz/Main.java",
-    "project.structure.last.edited": "Modules",
-    "project.structure.proportion": "0.0",
-    "project.structure.side.proportion": "0.0",
-    "settings.editor.selected.configurable": "actions.on.save",
-    "to.speed.mode.migration.done": "true",
     "vue.rearranger.settings.migration": "true"
   }
 }]]></component>
-  <component name="RecentsManager">
-    <key name="CopyFile.RECENT_KEYS">
-      <recent name="C:\Users\ADMIN\MyProjects\kv-store\server\common" />
-      <recent name="C:\Users\ADMIN\MyProjects\kv-store\server\common\src\main\java\com\zenz\kvstore\common" />
-      <recent name="C:\Users\ADMIN\MyProjects\kv-store\server\common\src\main\java\com\zenz\kvstore\common\enums" />
-      <recent name="C:\Users\ADMIN\MyProjects\kv-store\server\common\src\main\java\com\zenz\kvstore\common\utils" />
-    </key>
-    <key name="MoveFile.RECENT_KEYS">
-      <recent name="C:\Users\ADMIN\MyProjects\kvstore\client\src\main\java\com\zenz\kvstore\client" />
-      <recent name="C:\Users\ADMIN\MyProjects\kv-store\server" />
-      <recent name="C:\Users\ADMIN\MyProjects\kv-store\server\server" />
-      <recent name="C:\Users\ADMIN\MyProjects\kv-store\kv-store-server" />
-    </key>
-    <key name="MoveClassesOrPackagesDialog.RECENTS_KEY">
-      <recent name="com.zenz.kvstore" />
-    </key>
-    <key name="CopyClassDialog.RECENTS_KEY">
-      <recent name="com.zenz.kvstore.server" />
-      <recent name="com.zenz.kvstore.common.enums" />
-      <recent name="com.zenz.kvstore.common" />
-      <recent name="com.zenz.kvstore.raft" />
-      <recent name="com.zenz.kvstore.raft.messages" />
-    </key>
-  </component>
-  <component name="RunAnythingCache">
-    <option name="myCommands">
-      <command value="mvn compile" />
-    </option>
-  </component>
   <component name="RunManager" selected="JUnit.LeaderElectionTest">
-    <configuration name="KVStoreTest" type="JUnit" factoryName="JUnit" temporary="true" nameIsGenerated="true">
-      <module name="server" />
-      <extension name="coverage">
-        <pattern>
-          <option name="PATTERN" value="com.zenz.kvstore.server.*" />
-          <option name="ENABLED" value="true" />
-        </pattern>
-      </extension>
-      <option name="PACKAGE_NAME" value="com.zenz.kvstore.server" />
-      <option name="MAIN_CLASS_NAME" value="com.zenz.kvstore.server.KVStoreTest" />
-      <option name="TEST_OBJECT" value="class" />
-      <method v="2">
-        <option name="Make" enabled="true" />
-      </method>
-    </configuration>
     <configuration name="LeaderElectionTest" type="JUnit" factoryName="JUnit" temporary="true" nameIsGenerated="true">
       <module name="server" />
       <extension name="coverage">
@@ -183,7 +64,7 @@
         <option name="Make" enabled="true" />
       </method>
     </configuration>
-    <configuration name="LeaderElectionTest.brokerWithHigherLogTerm_initiatesOwnElection_onStaleVoteRequest" type="JUnit" factoryName="JUnit" temporary="true" nameIsGenerated="true">
+    <configuration name="LeaderElectionTest.brokerConnectionFailure_incrementsVoteCount_duringElection" type="JUnit" factoryName="JUnit" temporary="true" nameIsGenerated="true">
       <module name="server" />
       <extension name="coverage">
         <pattern>
@@ -193,67 +74,16 @@
       </extension>
       <option name="PACKAGE_NAME" value="com.zenz.kvstore.server" />
       <option name="MAIN_CLASS_NAME" value="com.zenz.kvstore.server.LeaderElectionTest" />
-      <option name="METHOD_NAME" value="brokerWithHigherLogTerm_initiatesOwnElection_onStaleVoteRequest" />
+      <option name="METHOD_NAME" value="brokerConnectionFailure_incrementsVoteCount_duringElection" />
       <option name="TEST_OBJECT" value="method" />
       <method v="2">
         <option name="Make" enabled="true" />
       </method>
-    </configuration>
-    <configuration name="LeaderElectionTest.nodeReceivingVoteRequest_withGreaterTermLowerLogId_initiatesElectionWithoutDuplicate" type="JUnit" factoryName="JUnit" temporary="true" nameIsGenerated="true">
-      <module name="server" />
-      <extension name="coverage">
-        <pattern>
-          <option name="PATTERN" value="com.zenz.kvstore.server.*" />
-          <option name="ENABLED" value="true" />
-        </pattern>
-      </extension>
-      <option name="PACKAGE_NAME" value="com.zenz.kvstore.server" />
-      <option name="MAIN_CLASS_NAME" value="com.zenz.kvstore.server.LeaderElectionTest" />
-      <option name="METHOD_NAME" value="nodeReceivingVoteRequest_withGreaterTermLowerLogId_initiatesElectionWithoutDuplicate" />
-      <option name="TEST_OBJECT" value="method" />
-      <method v="2">
-        <option name="Make" enabled="true" />
-      </method>
-    </configuration>
-    <configuration name="RaftCommandHandlerTest" type="JUnit" factoryName="JUnit" temporary="true" nameIsGenerated="true">
-      <module name="server" />
-      <extension name="coverage">
-        <pattern>
-          <option name="PATTERN" value="com.zenz.kvstore.server.*" />
-          <option name="ENABLED" value="true" />
-        </pattern>
-      </extension>
-      <option name="PACKAGE_NAME" value="com.zenz.kvstore.server" />
-      <option name="MAIN_CLASS_NAME" value="com.zenz.kvstore.server.RaftCommandHandlerTest" />
-      <option name="TEST_OBJECT" value="class" />
-      <method v="2">
-        <option name="Make" enabled="true" />
-      </method>
-    </configuration>
-    <configuration default="true" type="JetRunConfigurationType">
-      <module name="kv-store" />
-      <method v="2">
-        <option name="Make" enabled="true" />
-      </method>
-    </configuration>
-    <configuration default="true" type="KotlinStandaloneScriptRunConfigurationType">
-      <module name="kv-store" />
-      <option name="filePath" />
-      <method v="2" />
-    </configuration>
-    <configuration default="true" type="docker-deploy" factoryName="dockerfile" temporary="true">
-      <deployment type="dockerfile">
-        <settings />
-      </deployment>
-      <method v="2" />
     </configuration>
     <recent_temporary>
       <list>
         <item itemvalue="JUnit.LeaderElectionTest" />
-        <item itemvalue="JUnit.LeaderElectionTest.nodeReceivingVoteRequest_withGreaterTermLowerLogId_initiatesElectionWithoutDuplicate" />
-        <item itemvalue="JUnit.LeaderElectionTest.brokerWithHigherLogTerm_initiatesOwnElection_onStaleVoteRequest" />
-        <item itemvalue="JUnit.KVStoreTest" />
-        <item itemvalue="JUnit.RaftCommandHandlerTest" />
+        <item itemvalue="JUnit.LeaderElectionTest.brokerConnectionFailure_incrementsVoteCount_duringElection" />
       </list>
     </recent_temporary>
   </component>
@@ -265,454 +95,31 @@
       </set>
     </attachedChunks>
   </component>
-  <component name="SliceToolwindowSettings">
-    <option name="preview" value="true" />
-  </component>
   <component name="TaskManager">
-    <task active="true" id="Default" summary="Default task">
-      <changelist id="113ca11e-a295-4741-aad7-90962967a262" name="Changes" comment="" />
-      <created>1771366075841</created>
-      <option name="number" value="Default" />
-      <option name="presentableId" value="Default" />
-      <updated>1771366075841</updated>
-      <workItem from="1771366077456" duration="65000" />
-      <workItem from="1771366168690" duration="298000" />
-      <workItem from="1771424058975" duration="21984000" />
-      <workItem from="1771448469095" duration="591000" />
-      <workItem from="1771449079940" duration="61000" />
-      <workItem from="1771449172209" duration="4556000" />
-      <workItem from="1771504085601" duration="26615000" />
-      <workItem from="1771575511560" duration="16711000" />
-      <workItem from="1771595680701" duration="34000" />
-      <workItem from="1771596336989" duration="140000" />
-      <workItem from="1771596985810" duration="2698000" />
-      <workItem from="1771676280362" duration="25473000" />
-      <workItem from="1771752462930" duration="562000" />
-      <workItem from="1771753155052" duration="6690000" />
-      <workItem from="1772052812379" duration="5905000" />
-      <workItem from="1772092857125" duration="21824000" />
-      <workItem from="1772119388022" duration="4699000" />
-      <workItem from="1772126689049" duration="582000" />
-      <workItem from="1772179888198" duration="26970000" />
-      <workItem from="1772267586100" duration="21863000" />
-      <workItem from="1772309462656" duration="7383000" />
-      <workItem from="1772357440033" duration="21570000" />
-      <workItem from="1772393186191" duration="16491000" />
-      <workItem from="1772441630493" duration="22305000" />
-      <workItem from="1772471289296" duration="18401000" />
-      <workItem from="1772524641468" duration="287000" />
-      <workItem from="1772524991666" duration="41973000" />
-      <workItem from="1772610130544" duration="6461000" />
-      <workItem from="1772617134627" duration="8005000" />
-      <workItem from="1772697047429" duration="43000" />
-      <workItem from="1772697264271" duration="14193000" />
-      <workItem from="1772716780884" duration="25005000" />
-      <workItem from="1772782883709" duration="8976000" />
-      <workItem from="1772878297476" duration="2518000" />
-      <workItem from="1772881703160" duration="16000" />
-      <workItem from="1772909263800" duration="73000" />
-      <workItem from="1772915748749" duration="1457000" />
-      <workItem from="1773046326945" duration="3971000" />
-      <workItem from="1773511200542" duration="1335000" />
-      <workItem from="1773521325944" duration="661000" />
-      <workItem from="1773590099259" duration="67000" />
-      <workItem from="1773591888785" duration="3588000" />
-      <workItem from="1773781753487" duration="1878000" />
-      <workItem from="1773844621763" duration="541000" />
-      <workItem from="1773847751131" duration="1350000" />
-      <workItem from="1773852618057" duration="27000" />
-      <workItem from="1773872932336" duration="28000" />
-      <workItem from="1773908783405" duration="22205000" />
-      <workItem from="1773957422383" duration="3413000" />
-      <workItem from="1773997863729" duration="9185000" />
-    </task>
-    <task id="LOCAL-00001" summary="Added content length check in KVMapSnapshotter.applyLogs">
+    <task id="LOCAL-00001" summary="saving - Handling broker disconnect during election">
       <option name="closed" value="true" />
-      <created>1771705393595</created>
+      <created>1774010201406</created>
       <option name="number" value="00001" />
       <option name="presentableId" value="LOCAL-00001" />
       <option name="project" value="LOCAL" />
-      <updated>1771705393595</updated>
+      <updated>1774010201406</updated>
     </task>
-    <task id="LOCAL-00002" summary="Disabled snapshotting in KVConnectionManagerTest">
-      <option name="closed" value="true" />
-      <created>1771754906523</created>
-      <option name="number" value="00002" />
-      <option name="presentableId" value="LOCAL-00002" />
-      <option name="project" value="LOCAL" />
-      <updated>1771754906523</updated>
+    <task active="true" id="Default" summary="Default task">
+      <changelist id="f2a63f83-7187-4a54-8703-b4d1ce6944cf" name="Changes" comment="saving - Handling broker disconnect during election" />
+      <created>1774010476851</created>
+      <option name="number" value="Default" />
+      <option name="presentableId" value="Default" />
+      <updated>1774010476851</updated>
+      <workItem from="1774010479217" duration="319000" />
     </task>
-    <task id="LOCAL-00003" summary="Added builder class to KVStore2">
-      <option name="closed" value="true" />
-      <created>1771754938187</created>
-      <option name="number" value="00003" />
-      <option name="presentableId" value="LOCAL-00003" />
-      <option name="project" value="LOCAL" />
-      <updated>1771754938187</updated>
-    </task>
-    <task id="LOCAL-00004" summary="Modified KVStore2.Builder to return self&#10;for each method; Updated KVStore2Test">
-      <option name="closed" value="true" />
-      <created>1771758481818</created>
-      <option name="number" value="00004" />
-      <option name="presentableId" value="LOCAL-00004" />
-      <option name="project" value="LOCAL" />
-      <updated>1771758481818</updated>
-    </task>
-    <task id="LOCAL-00005" summary="Updated KVConnectionManagerTest">
-      <option name="closed" value="true" />
-      <created>1771758640629</created>
-      <option name="number" value="00005" />
-      <option name="presentableId" value="LOCAL-00005" />
-      <option name="project" value="LOCAL" />
-      <updated>1771758640629</updated>
-    </task>
-    <task id="LOCAL-00006" summary="Removed debug comments; Removed unused methods and constructors; Updated Main to use new Builder">
-      <option name="closed" value="true" />
-      <created>1771759422301</created>
-      <option name="number" value="00006" />
-      <option name="presentableId" value="LOCAL-00006" />
-      <option name="project" value="LOCAL" />
-      <updated>1771759422301</updated>
-    </task>
-    <task id="LOCAL-00007" summary="Renamed KVStore2 to KVStore">
-      <option name="closed" value="true" />
-      <created>1771759528620</created>
-      <option name="number" value="00007" />
-      <option name="presentableId" value="LOCAL-00007" />
-      <option name="project" value="LOCAL" />
-      <updated>1771759528620</updated>
-    </task>
-    <task id="LOCAL-00008" summary="Renamed operation to command and ConnectionManager to Server">
-      <option name="closed" value="true" />
-      <created>1772027562655</created>
-      <option name="number" value="00008" />
-      <option name="presentableId" value="LOCAL-00008" />
-      <option name="project" value="LOCAL" />
-      <updated>1772027562655</updated>
-    </task>
-    <task id="LOCAL-00009" summary="Renamed fromLine method in Command.java to deserialize">
-      <option name="closed" value="true" />
-      <created>1772029092253</created>
-      <option name="number" value="00009" />
-      <option name="presentableId" value="LOCAL-00009" />
-      <option name="project" value="LOCAL" />
-      <updated>1772029092253</updated>
-    </task>
-    <task id="LOCAL-00010" summary="Added serialise and deserialise interface methods in Command">
-      <option name="closed" value="true" />
-      <created>1772029184215</created>
-      <option name="number" value="00010" />
-      <option name="presentableId" value="LOCAL-00010" />
-      <option name="project" value="LOCAL" />
-      <updated>1772029184215</updated>
-    </task>
-    <task id="LOCAL-00011" summary="Altered CommandType value to type int; Added serialize and deserialize methods to Command interface objects">
-      <option name="closed" value="true" />
-      <created>1772029947159</created>
-      <option name="number" value="00011" />
-      <option name="presentableId" value="LOCAL-00011" />
-      <option name="project" value="LOCAL" />
-      <updated>1772029947159</updated>
-    </task>
-    <task id="LOCAL-00012" summary="wip - Implemented classes for KVStore restoration">
-      <option name="closed" value="true" />
-      <created>1772032346316</created>
-      <option name="number" value="00012" />
-      <option name="presentableId" value="LOCAL-00012" />
-      <option name="project" value="LOCAL" />
-      <updated>1772032346316</updated>
-    </task>
-    <task id="LOCAL-00013" summary="Removed redundant properties from KVStore">
-      <option name="closed" value="true" />
-      <created>1772054131421</created>
-      <option name="number" value="00013" />
-      <option name="presentableId" value="LOCAL-00013" />
-      <option name="project" value="LOCAL" />
-      <updated>1772054131422</updated>
-    </task>
-    <task id="LOCAL-00014" summary="Implemented single threaded snapshotting; Refactored snapshotting implementation to snapshot in bytes; Implemented LogHandler class for log abstraction; Added tests for Restorer">
-      <option name="closed" value="true" />
-      <created>1772107880502</created>
-      <option name="number" value="00014" />
-      <option name="presentableId" value="LOCAL-00014" />
-      <option name="project" value="LOCAL" />
-      <updated>1772107880502</updated>
-    </task>
-    <task id="LOCAL-00015" summary="saving - Implemented CommandHandler abstraction within KVServer">
-      <option name="closed" value="true" />
-      <created>1772109373205</created>
-      <option name="number" value="00015" />
-      <option name="presentableId" value="LOCAL-00015" />
-      <option name="project" value="LOCAL" />
-      <updated>1772109373205</updated>
-    </task>
-    <task id="LOCAL-00016" summary="wip: Implementing raft controller - Created Message interface, subclasses and MessageType">
-      <option name="closed" value="true" />
-      <created>1772116967409</created>
-      <option name="number" value="00016" />
-      <option name="presentableId" value="LOCAL-00016" />
-      <option name="project" value="LOCAL" />
-      <updated>1772116967409</updated>
-    </task>
-    <task id="LOCAL-00017" summary="wip: Implementing raft controller - Exported ClientSession to top of package">
-      <option name="closed" value="true" />
-      <created>1772121214954</created>
-      <option name="number" value="00017" />
-      <option name="presentableId" value="LOCAL-00017" />
-      <option name="project" value="LOCAL" />
-      <updated>1772121214954</updated>
-    </task>
-    <task id="LOCAL-00018" summary="wip: Implementing raft controller - Added heartbeat request and response models">
-      <option name="closed" value="true" />
-      <created>1772121734811</created>
-      <option name="number" value="00018" />
-      <option name="presentableId" value="LOCAL-00018" />
-      <option name="project" value="LOCAL" />
-      <updated>1772121734811</updated>
-    </task>
-    <task id="LOCAL-00019" summary=" wip: Implementing raft controller - Added RaftLogHandler">
-      <option name="closed" value="true" />
-      <created>1772122705499</created>
-      <option name="number" value="00019" />
-      <option name="presentableId" value="LOCAL-00019" />
-      <option name="project" value="LOCAL" />
-      <updated>1772122705499</updated>
-    </task>
-    <task id="LOCAL-00020" summary=" wip: Implementing raft controller - Initialised RaftController; Added handling for fresh follower instances; Removed GET command logging within KVStore">
-      <option name="closed" value="true" />
-      <created>1772183625698</created>
-      <option name="number" value="00020" />
-      <option name="presentableId" value="LOCAL-00020" />
-      <option name="project" value="LOCAL" />
-      <updated>1772183625698</updated>
-    </task>
-    <task id="LOCAL-00021" summary="saving - wip: Implementing raft controller - Implemented log request handling and tests">
-      <option name="closed" value="true" />
-      <created>1772191094552</created>
-      <option name="number" value="00021" />
-      <option name="presentableId" value="LOCAL-00021" />
-      <option name="project" value="LOCAL" />
-      <updated>1772191094552</updated>
-    </task>
-    <task id="LOCAL-00022" summary="wip: Implementing raft controller - Implemented deserialize method in BaseRequests and BaseResponse subclasses with ByteBuffer parameter">
-      <option name="closed" value="true" />
-      <created>1772267784723</created>
-      <option name="number" value="00022" />
-      <option name="presentableId" value="LOCAL-00022" />
-      <option name="project" value="LOCAL" />
-      <updated>1772267784723</updated>
-    </task>
-    <task id="LOCAL-00023" summary="saving - wip: Implementing raft controller - Refactored raft messaging">
-      <option name="closed" value="true" />
-      <created>1772272221933</created>
-      <option name="number" value="00023" />
-      <option name="presentableId" value="LOCAL-00023" />
-      <option name="project" value="LOCAL" />
-      <updated>1772272221933</updated>
-    </task>
-    <task id="LOCAL-00024" summary="saving - wip: Implementing raft controller - Updated AppendEntries to send a list of logs instead of single logs">
-      <option name="closed" value="true" />
-      <created>1772281460296</created>
-      <option name="number" value="00024" />
-      <option name="presentableId" value="LOCAL-00024" />
-      <option name="project" value="LOCAL" />
-      <updated>1772281460296</updated>
-    </task>
-    <task id="LOCAL-00025" summary="wip: Implementing raft controller - Updated AppendEntries to send a list of logs instead of single logs">
-      <option name="closed" value="true" />
-      <created>1772281919462</created>
-      <option name="number" value="00025" />
-      <option name="presentableId" value="LOCAL-00025" />
-      <option name="project" value="LOCAL" />
-      <updated>1772281919462</updated>
-    </task>
-    <task id="LOCAL-00026" summary="wip: Implementing raft controller - Updated AppendEntries to send a list of logs instead of single logs">
-      <option name="closed" value="true" />
-      <created>1772283343819</created>
-      <option name="number" value="00026" />
-      <option name="presentableId" value="LOCAL-00026" />
-      <option name="project" value="LOCAL" />
-      <updated>1772283343819</updated>
-    </task>
-    <task id="LOCAL-00027" summary="wip: Implementing raft controller - Implemented AppendEntryResponse handling">
-      <option name="closed" value="true" />
-      <created>1772294097228</created>
-      <option name="number" value="00027" />
-      <option name="presentableId" value="LOCAL-00027" />
-      <option name="project" value="LOCAL" />
-      <updated>1772294097228</updated>
-    </task>
-    <task id="LOCAL-00028" summary="saving - wip: Implementing raft controller client - Implemented handling for append entry and append snapshot.">
-      <option name="closed" value="true" />
-      <created>1772359827615</created>
-      <option name="number" value="00028" />
-      <option name="presentableId" value="LOCAL-00028" />
-      <option name="project" value="LOCAL" />
-      <updated>1772359827615</updated>
-    </task>
-    <task id="LOCAL-00029" summary="Moved docs/system-design.md to README.md">
-      <option name="closed" value="true" />
-      <created>1772802736684</created>
-      <option name="number" value="00029" />
-      <option name="presentableId" value="LOCAL-00029" />
-      <option name="project" value="LOCAL" />
-      <updated>1772802736684</updated>
-    </task>
-    <task id="LOCAL-00030" summary="Removed unused properties and code from RaftControllerServerHandler">
-      <option name="closed" value="true" />
-      <created>1772803298589</created>
-      <option name="number" value="00030" />
-      <option name="presentableId" value="LOCAL-00030" />
-      <option name="project" value="LOCAL" />
-      <updated>1772803298589</updated>
-    </task>
-    <task id="LOCAL-00031" summary="Finalised properties in RaftControllerClient">
-      <option name="closed" value="true" />
-      <created>1773782077732</created>
-      <option name="number" value="00031" />
-      <option name="presentableId" value="LOCAL-00031" />
-      <option name="project" value="LOCAL" />
-      <updated>1773782077732</updated>
-    </task>
-    <task id="LOCAL-00032" summary="Finalised properties in RaftControllerClient">
-      <option name="closed" value="true" />
-      <created>1773783015692</created>
-      <option name="number" value="00032" />
-      <option name="presentableId" value="LOCAL-00032" />
-      <option name="project" value="LOCAL" />
-      <updated>1773783015692</updated>
-    </task>
-    <task id="LOCAL-00033" summary="Created DeleteCommand">
-      <option name="closed" value="true" />
-      <created>1773910295712</created>
-      <option name="number" value="00033" />
-      <option name="presentableId" value="LOCAL-00033" />
-      <option name="project" value="LOCAL" />
-      <updated>1773910295712</updated>
-    </task>
-    <task id="LOCAL-00034" summary="Removed setNull method from KVArray ; Added docs to checkIsRehashing and rehash methods within KVMap">
-      <option name="closed" value="true" />
-      <created>1773912780750</created>
-      <option name="number" value="00034" />
-      <option name="presentableId" value="LOCAL-00034" />
-      <option name="project" value="LOCAL" />
-      <updated>1773912780750</updated>
-    </task>
-    <task id="LOCAL-00035" summary="Implemented add method within KVMap and NodeList">
-      <option name="closed" value="true" />
-      <created>1773913570218</created>
-      <option name="number" value="00035" />
-      <option name="presentableId" value="LOCAL-00035" />
-      <option name="project" value="LOCAL" />
-      <updated>1773913570218</updated>
-    </task>
-    <task id="LOCAL-00036" summary="Created method KVMap.remove">
-      <option name="closed" value="true" />
-      <created>1773913731067</created>
-      <option name="number" value="00036" />
-      <option name="presentableId" value="LOCAL-00036" />
-      <option name="project" value="LOCAL" />
-      <updated>1773913731067</updated>
-    </task>
-    <task id="LOCAL-00037" summary="saving">
-      <option name="closed" value="true" />
-      <created>1773914047882</created>
-      <option name="number" value="00037" />
-      <option name="presentableId" value="LOCAL-00037" />
-      <option name="project" value="LOCAL" />
-      <updated>1773914047882</updated>
-    </task>
-    <task id="LOCAL-00038" summary="Create DeleteResponse model">
-      <option name="closed" value="true" />
-      <created>1773960763248</created>
-      <option name="number" value="00038" />
-      <option name="presentableId" value="LOCAL-00038" />
-      <option name="project" value="LOCAL" />
-      <updated>1773960763248</updated>
-    </task>
-    <task id="LOCAL-00039" summary="Update README">
-      <option name="closed" value="true" />
-      <created>1774004210507</created>
-      <option name="number" value="00039" />
-      <option name="presentableId" value="LOCAL-00039" />
-      <option name="project" value="LOCAL" />
-      <updated>1774004210508</updated>
-    </task>
-    <task id="LOCAL-00040" summary="saving">
-      <option name="closed" value="true" />
-      <created>1774004224492</created>
-      <option name="number" value="00040" />
-      <option name="presentableId" value="LOCAL-00040" />
-      <option name="project" value="LOCAL" />
-      <updated>1774004224492</updated>
-    </task>
-    <task id="LOCAL-00041" summary="Merge branch 'feature/enhanced-leader-election'">
-      <option name="closed" value="true" />
-      <created>1774008514993</created>
-      <option name="number" value="00041" />
-      <option name="presentableId" value="LOCAL-00041" />
-      <option name="project" value="LOCAL" />
-      <updated>1774008514993</updated>
-    </task>
-    <option name="localTasksCounter" value="42" />
+    <option name="localTasksCounter" value="2" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
     <option name="version" value="3" />
   </component>
-  <component name="Vcs.Log.Tabs.Properties">
-    <option name="TAB_STATES">
-      <map>
-        <entry key="MAIN">
-          <value>
-            <State />
-          </value>
-        </entry>
-      </map>
-    </option>
-  </component>
   <component name="VcsManagerConfiguration">
-    <MESSAGE value="Implemented single threaded snapshotting; Refactored snapshotting implementation to snapshot in bytes; Implemented LogHandler class for log abstraction; Added tests for Restorer" />
-    <MESSAGE value="saving - Implemented CommandHandler abstraction within KVServer" />
-    <MESSAGE value="wip: Implementing raft controller - Created Message interface, subclasses and MessageType" />
-    <MESSAGE value="wip: Implementing raft controller - Exported ClientSession to top of package" />
-    <MESSAGE value="wip: Implementing raft controller - Added heartbeat request and response models" />
-    <MESSAGE value=" wip: Implementing raft controller - Added RaftLogHandler" />
-    <MESSAGE value=" wip: Implementing raft controller - Initialised RaftController; Added handling for fresh follower instances; Removed GET command logging within KVStore" />
-    <MESSAGE value="saving - wip: Implementing raft controller - Implemented log request handling and tests" />
-    <MESSAGE value="wip: Implementing raft controller - Implemented deserialize method in BaseRequests and BaseResponse subclasses with ByteBuffer parameter" />
-    <MESSAGE value="saving - wip: Implementing raft controller - Refactored raft messaging" />
-    <MESSAGE value="saving - wip: Implementing raft controller - Updated AppendEntries to send a list of logs instead of single logs" />
-    <MESSAGE value="wip: Implementing raft controller - Updated AppendEntries to send a list of logs instead of single logs" />
-    <MESSAGE value="wip: Implementing raft controller - Implemented AppendEntryResponse handling" />
-    <MESSAGE value="saving - wip: Implementing raft controller client - Implemented handling for append entry and append snapshot." />
-    <MESSAGE value="Moved docs/system-design.md to README.md" />
-    <MESSAGE value="Removed unused properties and code from RaftControllerServerHandler" />
-    <MESSAGE value="Finalised properties in RaftControllerClient" />
-    <MESSAGE value="Created DeleteCommand" />
-    <MESSAGE value="Removed setNull method from KVArray ; Added docs to checkIsRehashing and rehash methods within KVMap" />
-    <MESSAGE value="Implemented add method within KVMap and NodeList" />
-    <MESSAGE value="Created method KVMap.remove" />
-    <MESSAGE value="Create DeleteResponse model" />
-    <MESSAGE value="Update README" />
-    <MESSAGE value="saving" />
-    <MESSAGE value="Merge branch 'feature/enhanced-leader-election'" />
-    <option name="LAST_COMMIT_MESSAGE" value="Merge branch 'feature/enhanced-leader-election'" />
-  </component>
-  <component name="XDebuggerManager">
-    <breakpoint-manager>
-      <breakpoints>
-        <line-breakpoint enabled="true" type="java-line">
-          <url>file://$PROJECT_DIR$/server/src/main/java/com/zenz/Main.java</url>
-          <line>13</line>
-          <option name="timeStamp" value="2" />
-        </line-breakpoint>
-        <line-breakpoint enabled="true" type="java-line">
-          <url>file://$PROJECT_DIR$/client/src/main/java/com/zenz/kvstore/client/Main.java</url>
-          <line>13</line>
-          <option name="timeStamp" value="3" />
-        </line-breakpoint>
-      </breakpoints>
-    </breakpoint-manager>
+    <MESSAGE value="saving - Handling broker disconnect during election" />
+    <option name="LAST_COMMIT_MESSAGE" value="saving - Handling broker disconnect during election" />
   </component>
 </project>
