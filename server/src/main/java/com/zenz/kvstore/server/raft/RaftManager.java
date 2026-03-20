@@ -214,21 +214,21 @@ public class RaftManager {
 
         if (voteGranted) {
             electionMeta.voteCount++;
-        }
 
-        if (electionMeta.voteCount >= electionMeta.majority && controllerServerHandler == null) {
-            controllerServerHandler = new RaftControllerServerHandler(
-                    nodeServer,
-                    (RaftLogHandler) store.getLogHandler(),
-                    store.getSnapshotter(),
-                    this
-            );
-            controllerServerHandler.init();
-            nodeServer.setSocketHandler(controllerServerHandler);
-            brokerServerHandler = null;
+            if (electionMeta.voteCount >= electionMeta.majority && controllerServerHandler == null) {
+                controllerServerHandler = new RaftControllerServerHandler(
+                        nodeServer,
+                        (RaftLogHandler) store.getLogHandler(),
+                        store.getSnapshotter(),
+                        this
+                );
+                controllerServerHandler.init();
+                nodeServer.setSocketHandler(controllerServerHandler);
+                brokerServerHandler = null;
 
-            // Notifying brokers of new leader and closing connections
-            state = NodeState.CONTROLLER;
+                // Notifying brokers of new leader and closing connections
+                state = NodeState.CONTROLLER;
+            }
         }
     }
 

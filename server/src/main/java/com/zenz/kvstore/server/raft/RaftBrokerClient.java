@@ -179,6 +179,11 @@ public class RaftBrokerClient {
             int bytesRead = channel.read(readBuffer);
 
             if (bytesRead == -1) {
+                // Incrementing count if we're a candidate. Broker dies so majority decreases
+                RaftManager.ElectionMeta electionMeta = manager.getElectionMeta();
+                if (manager.getState() == NodeState.CANDIDATE) {
+                    manager.handleVoteResponse(new RequestVoteResponse(true, electionMeta.getTerm()));
+                }
                 stop();
                 return;
             }
