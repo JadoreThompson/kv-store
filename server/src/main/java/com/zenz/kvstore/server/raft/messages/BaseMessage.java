@@ -10,7 +10,6 @@ public interface BaseMessage {
     byte[] serialize();
 
     static BaseMessage deserialize(ByteBuffer buffer) {
-        final String debugPrefix = "[BaseMessage][deserialize] ";
         int typeValue = buffer.getInt();
         MessageType type = MessageType.fromValue(typeValue);
 
@@ -41,6 +40,12 @@ public interface BaseMessage {
         }
         if (type.equals(MessageType.HEARTBEAT_RESPONSE)) {
             return HeartbeatResponse.deserialize(buffer);
+        }
+        if (type.equals(MessageType.REDIRECT)) {
+            return RedirectMessage.deserialize(buffer);
+        }
+        if (type.equals(MessageType.REGISTER)) {
+            return RegisterMessage.deserialize(buffer);
         }
         if (type.equals(MessageType.ERROR)) {
             return ErrorMessage.deserialize(buffer);

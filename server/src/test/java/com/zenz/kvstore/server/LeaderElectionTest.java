@@ -112,14 +112,14 @@ class LeaderElectionTest {
             final int numBrokers = 3;
 
             for (int i = 0; i < numBrokers; i++) {
-                nodes.add(new RaftNode(i, new InetSocketAddress("localhost", 9000 + i), null, NodeState.BROKER));
+                nodes.add(new RaftNode(i, new InetSocketAddress("localhost", 9000 + i), null, NodeRole.BROKER));
             }
 
             nodes.add(new RaftNode(
                     numBrokers,
                     new InetSocketAddress(controllerServer.getHost(), controllerServer.getPort()),
                     null,
-                    NodeState.CONTROLLER
+                    NodeRole.CONTROLLER
             ));
 
             // Creating broker managers
@@ -181,9 +181,9 @@ class LeaderElectionTest {
             Thread.sleep(5000);
 
             // Assertions
-            assertEquals(NodeState.CONTROLLER, manager0.getState(), "Manager 0 should now be CONTROLLER");
-            assertEquals(NodeState.BROKER, managers.get(1).getState(), "Manager 1 should be FOLLOWER");
-            assertEquals(NodeState.BROKER, managers.get(2).getState(), "Manager 2 should be FOLLOWER");
+            assertEquals(NodeRole.CONTROLLER, manager0.getRole(), "Manager 0 should now be CONTROLLER");
+            assertEquals(NodeRole.BROKER, managers.get(1).getRole(), "Manager 1 should be FOLLOWER");
+            assertEquals(NodeRole.BROKER, managers.get(2).getRole(), "Manager 2 should be FOLLOWER");
             assertNull(manager0.getBrokerServerHandler(), "Broker server must be null");
             assertNotNull(manager0.getControllerServerHandler(), "Controller server must be running");
             assertEquals(
@@ -249,7 +249,7 @@ class LeaderElectionTest {
                         i,
                         new InetSocketAddress("localhost", 9000 + i),
                         null,
-                        NodeState.BROKER
+                        NodeRole.BROKER
                 ));
             }
 
@@ -257,7 +257,7 @@ class LeaderElectionTest {
                     numBrokers,
                     new InetSocketAddress(controllerServer.getHost(), controllerServer.getPort()),
                     null,
-                    NodeState.CONTROLLER
+                    NodeRole.CONTROLLER
             ));
 
             // Creating broker managers
@@ -319,7 +319,7 @@ class LeaderElectionTest {
             // Vote count unchanged, election still in progress
             assertEquals(1, manager0.getElectionMeta().getVoteCount(),
                     "Denied vote should not change vote count");
-            assertEquals(NodeState.CANDIDATE, manager0.getState(),
+            assertEquals(NodeRole.CANDIDATE, manager0.getRole(),
                     "Should remain CANDIDATE after denied vote");
 
             // This should reach majority (2 votes out of 2 needed)
@@ -327,8 +327,8 @@ class LeaderElectionTest {
             manager0.handleVoteResponse(grantedVote);
 
             assertEquals(
-                    NodeState.CONTROLLER,
-                    manager0.getState(),
+                    NodeRole.CONTROLLER,
+                    manager0.getRole(),
                     "Manager 0 should now be elected leader with 2 out of 2 needed votes to satisfy the majority."
             );
 
@@ -394,7 +394,7 @@ class LeaderElectionTest {
                         i,
                         new InetSocketAddress("localhost", 9000 + i),
                         null,
-                        NodeState.BROKER
+                        NodeRole.BROKER
                 ));
             }
 
@@ -402,7 +402,7 @@ class LeaderElectionTest {
                     numBrokers,
                     new InetSocketAddress(controllerServer.getHost(), controllerServer.getPort()),
                     null,
-                    NodeState.CONTROLLER
+                    NodeRole.CONTROLLER
             ));
 
             // Creating broker managers
@@ -427,14 +427,14 @@ class LeaderElectionTest {
                             node.id(),
                             new InetSocketAddress(controllerServer1.getHost(), controllerServer1.getPort()),
                             null,
-                            NodeState.CONTROLLER
+                            NodeRole.CONTROLLER
                     ));
                     ArrayList<RaftNode> list = new ArrayList<>(nodes.subList(0, 6));
                     list.add(new RaftNode(
                             node.id(),
                             new InetSocketAddress(controllerServer1.getHost(), controllerServer1.getPort()),
                             null,
-                            NodeState.CONTROLLER
+                            NodeRole.CONTROLLER
                     ));
 
                     manager = new RaftManager(i, list, store);
@@ -491,7 +491,7 @@ class LeaderElectionTest {
 
             // Process the vote request through the broker server handler
             // This should trigger initiateElection() because prevLogId < currentLogId
-            manager5.setLastTerm(voteRequest.term());
+            manager5.setLastSeenTerm(voteRequest.term());
 
             // Verify initial state before election
             assertNull(manager5.getElectionMeta(), "Broker 5 should not have election metadata before vote request");
@@ -500,7 +500,7 @@ class LeaderElectionTest {
             manager5.initiateElection();
 
             // Verify broker 5 is now CANDIDATE
-            assertEquals(NodeState.CANDIDATE, manager5.getState(),
+            assertEquals(NodeRole.CANDIDATE, manager5.getRole(),
                     "Broker 5 should be CANDIDATE after receiving vote request with lower log id");
 
             // Verify election metadata
@@ -540,7 +540,7 @@ class LeaderElectionTest {
             manager5.handleVoteResponse(vote3);
 
             // Now broker 5 should have 4 votes (1 self + 3 granted) = majority
-            assertEquals(NodeState.CONTROLLER, manager5.getState(),
+            assertEquals(NodeRole.CONTROLLER, manager5.getRole(),
                     "Broker 5 should be CONTROLLER after reaching majority of 4 votes");
 
         } finally {
@@ -601,7 +601,7 @@ class LeaderElectionTest {
                         i,
                         new InetSocketAddress("localhost", 9000 + i),
                         null,
-                        NodeState.BROKER
+                        NodeRole.BROKER
                 ));
             }
 
@@ -609,7 +609,7 @@ class LeaderElectionTest {
                     numBrokers,
                     new InetSocketAddress(controllerServer.getHost(), controllerServer.getPort()),
                     null,
-                    NodeState.CONTROLLER
+                    NodeRole.CONTROLLER
             ));
 
             // Creating broker managers
@@ -678,11 +678,11 @@ class LeaderElectionTest {
             // Verify that broker 5 has seen the vote request and updated its lastTerm
             // The vote request from broker 0 should have term 2 (1 + 1)
             // Broker 5 should reject this because its logId (10) > prevLogId in the request (3)
-            assertEquals(NodeState.BROKER, manager5.getState(),
+            assertEquals(NodeRole.BROKER, manager5.getRole(),
                     "Broker 5 should remain BROKER after receiving stale vote request");
 
             // Broker 5 should have updated its lastTerm to the term from the vote request
-            assertTrue(manager5.getLastTerm() >= 2L,
+            assertTrue(manager5.getLastSeenTerm() >= 2L,
                     "Broker 5 should have updated its lastTerm");
 
             // Now simulate broker 5 initiating its own election
@@ -709,12 +709,12 @@ class LeaderElectionTest {
             manager5.handleVoteResponse(vote3);
 
             // Now broker 5 should have 4 votes (1 self + 3 granted) = majority
-            assertEquals(NodeState.CONTROLLER, manager5.getState(),
+            assertEquals(NodeRole.CONTROLLER, manager5.getRole(),
                     "Broker 5 should be CONTROLLER after reaching majority of 4 votes");
 
             // Verify other brokers are still BROKERs
             for (int i = 1; i < 4; i++) {
-                assertEquals(NodeState.BROKER, managers.get(i).getState(),
+                assertEquals(NodeRole.BROKER, managers.get(i).getRole(),
                         "Broker " + i + " should remain BROKER");
             }
 
@@ -774,7 +774,7 @@ class LeaderElectionTest {
                         i,
                         new InetSocketAddress("localhost", 9000 + i),
                         null,
-                        NodeState.BROKER
+                        NodeRole.BROKER
                 ));
             }
 
@@ -782,7 +782,7 @@ class LeaderElectionTest {
                     numBrokers,
                     new InetSocketAddress(controllerServer.getHost(), controllerServer.getPort()),
                     null,
-                    NodeState.CONTROLLER
+                    NodeRole.CONTROLLER
             ));
 
             // Creating broker managers
@@ -841,16 +841,16 @@ class LeaderElectionTest {
             Thread.sleep(1000);
 
             // Verify first election completed
-            assertEquals(NodeState.CONTROLLER, manager0.getState(),
+            assertEquals(NodeRole.CONTROLLER, manager0.getRole(),
                     "Manager 0 should be CONTROLLER after first election");
-            assertEquals(NodeState.BROKER, managers.get(1).getState(),
+            assertEquals(NodeRole.BROKER, managers.get(1).getRole(),
                     "Manager 1 should be follower after first election");
             // If this passes, we can safely assume that the second node will also have applied
             // the change. Of course in a remote distributed environment this can't be guaranteed
             // as nodes may be slow.
             assertEquals(2, ((RaftLogHandler) managers.get(1).getKVStore().getLogHandler()).getTerm(),
                     "Manager 1 should have updated their log handler's term to 2");
-            assertEquals(NodeState.BROKER, managers.get(2).getState(),
+            assertEquals(NodeRole.BROKER, managers.get(2).getRole(),
                     "Manager 2 should be follower after first election");
 
             // Second election cycle
@@ -876,7 +876,7 @@ class LeaderElectionTest {
             manager1.handleVoteResponse(secondVote);
 
             // Verify second election completed
-            assertEquals(NodeState.CONTROLLER, manager1.getState(),
+            assertEquals(NodeRole.CONTROLLER, manager1.getRole(),
                     "Manager 1 should be CONTROLLER after second election");
 
         } finally {
@@ -937,7 +937,7 @@ class LeaderElectionTest {
                         i,
                         new InetSocketAddress("localhost", 9000 + i),
                         null,
-                        NodeState.BROKER
+                        NodeRole.BROKER
                 ));
             }
 
@@ -945,7 +945,7 @@ class LeaderElectionTest {
                     numBrokers,
                     new InetSocketAddress(controllerServer.getHost(), controllerServer.getPort()),
                     null,
-                    NodeState.CONTROLLER
+                    NodeRole.CONTROLLER
             ));
 
             // Creating broker managers
@@ -1006,7 +1006,7 @@ class LeaderElectionTest {
                     "Vote count should increment when broker connection fails");
 
             // Election should complete since we reached majority
-            assertEquals(NodeState.CONTROLLER, manager0.getState(),
+            assertEquals(NodeRole.CONTROLLER, manager0.getRole(),
                     "Manager 0 should be CONTROLLER after reaching majority via failed broker connection");
 
         } finally {
@@ -1072,7 +1072,7 @@ class LeaderElectionTest {
                         i,
                         new InetSocketAddress("localhost", 9000 + i),
                         null,
-                        NodeState.BROKER
+                        NodeRole.BROKER
                 ));
             }
 
@@ -1080,7 +1080,7 @@ class LeaderElectionTest {
                     numBrokers,
                     new InetSocketAddress(controllerServer.getHost(), controllerServer.getPort()),
                     null,
-                    NodeState.CONTROLLER
+                    NodeRole.CONTROLLER
             ));
 
             // Creating broker managers
@@ -1148,7 +1148,7 @@ class LeaderElectionTest {
                     "Vote count should be 3 after second failure");
 
             // Election should complete since we reached majority of 3
-            assertEquals(NodeState.CONTROLLER, manager0.getState(),
+            assertEquals(NodeRole.CONTROLLER, manager0.getRole(),
                     "Manager 0 should be CONTROLLER after reaching majority via failed broker connections");
 
         } finally {
@@ -1212,7 +1212,7 @@ class LeaderElectionTest {
                         i,
                         new InetSocketAddress("localhost", 9000 + i),
                         null,
-                        NodeState.BROKER
+                        NodeRole.BROKER
                 ));
             }
 
@@ -1220,7 +1220,7 @@ class LeaderElectionTest {
                     numBrokers,
                     new InetSocketAddress(controllerServer.getHost(), controllerServer.getPort()),
                     null,
-                    NodeState.CONTROLLER
+                    NodeRole.CONTROLLER
             ));
 
             // Creating broker managers
@@ -1277,7 +1277,7 @@ class LeaderElectionTest {
             manager0.handleVoteResponse(failureVote1);
 
             // After first failure, we should have reached majority
-            assertEquals(NodeState.CONTROLLER, manager0.getState(),
+            assertEquals(NodeRole.CONTROLLER, manager0.getRole(),
                     "Manager 0 should be CONTROLLER after first broker failure (reached majority)");
 
         } finally {
@@ -1335,7 +1335,7 @@ class LeaderElectionTest {
                         i,
                         new InetSocketAddress("localhost", 9000 + i),
                         null,
-                        NodeState.BROKER
+                        NodeRole.BROKER
                 ));
             }
 
@@ -1343,7 +1343,7 @@ class LeaderElectionTest {
                     numBrokers,
                     new InetSocketAddress(controllerServer.getHost(), controllerServer.getPort()),
                     null,
-                    NodeState.CONTROLLER
+                    NodeRole.CONTROLLER
             ));
 
             // Creating broker managers
@@ -1410,7 +1410,7 @@ class LeaderElectionTest {
                     "Vote count should not change for future term");
 
             // State should still be CANDIDATE
-            assertEquals(NodeState.CANDIDATE, manager0.getState(),
+            assertEquals(NodeRole.CANDIDATE, manager0.getRole(),
                     "Should remain CANDIDATE after mismatched term votes");
 
         } finally {

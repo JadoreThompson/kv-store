@@ -112,8 +112,8 @@ public class RaftBrokerServerHandler implements SocketHandler {
 
         if (messageType.equals(MessageType.REQUEST_VOTE)) {
             RequestVote msg = (RequestVote) message;
-            if (msg.term() > manager.getLastTerm() && msg.term() > manager.getVotedTerm()) {
-                manager.setLastTerm(msg.term());
+            if (msg.term() > manager.getLastSeenTerm() && msg.term() > manager.getVotedTerm()) {
+                manager.setLastSeenTerm(msg.term());
 
                 if (msg.prevLogId() >= manager.getKVStore().getLogHandler().getLogId()) {
                     manager.setVotedTerm(msg.term());
@@ -125,7 +125,7 @@ public class RaftBrokerServerHandler implements SocketHandler {
             }
         } else if (messageType.equals(MessageType.LEADER_ELECTED)) {
             LeaderElected msg = (LeaderElected) message;
-            manager.setLastTerm(msg.term());
+            manager.setLastSeenTerm(msg.term());
             manager.handleLeaderElected((LeaderElected) message);
 
             server.cleanup(key);

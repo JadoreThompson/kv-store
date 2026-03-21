@@ -6,7 +6,7 @@ import com.zenz.kvstore.common.commands.PutCommand;
 import com.zenz.kvstore.common.commands.GetCommand;
 import com.zenz.kvstore.common.commands.DeleteCommand;
 import com.zenz.kvstore.server.logging.handlers.RaftLogHandler;
-import com.zenz.kvstore.server.raft.NodeState;
+import com.zenz.kvstore.server.raft.NodeRole;
 import com.zenz.kvstore.server.raft.server.handlers.RaftControllerServerHandler;
 import com.zenz.kvstore.server.raft.RaftManager;
 import com.zenz.kvstore.server.raft.RaftNode;
@@ -73,7 +73,7 @@ class RaftCommandHandlerTest {
         );
 
         nodes = new ArrayList<>();
-        nodes.add(new RaftNode(0, new InetSocketAddress(TEST_HOST, TEST_PORT), null, NodeState.CONTROLLER));
+        nodes.add(new RaftNode(0, new InetSocketAddress(TEST_HOST, TEST_PORT), null, NodeRole.CONTROLLER));
         manager = new RaftManager(0, nodes, kvStore);
         startManager();
         Thread.sleep(500);
@@ -488,10 +488,10 @@ class RaftCommandHandlerTest {
         nodes = new ArrayList<>();
         // Broker node: nodeAddress is broker's Raft server, serverAddress is where clients should be redirected (controller's client server)
         nodes.add(new RaftNode(0, new InetSocketAddress(TEST_HOST, brokerPort),
-                controllerClientAddress, NodeState.BROKER));
+                controllerClientAddress, NodeRole.BROKER));
         // Controller node: nodeAddress is controller's Raft server, serverAddress is controller's client server
         nodes.add(new RaftNode(1, new InetSocketAddress(TEST_HOST, TEST_PORT + 3),
-                controllerClientAddress, NodeState.CONTROLLER));
+                controllerClientAddress, NodeRole.CONTROLLER));
 
         // Start the broker manager
         manager = new RaftManager(0, nodes, kvStore);
@@ -507,7 +507,7 @@ class RaftCommandHandlerTest {
         Thread.sleep(500);
 
         // Verify manager is in BROKER state
-        assertEquals(NodeState.BROKER, manager.getState(), "Manager should be in BROKER state");
+        assertEquals(NodeRole.BROKER, manager.getRole(), "Manager should be in BROKER state");
 
         // Create command handler for the broker
         RaftCommandHandler brokerHandler = new RaftCommandHandler(kvStore, manager);
@@ -537,10 +537,10 @@ class RaftCommandHandlerTest {
         // Use reflection to set the state to CANDIDATE (simulating an election)
         Field stateField = RaftManager.class.getDeclaredField("state");
         stateField.setAccessible(true);
-        stateField.set(manager, NodeState.CANDIDATE);
+        stateField.set(manager, NodeRole.CANDIDATE);
 
         // Verify manager is in CANDIDATE state
-        assertEquals(NodeState.CANDIDATE, manager.getState(), "Manager should be in CANDIDATE state");
+        assertEquals(NodeRole.CANDIDATE, manager.getRole(), "Manager should be in CANDIDATE state");
 
         // Create command handler
         RaftCommandHandler candidateHandler = new RaftCommandHandler(kvStore, manager);
@@ -580,9 +580,9 @@ class RaftCommandHandlerTest {
         nodes = new ArrayList<>();
         // serverAddress is the client-facing address where clients should connect
         nodes.add(new RaftNode(0, new InetSocketAddress(TEST_HOST, brokerPort),
-                expectedClientAddress, NodeState.BROKER));
+                expectedClientAddress, NodeRole.BROKER));
         nodes.add(new RaftNode(1, new InetSocketAddress(TEST_HOST, TEST_PORT + 12),
-                expectedClientAddress, NodeState.CONTROLLER));
+                expectedClientAddress, NodeRole.CONTROLLER));
 
         // Start the broker manager
         manager = new RaftManager(0, nodes, kvStore);
@@ -633,9 +633,9 @@ class RaftCommandHandlerTest {
 
         nodes = new ArrayList<>();
         nodes.add(new RaftNode(0, new InetSocketAddress(TEST_HOST, brokerPort),
-                controllerClientAddress, NodeState.BROKER));
+                controllerClientAddress, NodeRole.BROKER));
         nodes.add(new RaftNode(1, new InetSocketAddress(TEST_HOST, TEST_PORT + 22),
-                controllerClientAddress, NodeState.CONTROLLER));
+                controllerClientAddress, NodeRole.CONTROLLER));
 
         manager = new RaftManager(0, nodes, kvStore);
         managerThread = new Thread(() -> {
@@ -649,7 +649,7 @@ class RaftCommandHandlerTest {
         managerThread.start();
         Thread.sleep(500);
 
-        assertEquals(NodeState.BROKER, manager.getState(), "Manager should be in BROKER state");
+        assertEquals(NodeRole.BROKER, manager.getRole(), "Manager should be in BROKER state");
 
         RaftCommandHandler brokerHandler = new RaftCommandHandler(kvStore, manager);
 
@@ -671,9 +671,9 @@ class RaftCommandHandlerTest {
     void deleteCommand_candidateState_returnsInElectionError() throws Exception {
         Field stateField = RaftManager.class.getDeclaredField("state");
         stateField.setAccessible(true);
-        stateField.set(manager, NodeState.CANDIDATE);
+        stateField.set(manager, NodeRole.CANDIDATE);
 
-        assertEquals(NodeState.CANDIDATE, manager.getState(), "Manager should be in CANDIDATE state");
+        assertEquals(NodeRole.CANDIDATE, manager.getRole(), "Manager should be in CANDIDATE state");
 
         RaftCommandHandler candidateHandler = new RaftCommandHandler(kvStore, manager);
 
@@ -706,9 +706,9 @@ class RaftCommandHandlerTest {
 
         nodes = new ArrayList<>();
         nodes.add(new RaftNode(0, new InetSocketAddress(TEST_HOST, brokerPort),
-                controllerClientAddress, NodeState.BROKER));
+                controllerClientAddress, NodeRole.BROKER));
         nodes.add(new RaftNode(1, new InetSocketAddress(TEST_HOST, TEST_PORT + 25),
-                controllerClientAddress, NodeState.CONTROLLER));
+                controllerClientAddress, NodeRole.CONTROLLER));
 
         manager = new RaftManager(0, nodes, kvStore);
         managerThread = new Thread(() -> {
@@ -750,9 +750,9 @@ class RaftCommandHandlerTest {
 
         nodes = new ArrayList<>();
         nodes.add(new RaftNode(0, new InetSocketAddress(TEST_HOST, brokerPort),
-                controllerClientAddress, NodeState.BROKER));
+                controllerClientAddress, NodeRole.BROKER));
         nodes.add(new RaftNode(1, new InetSocketAddress(TEST_HOST, TEST_PORT + 28),
-                controllerClientAddress, NodeState.CONTROLLER));
+                controllerClientAddress, NodeRole.CONTROLLER));
 
         manager = new RaftManager(0, nodes, kvStore);
         managerThread = new Thread(() -> {
@@ -794,9 +794,9 @@ class RaftCommandHandlerTest {
 
         nodes = new ArrayList<>();
         nodes.add(new RaftNode(0, new InetSocketAddress(TEST_HOST, brokerPort),
-                controllerClientAddress, NodeState.BROKER));
+                controllerClientAddress, NodeRole.BROKER));
         nodes.add(new RaftNode(1, new InetSocketAddress(TEST_HOST, TEST_PORT + 31),
-                controllerClientAddress, NodeState.CONTROLLER));
+                controllerClientAddress, NodeRole.CONTROLLER));
 
         manager = new RaftManager(0, nodes, kvStore);
         managerThread = new Thread(() -> {

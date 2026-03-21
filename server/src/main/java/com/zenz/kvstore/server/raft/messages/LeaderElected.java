@@ -5,7 +5,7 @@ import com.zenz.kvstore.server.raft.MessageType;
 import java.nio.BufferUnderflowException;
 import java.nio.ByteBuffer;
 
-public record LeaderElected(MessageType type, long term, long leaderId) implements BaseMessage {
+public record LeaderElected(MessageType type, long term, long nodeName) implements BaseMessage {
 
     public LeaderElected(long term, long leaderId) {
         this(MessageType.LEADER_ELECTED, term, leaderId);
@@ -17,7 +17,7 @@ public record LeaderElected(MessageType type, long term, long leaderId) implemen
 
         buffer.putInt(type.getValue());
         buffer.putLong(term);
-        buffer.putLong(leaderId);
+        buffer.putLong(nodeName);
 
         return buffer.array();
     }
@@ -44,7 +44,7 @@ public record LeaderElected(MessageType type, long term, long leaderId) implemen
         return "LeaderElected{" +
                 "type=" + type +
                 ", term=" + term +
-                ", leaderId=" + leaderId +
+                ", nodeName=" + nodeName +
                 '}';
     }
 }

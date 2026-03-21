@@ -31,7 +31,7 @@ public record HeartbeatResponse(MessageType type) implements BaseMessage {
         }
     }
 
-    static HeartbeatResponse deserialize(ByteBuffer buffer) {
+    public static HeartbeatResponse deserialize(ByteBuffer buffer) {
         try {
             int typeValue = buffer.getInt();
             MessageType type = MessageType.fromValue(typeValue);

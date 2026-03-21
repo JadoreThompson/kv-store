@@ -1,41 +1,56 @@
 package com.zenz.kvstore.server.raft;
 
 import com.zenz.kvstore.server.KVStore;
+import com.zenz.kvstore.server.raft.messages.*;
 import com.zenz.kvstore.server.raft.server.SocketServer;
 import com.zenz.kvstore.server.logging.handlers.RaftLogHandler;
-import com.zenz.kvstore.server.raft.messages.LeaderElected;
-import com.zenz.kvstore.server.raft.messages.RequestVote;
-import com.zenz.kvstore.server.raft.messages.RequestVoteResponse;
 import com.zenz.kvstore.common.utils.Utils;
 import com.zenz.kvstore.server.raft.server.handlers.RaftBrokerServerHandler;
 import com.zenz.kvstore.server.raft.server.handlers.RaftControllerServerHandler;
 
+import java.io.BufferedInputStream;
+import java.io.BufferedOutputStream;
 import java.io.IOException;
+import java.net.Socket;
+import java.nio.ByteBuffer;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
 public class RaftManager {
-    private final KVStore store;
-    private final ArrayList<RaftNode> brokerConfigs;
-    private RaftNode controllerNode;
-    private final RaftNode node;
-    private ExecutorService executor;
-    private final ArrayList<RaftBrokerClient> brokerClients = new ArrayList<>();
-    private RaftControllerClient controllerClient;
+    private final KVStore kvStore;
+
+    private NodeConfig nodeConfig;
+//    private List<NodeConfig> nodeConfigs = new ArrayList<>();
+    private List<NodeConfig> nodeConfigs = new ArrayList<>();
+    private NodeConfig controllerConfig;
+    private RaftServer server;
     private RaftBrokerServerHandler brokerServerHandler;
     private RaftControllerServerHandler controllerServerHandler;
-    private SocketServer nodeServer;
-    private boolean isRunning;
-    private volatile NodeState state;
+
+    private ExecutorService executorService;
+    private ArrayList<RaftBrokerClient> brokerClients = new ArrayList<>();
+    private RaftControllerClient controllerClient;
+
+    private volatile NodeRole role = NodeRole.BROKER;
     private ElectionMeta electionMeta;
     private long votedTerm;
-    private long lastTerm;
+    private long lastSeenTerm;
+
+    private boolean isRunning;
     private CompletableFuture<Boolean> joinFut;
 
-    private final String DEBUG_PREFIX;
+    @Deprecated
+    private final ArrayList<RaftNode> brokerConfigs;
+    @Deprecated
+    private final RaftNode node;
+    @Deprecated
+    private RaftNode controllerNode;
+    @Deprecated
+    private SocketServer nodeServer;
 
     public RaftManager(long id, ArrayList<RaftNode> nodes, KVStore store) {
         ArrayList<RaftNode> nodesCopy = (ArrayList<RaftNode>) nodes.clone();
@@ -55,10 +70,14 @@ public class RaftManager {
         this.node = node;
         nodesCopy.removeIf((n) -> n.id() == id);
         brokerConfigs = nodesCopy;
-        this.store = store;
-        state = node.state();
-        lastTerm = ((RaftLogHandler) store.getLogHandler()).getTerm();
-        DEBUG_PREFIX = String.format("[nodeId=%s RaftManager]", id);
+        this.kvStore = store;
+        role = node.state();
+        lastSeenTerm = ((RaftLogHandler) store.getLogHandler()).getTerm();
+    }
+
+    public RaftManager(NodeConfig nodeConfig, KVStore kvStore) {
+        this.nodeConfig = nodeConfig;
+        this.kvStore = kvStore;
     }
 
     public void start() {
@@ -70,28 +89,107 @@ public class RaftManager {
 
         isRunning = true;
 
-        executor = Executors.newFixedThreadPool(brokerConfigs.size() + 1);
+        executorService = Executors.newFixedThreadPool(brokerConfigs.size() + 1);
         nodeServer = new SocketServer(node.nodeAddress().getHostName(), node.nodeAddress().getPort());
 
-        if (state == NodeState.BROKER) {
+        if (role == NodeRole.BROKER) {
             startControllerClient();
 
             brokerServerHandler = new RaftBrokerServerHandler(nodeServer, this);
             nodeServer.setSocketHandler(brokerServerHandler);
-            executor.submit(() -> Utils.runnableWrapper(nodeServer::start));
+            executorService.submit(() -> Utils.runnableWrapper(nodeServer::start));
 
             for (RaftNode broker : brokerConfigs) {
                 startBrokerClient(broker);
             }
-        } else if (state == NodeState.CONTROLLER) {
+        } else if (role == NodeRole.CONTROLLER) {
             controllerServerHandler = new RaftControllerServerHandler(
                     nodeServer,
-                    (RaftLogHandler) store.getLogHandler(),
-                    store.getSnapshotter(),
+                    (RaftLogHandler) kvStore.getLogHandler(),
+                    kvStore.getSnapshotter(),
                     this
             );
             nodeServer.setSocketHandler(controllerServerHandler);
-            executor.submit(() -> Utils.runnableWrapper(nodeServer::start));
+            executorService.submit(() -> Utils.runnableWrapper(nodeServer::start));
+        }
+    }
+
+    public void start(List<NodeConfig> nodeConfigs) throws IOException {
+        if (isRunning) return;
+
+        isRunning = true;
+        executorService = Executors.newCachedThreadPool();
+        this.nodeConfigs.addAll(nodeConfigs);
+
+        server = new RaftServer(nodeConfig.address(), this);
+        executorService.submit(() -> Utils.runnableWrapper(server::start));
+
+        startBrokerClients();
+
+        NodeConfig controllerConfig = findController(nodeConfigs);
+        if (controllerConfig == null) {
+            System.err.println("Failed to find controller config");
+            initiateElection();
+        } else {
+            // Disconnecting from controller
+            for (RaftBrokerClient brokerClient : brokerClients) {
+                if (brokerClient.getRemoteAddress() == controllerConfig.address()) {
+                    brokerClient.stop();
+                }
+            }
+            this.controllerConfig = controllerConfig;
+            // Connecting to controller
+            controllerClient = new RaftControllerClient(
+                    controllerConfig.address().getHostName(),
+                    controllerConfig.address().getPort(),
+                    kvStore,
+                    this
+            );
+            executorService.submit(() -> Utils.runnableWrapper(controllerClient::start));
+        }
+    }
+
+    /**
+     * Iterates through the known peers sending a heartbeat request
+     * @param nodeConfigs
+     */
+    private NodeConfig findController(List<NodeConfig> nodeConfigs) throws IOException {
+        for (NodeConfig n : nodeConfigs) {
+            BaseMessage response = sendHeartbeatRequest(n);
+
+            if (response.type().equals(MessageType.HEARTBEAT_RESPONSE)) {
+                return n;
+            }
+
+            if (response.type().equals(MessageType.REDIRECT)) {
+                NodeConfig redirectNode = ((RedirectMessage) response).node();
+                 response = sendHeartbeatRequest(redirectNode);
+                 if (response.type().equals(MessageType.HEARTBEAT_RESPONSE)) {
+                     return redirectNode;
+                 }
+            }
+        }
+
+        return null;
+    }
+
+    private BaseMessage sendHeartbeatRequest(NodeConfig nodeConfig) throws IOException {
+        try (Socket socket = new Socket(nodeConfig.address().getHostName(),  nodeConfig.address().getPort())) {
+            BufferedOutputStream out = new BufferedOutputStream(socket.getOutputStream());
+            BufferedInputStream in = new BufferedInputStream(socket.getInputStream());
+
+            out.write(ByteBuffer.wrap(new HeartbeatRequest().serialize()).array());
+            ByteBuffer responseBuffer = ByteBuffer.wrap(in.readAllBytes());
+            return BaseMessage.deserialize(responseBuffer);
+        }
+    }
+
+    /**
+     * DANGER
+     */
+    public void startBrokerClients() {
+        for (NodeConfig n : nodeConfigs) {
+            startBrokerClient(n);
         }
     }
 
@@ -102,13 +200,27 @@ public class RaftManager {
                 this
         );
         brokerClients.add(brokerClient);
-        executor.submit(() -> Utils.runnableWrapper(brokerClient::start));
+        executorService.submit(() -> Utils.runnableWrapper(brokerClient::start));
+    }
+
+    /**
+     * Starts a broker client in a background thread
+     * @param node
+     */
+    private void startBrokerClient(NodeConfig node) {
+        RaftBrokerClient brokerClient = new RaftBrokerClient(
+                node.address().getHostName(),
+                node.address().getPort(),
+                this
+        );
+        brokerClients.add(brokerClient);
+        executorService.submit(() -> Utils.runnableWrapper(brokerClient::start));
     }
 
     private void startControllerClient() {
         RaftNode node = null;
         for (RaftNode n : brokerConfigs) {
-            if (n.state() == NodeState.CONTROLLER) {
+            if (n.state() == NodeRole.CONTROLLER) {
                 node = n;
                 break;
             }
@@ -122,10 +234,10 @@ public class RaftManager {
         controllerClient = new RaftControllerClient(
                 controllerNode.nodeAddress().getHostName(),
                 controllerNode.nodeAddress().getPort(),
-                store,
+                kvStore,
                 this
         );
-        executor.submit(() -> Utils.runnableWrapper(controllerClient::start));
+        executorService.submit(() -> Utils.runnableWrapper(controllerClient::start));
         brokerConfigs.remove(controllerNode);
 
         joinFut = new CompletableFuture<>();
@@ -153,8 +265,8 @@ public class RaftManager {
             nodeServer.stop();
         }
 
-        executor.shutdown();
-        executor.awaitTermination(5, TimeUnit.SECONDS);
+        executorService.shutdown();
+        executorService.awaitTermination(5, TimeUnit.SECONDS);
 
         if (joinFut != null) joinFut.complete(true);
     }
@@ -177,18 +289,18 @@ public class RaftManager {
         }
 
         int majority = count / 2 + 1;
-        long lastTerm = this.lastTerm;
+        long lastTerm = this.lastSeenTerm;
 
         electionMeta = new ElectionMeta(
                 0,
-                ++this.lastTerm,
+                ++this.lastSeenTerm,
                 controllerClient.getLogHandler().getLogId(),
                 lastTerm,
                 majority,
                 System.currentTimeMillis() + 1000
         );
 
-        state = NodeState.CANDIDATE;
+        role = NodeRole.CANDIDATE;
         handleVoteResponse(new RequestVoteResponse(true, electionMeta.getTerm()));
     }
 
@@ -218,8 +330,8 @@ public class RaftManager {
             if (electionMeta.voteCount >= electionMeta.majority && controllerServerHandler == null) {
                 controllerServerHandler = new RaftControllerServerHandler(
                         nodeServer,
-                        (RaftLogHandler) store.getLogHandler(),
-                        store.getSnapshotter(),
+                        (RaftLogHandler) kvStore.getLogHandler(),
+                        kvStore.getSnapshotter(),
                         this
                 );
                 controllerServerHandler.init();
@@ -227,7 +339,7 @@ public class RaftManager {
                 brokerServerHandler = null;
 
                 // Notifying brokers of new leader and closing connections
-                state = NodeState.CONTROLLER;
+                role = NodeRole.CONTROLLER;
             }
         }
     }
@@ -235,7 +347,7 @@ public class RaftManager {
     /**
      * Updates state to follower and re-establishes controller client.
      * <p>
-     * If the node with leader id `message.leaderId` is present within the config.
+     * If the node with leader id `message.nodeName` is present within the config.
      * A new client is created, connecting to the nodeAddress as the controller.
      * The old controller client is dismantled.
      *
@@ -243,26 +355,26 @@ public class RaftManager {
      * @throws IOException
      */
     public void handleLeaderElected(LeaderElected message) throws IOException {
-        if (state == NodeState.CONTROLLER) {
+        if (role == NodeRole.CONTROLLER) {
             throw new RuntimeException("Leader elected whilst node is CONTROLLER");
         }
 
-        state = NodeState.BROKER;
+        role = NodeRole.BROKER;
         electionMeta = null;
         RaftNode brokerNode = null;
         for (RaftNode broker : brokerConfigs) {
-            if (broker.id() == message.leaderId()) {
+            if (broker.id() == message.nodeName()) {
                 brokerNode = broker;
                 break;
             }
         }
 
         if (brokerNode == null) {
-            throw new RuntimeException("Failed to find node for broker with node id " + message.leaderId());
+            throw new RuntimeException("Failed to find node for broker with node id " + message.nodeName());
         }
 
         // Update term
-        RaftLogHandler logHandler = (RaftLogHandler) store.getLogHandler();
+        RaftLogHandler logHandler = (RaftLogHandler) kvStore.getLogHandler();
         logHandler.setTerm(message.term());
 
         // Re-establishing controller
@@ -270,12 +382,81 @@ public class RaftManager {
         controllerClient = new RaftControllerClient(
                 brokerNode.nodeAddress().getHostName(),
                 brokerNode.nodeAddress().getPort(),
-                store,
+                kvStore,
                 this
         );
-        executor.submit(() -> Utils.runnableWrapper(controllerClient::start));
+        executorService.submit(() -> Utils.runnableWrapper(controllerClient::start));
 
         brokerConfigs.remove(brokerNode);
+    }
+
+    public void handleLeaderElectedNew(LeaderElected message) throws IOException {
+        if (role == NodeRole.CONTROLLER) {
+            throw new RuntimeException("Leader elected whilst node is CONTROLLER");
+        }
+
+        role = NodeRole.BROKER;
+        electionMeta = null;
+        NodeConfig brokerConfig = null;
+
+        for (NodeConfig c : nodeConfigs) {
+            if (c.name().equals(message.nodeName())) {
+                brokerConfig = c;
+                break;
+            }
+        }
+
+        if (brokerConfig == null) {
+            throw new RuntimeException("Failed to find node for broker with node name " + message.nodeName());
+        }
+
+        for (RaftBrokerClient brokerClient : brokerClients) {
+            if (brokerClient.getRemoteAddress().equals(brokerConfig.address())) {
+                brokerClient.stop();
+                break;
+            }
+        }
+
+        // Update term
+        RaftLogHandler logHandler = (RaftLogHandler) kvStore.getLogHandler();
+        logHandler.setTerm(message.term());
+
+        // Re-establishing controller
+        controllerClient.stop();
+        controllerClient = new RaftControllerClient(
+                brokerConfig.address().getHostName(),
+                brokerConfig.address().getPort(),
+                kvStore,
+                this
+        );
+        executorService.submit(() -> Utils.runnableWrapper(controllerClient::start));
+    }
+
+    /**
+     * Starts a broker client connecting to the node if we haven't already
+     * connected to it.
+     * @param message
+     * @throws IOException
+     */
+    public void handleRegisterMessage(RegisterMessage message) throws IOException {
+        NodeConfig nConfig = new NodeConfig(message.name(), message.address());
+        if (role.equals(NodeRole.BROKER)) {
+            if (controllerConfig.equals(nConfig)) {
+                return;
+            }
+
+            for (RaftBrokerClient brokerClient : brokerClients) {
+                if (brokerClient.getRemoteAddress().equals(message.address())) {
+                    return;
+                }
+            }
+
+            startBrokerClient(nConfig);
+        }
+
+        if (nodeConfigs.stream().noneMatch(n -> n.equals(nConfig))) {
+            nodeConfigs.add(nConfig);
+        }
     }
 
     public boolean isRunning() {
@@ -294,8 +475,16 @@ public class RaftManager {
         return node;
     }
 
-    public NodeState getState() {
-        return state;
+    public NodeConfig getNodeConfig() {
+        return nodeConfig;
+    }
+
+    public NodeRole getRole() {
+        return role;
+    }
+
+    public void setRole(NodeRole role) {
+        this.role = role;
     }
 
     public ElectionMeta getElectionMeta() {
@@ -303,7 +492,7 @@ public class RaftManager {
     }
 
     public KVStore getKVStore() {
-        return store;
+        return kvStore;
     }
 
     /**
@@ -311,9 +500,9 @@ public class RaftManager {
      *
      * @param term
      */
-    public void setLastTerm(long term) {
-        if (term > lastTerm) {
-            lastTerm = term;
+    public void setLastSeenTerm(long term) {
+        if (term > lastSeenTerm) {
+            lastSeenTerm = term;
         }
     }
 
@@ -332,6 +521,7 @@ public class RaftManager {
     public void convertControllerToFollower() {
     }
 
+    @Deprecated
     public RaftNode getControllerNode() {
         return controllerNode;
     }
@@ -340,16 +530,16 @@ public class RaftManager {
         return votedTerm;
     }
 
-    public long getLastTerm() {
-        return lastTerm;
+    public long getLastSeenTerm() {
+        return lastSeenTerm;
     }
 
     public void setVotedTerm(long term) {
         votedTerm = term;
     }
 
-    interface CheckedRunnable {
-        void run() throws Exception;
+    public NodeConfig getControllerConfig() {
+        return controllerConfig;
     }
 
     public class ElectionMeta {
@@ -357,7 +547,7 @@ public class RaftManager {
         private final long term;
         private final long prevLogId;
         private final long prevTerm;
-        private int majority;
+        private final int majority;
         private long electionDeadline;
 
         public ElectionMeta(
@@ -380,10 +570,6 @@ public class RaftManager {
             return voteCount;
         }
 
-        private void setVoteCount(int voteCount) {
-            this.voteCount = voteCount;
-        }
-
         public long getTerm() {
             return term;
         }
@@ -400,12 +586,8 @@ public class RaftManager {
             return majority;
         }
 
-        private void setMajority(int majority) {
-            this.majority = majority;
-        }
-
         public KVStore getStore() {
-            return store;
+            return kvStore;
         }
 
         public long getElectionDeadline() {

@@ -21,6 +21,7 @@ public class RaftBrokerClient {
     private int connectionTimeout = 30000;
     private ClientStatus status = ClientStatus.DISCONNECTED;
     private boolean sentRequestVote = false;
+    private boolean sentRegisterMessage = false;
 
     public RaftBrokerClient(String host, int port, RaftManager manager) {
         remoteAddress = new InetSocketAddress(host, port);
@@ -44,10 +45,10 @@ public class RaftBrokerClient {
         while (isRunning) {
             int readyCount = selector.select(1000);
 
-            NodeState state = manager.getState();
-            if (state == NodeState.CANDIDATE) {
+            NodeRole state = manager.getRole();
+            if (state == NodeRole.CANDIDATE) {
                 handleIsCandidate();
-            } else if (state == NodeState.CONTROLLER) {
+            } else if (state == NodeRole.CONTROLLER) {
                 if (!sentLeaderElectedMsg) {
                     handleIsController();
                     sentLeaderElectedMsg = true;
@@ -75,10 +76,19 @@ public class RaftBrokerClient {
                 }
 
                 try {
-                    if (!status.equals(ClientStatus.CONNECTED) && key.isConnectable()) {
-                        // Infinite retry
-                        retryConnection(key);
-                    } else if (key.isReadable()) {
+                    if (key.isConnectable()) {
+                        if (!status.equals(ClientStatus.CONNECTED)) {
+                            retryConnection(key);
+                        } else if (!sentRegisterMessage) {
+                            sentRegisterMessage = true;
+                            NodeConfig nodeConfig = manager.getNodeConfig();
+                            queueWrite(
+                                (SocketChannel) key.channel(),
+                                ByteBuffer.wrap(new RegisterMessage(nodeConfig.name(), nodeConfig.address()).serialize())
+                            );
+                        }
+                    }
+                    else if (key.isReadable()) {
                         handleRead(key);
                     } else if (key.isWritable()) {
                         handleWrite(key);
@@ -129,6 +139,7 @@ public class RaftBrokerClient {
         }
     }
 
+    // TODO: Check this
     private void handleIsCandidate() {
         final String debugPrefix = DEBUG_PREFIX + "[handleIsCandidate] ";
 
@@ -181,7 +192,7 @@ public class RaftBrokerClient {
             if (bytesRead == -1) {
                 // Incrementing count if we're a candidate. Broker dies so majority decreases
                 RaftManager.ElectionMeta electionMeta = manager.getElectionMeta();
-                if (manager.getState() == NodeState.CANDIDATE) {
+                if (manager.getRole() == NodeRole.CANDIDATE) {
                     manager.handleVoteResponse(new RequestVoteResponse(true, electionMeta.getTerm()));
                 }
                 stop();

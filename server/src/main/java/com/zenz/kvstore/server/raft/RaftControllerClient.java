@@ -27,14 +27,14 @@ public class RaftControllerClient {
     private ByteBuffer readBuffer = ByteBuffer.allocate(1024);
     private boolean isRunning;
 
+    private final RaftManager manager;
     private final KVStore store;
     private final RaftLogHandler logHandler;
     private ArrayList<RaftLogHandler.Log> logs = new ArrayList<>();
-    private CompletableFuture<Boolean> onDisconnect;
     private final Random random = new Random();
-    private final RaftManager manager;
     private long lastHeartBeatResponse;
     private final String DEBUG_PREFIX;
+
     private final CompletableFuture<Boolean> joinFut = new CompletableFuture<>();
 
     public RaftControllerClient(
@@ -256,7 +256,7 @@ public class RaftControllerClient {
     }
 
     private void initiateElection() throws IOException {
-        if (manager.getLastTerm() == ((RaftLogHandler) store.getLogHandler()).getTerm()) {
+        if (manager.getLastSeenTerm() == ((RaftLogHandler) store.getLogHandler()).getTerm()) {
             manager.initiateElection();
         }
     }
@@ -450,15 +450,8 @@ public class RaftControllerClient {
         return logHandler;
     }
 
-    public CompletableFuture<Boolean> getOnDisconnect() {
-        return onDisconnect;
-    }
-
-    public void setOnDisconnect(CompletableFuture<Boolean> onDisconnect) {
-        this.onDisconnect = onDisconnect;
-    }
-
     public RaftManager getManager() {
         return manager;
     }
+
 }

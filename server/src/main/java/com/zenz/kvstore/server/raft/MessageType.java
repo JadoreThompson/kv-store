@@ -11,7 +11,8 @@ public enum MessageType {
     HEARTBEAT_REQUEST(8),
     HEARTBEAT_RESPONSE(9),
     REQUEST_VOTE_RESPONSE(10),
-    REDIRECT(11);
+    REDIRECT(11),
+    REGISTER(12);
 
     private final int value;
 

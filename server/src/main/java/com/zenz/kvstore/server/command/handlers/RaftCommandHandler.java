@@ -30,9 +30,9 @@ public class RaftCommandHandler implements BaseCommandHandler {
 
     public ByteBuffer handleCommand(SocketChannel channel, Command command) {
         try {
-            NodeState nodeState = manager.getState();
+            NodeRole nodeState = manager.getRole();
 
-            if (nodeState.equals(NodeState.CONTROLLER)) {
+            if (nodeState.equals(NodeRole.CONTROLLER)) {
                 RaftControllerServerHandler controller = manager.getControllerServerHandler();
 
                 CommandType commandType = command.type();
@@ -42,7 +42,7 @@ public class RaftCommandHandler implements BaseCommandHandler {
                     return ByteBuffer.wrap(new GetResponse(node.value()).serialize());
                 }
 
-                CompletableFuture<Boolean> fut = new CompletableFuture<Boolean>();
+                CompletableFuture<Boolean> fut = new CompletableFuture<>();
                 controller.handleCommand(command, fut);
                 fut.get();
 
@@ -59,7 +59,7 @@ public class RaftCommandHandler implements BaseCommandHandler {
                 return ByteBuffer.wrap(new ErrorResponse(ErrorType.UNSUPPORTED_OPERATION, null).serialize());
             }
 
-            if (nodeState.equals(NodeState.CANDIDATE)) {
+            if (nodeState.equals(NodeRole.CANDIDATE)) {
                 return ByteBuffer.wrap(new ErrorResponse(ErrorType.IN_ELECTION, null).serialize());
             }
 

@@ -1,13 +1,13 @@
 package com.zenz.kvstore.server.raft;
 
-public enum NodeState {
+public enum NodeRole {
     BROKER(1),
     CANDIDATE(2),
     CONTROLLER(3);
 
     private final int value;
 
-    NodeState(int value) {
+    NodeRole(int value) {
         this.value = value;
     }
 
@@ -15,8 +15,8 @@ public enum NodeState {
         return value;
     }
 
-    public static NodeState fromValue(int value) {
-        for (NodeState type : NodeState.values()) {
+    public static NodeRole fromValue(int value) {
+        for (NodeRole type : NodeRole.values()) {
             if (type.value == value) return type;
         }
 

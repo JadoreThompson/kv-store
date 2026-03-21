@@ -3,7 +3,7 @@ package com.zenz.kvstore.server;
 import com.zenz.kvstore.server.logging.WALogger;
 import com.zenz.kvstore.common.commands.PutCommand;
 import com.zenz.kvstore.server.logging.handlers.RaftLogHandler;
-import com.zenz.kvstore.server.raft.NodeState;
+import com.zenz.kvstore.server.raft.NodeRole;
 import com.zenz.kvstore.server.raft.RaftManager;
 import com.zenz.kvstore.server.raft.RaftNode;
 import com.zenz.kvstore.server.raft.messages.*;
@@ -54,7 +54,7 @@ class RaftControllerTest {
         );
 
         nodes = new ArrayList<>();
-        nodes.add(new RaftNode(0, new InetSocketAddress(TEST_HOST, TEST_PORT), null, NodeState.CONTROLLER));
+        nodes.add(new RaftNode(0, new InetSocketAddress(TEST_HOST, TEST_PORT), null, NodeRole.CONTROLLER));
         manager = new RaftManager(0, nodes, kvStore);
         startManager();
 
