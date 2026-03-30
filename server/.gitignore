@@ -32,3 +32,5 @@ bin/
 ### User ###
 *.log
 target
+
+NOTES.md
