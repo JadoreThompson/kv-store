@@ -1,21 +1,16 @@
 package com.zenz.kvstore.server;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.zenz.kvstore.server.command.handlers.CommandHandler;
+import com.zenz.kvstore.server.cli.RaftCli;
+import com.zenz.kvstore.server.cli.SingleCli;
+import com.zenz.kvstore.server.command.handler.CommandHandler;
 import com.zenz.kvstore.server.logging.WALogger;
 import com.zenz.kvstore.server.logging.handlers.LogHandler;
-import com.zenz.kvstore.server.logging.handlers.RaftLogHandler;
-import com.zenz.kvstore.server.raft.RaftManager;
-import com.zenz.kvstore.server.raft.RaftNode;
-import com.zenz.kvstore.server.restorers.RaftRestorer;
-import com.zenz.kvstore.server.restorers.Restorer;
+import com.zenz.kvstore.server.restorer.Restorer;
+import picocli.CommandLine;
 
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.ArrayList;
-import java.util.List;
 
 public class Main {
 
@@ -30,21 +25,27 @@ public class Main {
             System.exit(1);
         }
 
+        int exitCode;
         switch (args[0]) {
 
             case "run":
-                runSingleNode(args);
+//                runSingleNode(args);
+                exitCode = new CommandLine(new SingleCli()).execute(args);
                 break;
 
             case "raft":
-                runRaft(args);
+//                runRaft(args);
+                exitCode = new CommandLine(new RaftCli()).execute(args);
                 break;
 
             default:
                 System.err.println("Unknown command: " + args[0]);
                 printUsage();
-                System.exit(1);
+//                System.exit(1);
+                exitCode = 1;
         }
+
+        System.exit(exitCode);
     }
 
     private static void runSingleNode(String[] args) throws Exception {
@@ -92,66 +93,67 @@ public class Main {
         server.start();
     }
 
-    private static void runRaft(String[] args) throws Exception {
-
-        Path configFile = null;
-        long nodeId = -1;
-
-        for (int i = 1; i < args.length; i++) {
-            switch (args[i]) {
-                case "-f":
-                    if (i + 1 >= args.length) fail("-f requires a file path");
-                    configFile = Path.of(args[++i]);
-                    break;
-                case "--id":
-                    if (i + 1 >= args.length) fail("--id requires a value");
-                    nodeId = Long.parseLong(args[++i]);
-                    break;
-                default:
-                    fail("Unknown option: " + args[i]);
-            }
-        }
-
-        if (configFile == null) {
-            fail("Raft mode requires -f <config-file>");
-        }
-
-        if (nodeId == -1) {
-            fail("Raft mode requires -id <node-id>");
-        }
-
-        ObjectMapper mapper = new ObjectMapper();
-        List<RaftNode> nodes = mapper.readValue(
-                configFile.toFile(),
-                new TypeReference<ArrayList<RaftNode>>() {
-                }
-        );
-
-        boolean found = false;
-        for (RaftNode node : nodes) {
-            if (node.id() == nodeId) {
-                found = true;
-                break;
-            }
-        }
-
-        if (!found) {
-            fail("Failed to find config for node with id " + nodeId + " does not exist");
-        }
-
-        ensureLogsDir();
-        ensureSnapshotsDir();
-
-        KVStore store = new RaftRestorer().restore(new KVStore.Builder()
-                .setSnapshotter(new KVMapSnapshotter(snapshotsDir))
-                .setSnapshotEnabled(true)
-                .setLogHandler(new RaftLogHandler(new WALogger(logsDir.resolve("0.log"))))
-        );
-
-        RaftManager manager = new RaftManager(nodeId, new ArrayList<>(nodes), store);
-        manager.start();
-        manager.join();
-    }
+//    private static void runRaft(String[] args) throws Exception {
+//
+//        Path configFile = null;
+//        long nodeId = -1;
+//        String name = null;
+//
+//        for (int i = 1; i < args.length; i++) {
+//            switch (args[i]) {
+//                case "-f":
+//                    if (i + 1 >= args.length) fail("-f requires a file path");
+//                    configFile = Path.of(args[++i]);
+//                    break;
+//                case "--id":
+//                    if (i + 1 >= args.length) fail("--id requires a value");
+//                    nodeId = Long.parseLong(args[++i]);
+//                    break;
+//                default:
+//                    fail("Unknown option: " + args[i]);
+//            }
+//        }
+//
+//        if (configFile == null) {
+//            fail("Raft mode requires -f <config-file>");
+//        }
+//
+//        if (nodeId == -1) {
+//            fail("Raft mode requires -id <node-id>");
+//        }
+//
+//        ObjectMapper mapper = new ObjectMapper();
+//        List<RaftNodeConfig> nodes = mapper.readValue(
+//                configFile.toFile(),
+//                new TypeReference<ArrayList<RaftNodeConfig>>() {
+//                }
+//        );
+//
+//        boolean found = false;
+//        for (RaftNodeConfig node : nodes) {
+//            if (node.id() == nodeId) {
+//                found = true;
+//                break;
+//            }
+//        }
+//
+//        if (!found) {
+//            fail("Failed to find config for node with id " + nodeId + " does not exist");
+//        }
+//
+//        ensureLogsDir();
+//        ensureSnapshotsDir();
+//
+//        KVStore store = new RaftRestorer().restore(new KVStore.Builder()
+//                .setSnapshotter(new KVMapSnapshotter(snapshotsDir))
+//                .setSnapshotEnabled(true)
+//                .setLogHandler(new RaftLogHandler(new WALogger(logsDir.resolve("0.log"))))
+//        );
+//
+//        RaftManager manager = new RaftManager(nodeId, new ArrayList<>(nodes), store);
+//        manager.start();
+//        manager.join();
+//    }
 
     private static void fail(String message) {
         System.err.println("Error: " + message);

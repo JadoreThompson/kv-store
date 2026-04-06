@@ -5,7 +5,8 @@ public enum RaftErrorType {
     INVALID_TERM(2),
     LOG_NOT_FOUND(3),
     GREATER_TERM(4),
-    GREATER_LOG_ID(5);
+    GREATER_LOG_ID(5),
+    CONTROLLER_UNKNOWN(6);
 
     private final int value;
 

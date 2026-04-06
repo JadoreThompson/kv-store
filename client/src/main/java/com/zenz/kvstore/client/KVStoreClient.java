@@ -1,14 +1,13 @@
 package com.zenz.kvstore.client;
 
-import com.zenz.kvstore.common.commands.Command;
-import com.zenz.kvstore.common.commands.GetCommand;
-import com.zenz.kvstore.common.commands.PutCommand;
-import com.zenz.kvstore.common.enums.ResponseType;
+import com.zenz.kvstore.common.commands.*;
 import com.zenz.kvstore.common.enums.ErrorType;
+import com.zenz.kvstore.common.enums.ResponseType;
 import com.zenz.kvstore.common.responses.*;
 
-import java.io.*;
-
+import java.io.BufferedInputStream;
+import java.io.BufferedOutputStream;
+import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.nio.ByteBuffer;
@@ -67,6 +66,18 @@ public class KVStoreClient {
         prevCommand = new PutCommand(key, value);
         prevResponseClass = PutResponse.class;
         return (PutResponse) send(ByteBuffer.wrap(prevCommand.serialize()), prevResponseClass);
+    }
+
+    public DeleteResponse delete(String key) throws IOException, InterruptedException {
+        prevCommand = new DeleteCommand(key);
+        prevResponseClass = DeleteResponse.class;
+        return (DeleteResponse) send(ByteBuffer.wrap(prevCommand.serialize()), prevResponseClass);
+    }
+
+    public SearchResponse search(String prefix) throws IOException, InterruptedException {
+        prevCommand = new SearchCommand(prefix);
+        prevResponseClass = SearchResponse.class;
+        return (SearchResponse) send(ByteBuffer.wrap(prevCommand.serialize()), prevResponseClass);
     }
 
     private BaseResponse send(

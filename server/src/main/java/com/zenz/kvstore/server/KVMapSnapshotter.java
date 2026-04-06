@@ -1,12 +1,15 @@
 package com.zenz.kvstore.server;
 
-import java.io.*;
+import java.io.File;
+import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
+import java.util.ArrayList;
+import java.util.List;
 
 public class KVMapSnapshotter {
     private static final Path DEFAULT_SNAPSHOT_DIR = Path.of("snapshots");
@@ -94,6 +97,25 @@ public class KVMapSnapshotter {
         return map;
     }
 
+    public List<KVPair> loadPairs() throws IOException {
+        File[] files = dir.toFile().listFiles();
+        if (files == null || files.length == 0) return null;
+
+        final Path fpath = files[0].toPath();
+        if (!Files.exists(fpath)) return null;
+
+        byte[] fBytes = Files.readAllBytes(fpath);
+        ByteBuffer buffer = ByteBuffer.wrap(fBytes);
+        List<KVPair> pairs = new ArrayList<>();
+        while (buffer.hasRemaining()) {
+            KVPair pair = deserializeNode(buffer);
+            pairs.add(pair);
+        }
+
+        return pairs;
+
+    }
+
     private KVPair deserializeNode(ByteBuffer buffer) throws IOException {
         int bufferLength = buffer.getInt();
         byte[] nodeBytes = new byte[bufferLength - 4];
@@ -115,6 +137,6 @@ public class KVMapSnapshotter {
         return dir;
     }
 
-    public static record KVPair(String key, byte[] value) {
+    public record KVPair(String key, byte[] value) {
     }
 }

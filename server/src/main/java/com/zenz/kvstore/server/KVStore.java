@@ -6,9 +6,12 @@ import com.zenz.kvstore.server.logging.WALogger;
 import com.zenz.kvstore.server.logging.handlers.BaseLogHandler;
 import com.zenz.kvstore.server.logging.handlers.RaftLogHandler;
 
-import java.io.*;
+import java.io.File;
+import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.Collections;
+import java.util.List;
 
 public class KVStore {
     // Default settings
@@ -22,6 +25,7 @@ public class KVStore {
     private int logsPerSnapshot;
 
     private final KVMap map;
+    private final Trie trie = new Trie('\0');
     private boolean isRaftMode;
 
     public KVStore(Builder builder) throws IOException {
@@ -39,9 +43,10 @@ public class KVStore {
 
         snapshot();
         map.put(key, value);
+        this.trie.add(key);
     }
 
-    public KVMap.Node get(String key) throws IOException {
+    public KVMap.Node get(String key) {
         return map.get(key);
     }
 
@@ -49,7 +54,28 @@ public class KVStore {
         logCount++;
         logHandler.log(new DeleteCommand(key));
         snapshot();
-        return map.remove(key);
+
+        if (map.remove(key)) {
+            this.trie.remove(key);
+            return true;
+        }
+
+        return false;
+    }
+
+    /**
+     * Returns all nodes whose keys share the prefix
+     *
+     * @param prefix
+     * @return
+     */
+    public List<KVMap.Node> search(final String prefix) {
+        final List<String> keys = this.trie.search(prefix);
+        if (keys == null || keys.isEmpty()) {
+            return Collections.emptyList();
+        }
+
+        return keys.stream().map(this::get).toList();
     }
 
     private void snapshot() throws IOException {

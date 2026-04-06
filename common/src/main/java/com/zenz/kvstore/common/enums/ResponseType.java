@@ -5,7 +5,8 @@ public enum ResponseType {
     GET_RESPONSE(2),
     REDIRECT_RESPONSE(3),
     ERROR_RESPONSE(4),
-    DELETE_RESPONSE(5);
+    DELETE_RESPONSE(5),
+    SEARCH_RESPONSE(6);
 
     private final int value;
 

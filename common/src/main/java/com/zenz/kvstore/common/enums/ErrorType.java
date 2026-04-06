@@ -4,7 +4,8 @@ public enum ErrorType {
     IN_ELECTION(1),
     UNSUPPORTED_OPERATION(2),
     SERVER_ERROR(3),
-    NOT_CONTROLLER(4);
+    NOT_CONTROLLER(4),
+    CONTROLLER_UNKNOWN(5);
 
     private final int value;
 

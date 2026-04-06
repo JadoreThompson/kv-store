@@ -12,16 +12,13 @@ public enum MessageType {
     HEARTBEAT_RESPONSE(9),
     REQUEST_VOTE_RESPONSE(10),
     REDIRECT(11),
-    REGISTER(12);
+    REGISTER(12),
+    LEADER_DETHRONED(13);
 
     private final int value;
 
     MessageType(int value) {
         this.value = value;
-    }
-
-    public int getValue() {
-        return value;
     }
 
     public static MessageType fromValue(int value) {
@@ -30,6 +27,10 @@ public enum MessageType {
         }
 
         throw new IllegalArgumentException("Invalid value " + value);
+    }
+
+    public int getValue() {
+        return value;
     }
 
     @Override

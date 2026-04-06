@@ -8,10 +8,10 @@ import com.zenz.kvstore.common.commands.DeleteCommand;
 import com.zenz.kvstore.common.commands.GetCommand;
 import com.zenz.kvstore.common.commands.PutCommand;
 import com.zenz.kvstore.common.responses.*;
-import com.zenz.kvstore.server.command.handlers.CommandHandler;
+import com.zenz.kvstore.server.command.handler.CommandHandler;
 import com.zenz.kvstore.server.logging.WALogger;
 import com.zenz.kvstore.server.logging.handlers.LogHandler;
-import com.zenz.kvstore.server.restorers.Restorer;
+import com.zenz.kvstore.server.restorer.Restorer;
 import org.junit.jupiter.api.*;
 
 import java.io.IOException;

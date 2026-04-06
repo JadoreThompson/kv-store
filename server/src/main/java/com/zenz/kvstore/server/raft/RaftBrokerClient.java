@@ -1,13 +1,17 @@
 package com.zenz.kvstore.server.raft;
 
-import com.zenz.kvstore.server.ClientStatus;
-import com.zenz.kvstore.server.raft.messages.*;
+import com.zenz.kvstore.server.raft.message.RegisterMessage;
+import com.zenz.kvstore.server.raft.message.RequestVoteResponse;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
-import java.nio.channels.*;
-import java.util.*;
+import java.nio.channels.SelectionKey;
+import java.nio.channels.Selector;
+import java.nio.channels.SocketChannel;
+import java.util.Iterator;
+import java.util.LinkedList;
+import java.util.Queue;
 
 public class RaftBrokerClient {
     private final InetSocketAddress remoteAddress;
@@ -83,12 +87,13 @@ public class RaftBrokerClient {
                             sentRegisterMessage = true;
                             NodeConfig nodeConfig = manager.getNodeConfig();
                             queueWrite(
-                                (SocketChannel) key.channel(),
-                                ByteBuffer.wrap(new RegisterMessage(nodeConfig.name(), nodeConfig.address()).serialize())
+                                    (SocketChannel) key.channel(),
+                                    ByteBuffer.wrap(new RegisterMessage(
+                                            nodeConfig.name(), nodeConfig.serverAddress(), nodeConfig.clientAddress()
+                                    ).serialize())
                             );
                         }
-                    }
-                    else if (key.isReadable()) {
+                    } else if (key.isReadable()) {
                         handleRead(key);
                     } else if (key.isWritable()) {
                         handleWrite(key);
@@ -141,35 +146,35 @@ public class RaftBrokerClient {
 
     // TODO: Check this
     private void handleIsCandidate() {
-        final String debugPrefix = DEBUG_PREFIX + "[handleIsCandidate] ";
-
-        RaftManager.ElectionMeta electionMeta = manager.getElectionMeta();
-        long nowPlus = System.currentTimeMillis() + 1000;
-
-        boolean deadlineExpired = electionMeta.updateElectionDeadlineIfExpired(nowPlus);
-
-        if (!sentRequestVote || deadlineExpired) {
-            sentRequestVote = true;
-
-            RequestVote request = new RequestVote(
-                    manager.getConfig().id(),
-                    electionMeta.getTerm(),
-                    electionMeta.getPrevLogId(),
-                    electionMeta.getPrevTerm()
-            );
-
-            queueWrite(socketChannel, ByteBuffer.wrap(request.serialize()));
-        }
+//        final String debugPrefix = DEBUG_PREFIX + "[handleIsCandidate] ";
+//
+//        RaftManager.ElectionMeta electionMeta = manager.getElectionMeta();
+//        long nowPlus = System.currentTimeMillis() + 1000;
+//
+//        boolean deadlineExpired = electionMeta.updateElectionDeadlineIfExpired(nowPlus);
+//
+//        if (!sentRequestVote || deadlineExpired) {
+//            sentRequestVote = true;
+//
+//            RequestVote request = new RequestVote(
+//                    manager.getConfig().id(),
+//                    electionMeta.getTerm(),
+//                    electionMeta.getPrevLogId(),
+//                    electionMeta.getPrevTerm()
+//            );
+//
+//            queueWrite(socketChannel, ByteBuffer.wrap(request.serialize()));
+//        }
     }
 
     private void handleIsController() {
-        final String debugPrefix = DEBUG_PREFIX + "[handleIsController] ";
-
-        RaftManager.ElectionMeta electionMeta = manager.getElectionMeta();
-        LeaderElected msg = new LeaderElected(
-                electionMeta.getTerm(), manager.getConfig().id()
-        );
-        queueWrite(socketChannel, ByteBuffer.wrap(msg.serialize()));
+//        final String debugPrefix = DEBUG_PREFIX + "[handleIsController] ";
+//
+//        RaftManager.ElectionMeta electionMeta = manager.getElectionMeta();
+//        LeaderElected msg = new LeaderElected(
+//                electionMeta.getTerm(), manager.getConfig().id()
+//        );
+//        queueWrite(socketChannel, ByteBuffer.wrap(msg.serialize()));
     }
 
     private void handleRead(SelectionKey key) throws IOException {
@@ -216,27 +221,27 @@ public class RaftBrokerClient {
     }
 
     private boolean processData(SelectionKey key) throws IOException {
-        BaseMessage message;
-        try {
-            message = BaseMessage.deserialize(readBuffer);
-        } catch (IllegalArgumentException e) {
-            return true;
-        }
-
-        if (message == null) {
-            return false;
-        }
-
-        MessageType messageType = message.type();
-        ByteBuffer responseBuffer = null;
-        if (messageType == MessageType.REQUEST_VOTE_RESPONSE) {
-            manager.handleVoteResponse((RequestVoteResponse) message);
-        }
-
-        if (responseBuffer != null) {
-            queueWrite((SocketChannel) key.channel(), responseBuffer);
-        }
-
+//        Message message;
+//        try {
+//            message = Message.deserialize(readBuffer);
+//        } catch (IllegalArgumentException e) {
+//            return true;
+//        }
+//
+//        if (message == null) {
+//            return false;
+//        }
+//
+//        MessageType messageType = message.type();
+//        ByteBuffer responseBuffer = null;
+//        if (messageType == MessageType.REQUEST_VOTE_RESPONSE) {
+//            manager.handleVoteResponse((RequestVoteResponse) message);
+//        }
+//
+//        if (responseBuffer != null) {
+//            queueWrite((SocketChannel) key.channel(), responseBuffer);
+//        }
+//
         return true;
     }
 

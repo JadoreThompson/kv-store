@@ -1,12 +1,13 @@
 package com.zenz.kvstore.server.raft;
 
 import com.zenz.kvstore.common.commands.DeleteCommand;
-import com.zenz.kvstore.common.enums.CommandType;
 import com.zenz.kvstore.common.commands.PutCommand;
-import com.zenz.kvstore.server.*;
+import com.zenz.kvstore.common.enums.CommandType;
+import com.zenz.kvstore.server.KVMapSnapshotter;
+import com.zenz.kvstore.server.KVStore;
 import com.zenz.kvstore.server.logging.WALogger;
 import com.zenz.kvstore.server.logging.handlers.RaftLogHandler;
-import com.zenz.kvstore.server.raft.messages.*;
+import com.zenz.kvstore.server.raft.message.*;
 
 import java.io.File;
 import java.io.IOException;
@@ -263,10 +264,10 @@ public class RaftControllerClient {
 
     private boolean processData(SelectionKey key) throws IOException {
         final String debugPrefix = DEBUG_PREFIX + "[processData] ";
-        BaseMessage message;
+        Message message;
 
         try {
-            message = BaseMessage.deserialize(readBuffer);
+            message = Message.deserialize(readBuffer);
         } catch (IllegalArgumentException e) {
             return true;
         }

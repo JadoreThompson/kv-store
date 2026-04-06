@@ -1,6 +1,6 @@
 package com.zenz.kvstore.server.raft.server;
 
-import com.zenz.kvstore.server.raft.server.handlers.SocketHandler;
+import com.zenz.kvstore.server.raft.server.handler.SocketHandler;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;

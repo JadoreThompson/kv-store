@@ -4,7 +4,7 @@ package com.zenz.kvstore.common.utils;
 import com.zenz.kvstore.common.CheckedRunnable;
 
 public class Utils {
-    public static void runnableWrapper(CheckedRunnable runnable) {
+    public static void checkedRunnableWrapper(CheckedRunnable runnable) {
         try {
             runnable.run();
         } catch (Exception e) {

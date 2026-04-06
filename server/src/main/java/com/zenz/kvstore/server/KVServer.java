@@ -1,7 +1,7 @@
 package com.zenz.kvstore.server;
 
 import com.zenz.kvstore.common.commands.Command;
-import com.zenz.kvstore.server.command.handlers.BaseCommandHandler;
+import com.zenz.kvstore.server.command.handler.BaseCommandHandler;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
@@ -233,5 +233,17 @@ public class KVServer {
 
     public BaseCommandHandler getCommandHandler() {
         return commandHandler;
+    }
+
+    public String getHost() {
+        return host;
+    }
+
+    public int getPort() {
+        return port;
+    }
+
+    public boolean isRunning() {
+        return running;
     }
 }

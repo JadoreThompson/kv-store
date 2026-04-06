@@ -4,7 +4,7 @@ import com.zenz.kvstore.common.enums.CommandType;
 import com.zenz.kvstore.common.commands.PutCommand;
 import com.zenz.kvstore.server.logging.WALogger;
 import com.zenz.kvstore.server.logging.handlers.LogHandler;
-import com.zenz.kvstore.server.restorers.Restorer;
+import com.zenz.kvstore.server.restorer.Restorer;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;

@@ -4,7 +4,7 @@ import com.zenz.kvstore.common.commands.Command;
 import com.zenz.kvstore.server.ClientSession;
 import com.zenz.kvstore.server.KVMapSnapshotter;
 import com.zenz.kvstore.server.logging.handlers.RaftLogHandler;
-import com.zenz.kvstore.server.raft.messages.*;
+import com.zenz.kvstore.server.raft.message.*;
 
 import java.io.File;
 import java.io.IOException;
@@ -18,13 +18,14 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
 public class RaftServer {
+    private Selector selector;
+    private ServerSocketChannel serverChannel;
+    private boolean isRunning;
+
     // Server
     private final RaftManager raftManager;
     private final InetSocketAddress address;
-    private Selector selector;
-    private ServerSocketChannel serverChannel;
     private final Map<SocketChannel, Queue<ByteBuffer>> pendingWrites = new HashMap<>();
-    private boolean isRunning = false;
 
     // Controller
     private final RaftLogHandler logHandler;
@@ -33,12 +34,17 @@ public class RaftServer {
     private final ConcurrentLinkedQueue<CommandTask> commandTasks = new ConcurrentLinkedQueue<>();
     private CommandTask curCommandTask;
 
+    private NodeRole prevRole;
+
+    // Debug
+    private final String DEBUG_PREFIX;
+
     public RaftServer(InetSocketAddress address, RaftManager raftManager) {
         this.address = address;
         this.raftManager = raftManager;
-
-        logHandler = (RaftLogHandler) raftManager.getKVStore().getLogHandler();
-        snapshotter = raftManager.getKVStore().getSnapshotter();
+        this.logHandler = (RaftLogHandler) raftManager.getKVStore().getLogHandler();
+        this.snapshotter = raftManager.getKVStore().getSnapshotter();
+        this.DEBUG_PREFIX = String.format("[node=%s][RaftServer] ", raftManager.getNodeConfig().name());
     }
 
     public void start() throws Exception {
@@ -55,7 +61,14 @@ public class RaftServer {
         while (isRunning) {
             int readyCount = selector.select();
 
-            if (raftManager.getRole().equals(NodeRole.CONTROLLER)) {
+            NodeRole curRole = raftManager.getRole();
+            NodeRole prevRole = this.prevRole;
+            this.prevRole = curRole;
+
+            if (curRole == NodeRole.CONTROLLER) {
+                if (prevRole != NodeRole.CONTROLLER) {
+                    loadLogs();
+                }
                 checkPendingTask();
             }
 
@@ -120,10 +133,6 @@ public class RaftServer {
         key.cancel();
         pendingWrites.remove(channel);
     }
-
-    private void convertToController() {}
-
-    private void convertToBroker() {}
 
     private void queueWrite(SocketChannel channel, ByteBuffer buffer) {
         Queue<ByteBuffer> queue = pendingWrites.computeIfAbsent(channel, k -> new LinkedList<>());
@@ -230,9 +239,9 @@ public class RaftServer {
     }
 
     private boolean processData(RaftClientSession session, ByteBuffer buffer) throws IOException {
-        BaseMessage message;
+        Message message;
         try {
-            message = BaseMessage.deserialize(buffer);
+            message = Message.deserialize(buffer);
         } catch (IllegalArgumentException e) {
             e.printStackTrace();
             queueWrite(
@@ -248,34 +257,32 @@ public class RaftServer {
         }
 
         MessageType messageType = message.type();
-        ByteBuffer responseBuffer = null;
-
-        // Controller
-        if (messageType.equals(MessageType.REQUEST_ENTRY)) {
-            responseBuffer = handleMessage(
-                    () -> handleEntryRequest(session, (RequestEntry) message),
-                    NodeRole.CONTROLLER
-            );
-        } else if (messageType.equals(MessageType.APPEND_ENTRY_RESPONSE)) {
-            responseBuffer = handleMessage(
-                    () -> handleAppendEntryResponse(session, (AppendEntryResponse) message),
-                    NodeRole.CONTROLLER
-            );
-        } else if (messageType.equals(MessageType.HEARTBEAT_REQUEST)) {
-            responseBuffer = handleMessage(() -> ByteBuffer.wrap(new HeartbeatResponse().serialize()), NodeRole.CONTROLLER);
-        }
-        // Broker
-        else if (messageType.equals(MessageType.REQUEST_VOTE)) {
-            responseBuffer = handleMessage(() -> handleRequestVote((RequestVote) message), NodeRole.BROKER);
-        } else if (messageType.equals(MessageType.LEADER_ELECTED)) {
-            LeaderElected msg = (LeaderElected) message;
-            raftManager.setLastSeenTerm(msg.term());
-            raftManager.handleLeaderElected((LeaderElected) message);
-            cleanup(session.getChannel().keyFor(selector));
-        }
-        // Both
-        else if (messageType.equals(MessageType.REGISTER)) {
+        if (messageType == MessageType.REGISTER) {
             raftManager.handleRegisterMessage((RegisterMessage) message);
+            return true;
+        }
+
+        ByteBuffer responseBuffer = null;
+        final NodeRole role = this.raftManager.getRole();
+
+        if (role == NodeRole.CONTROLLER) {
+            if (messageType == MessageType.REQUEST_ENTRY) {
+                responseBuffer = handleEntryRequest(session, (RequestEntry) message);
+            } else if (messageType == MessageType.APPEND_ENTRY_RESPONSE) {
+                responseBuffer = handleAppendEntryResponse(session, (AppendEntryResponse) message);
+            } else if (messageType == MessageType.HEARTBEAT_REQUEST) {
+                responseBuffer = ByteBuffer.wrap(new HeartbeatResponse().serialize());
+            }
+        } else if (role == NodeRole.BROKER) {
+            if (messageType == MessageType.REQUEST_VOTE) {
+                responseBuffer = handleRequestVote((RequestVote) message);
+            } else if (messageType == MessageType.LEADER_ELECTED) {
+                this.raftManager.handleLeaderElected((LeaderElected) message);
+//                LeaderElected msg = (LeaderElected) message;
+//                raftManager.setLastSeenTerm(msg.term());
+//                raftManager.handleLeaderElected((LeaderElected) message);
+                cleanup(session.getChannel().keyFor(selector));
+            }
         }
 
         if (responseBuffer != null) {
@@ -289,6 +296,7 @@ public class RaftServer {
      * Ensures this current node's role is the required role to handle the message.
      * If it isn't then a redirect message is returned. If it is then the return buffer
      * of the passed handler is returned.
+     *
      * @param checkedRunnable
      * @param role
      * @return
@@ -296,12 +304,16 @@ public class RaftServer {
     private ByteBuffer handleMessage(MessageHandler checkedRunnable, NodeRole role) {
         if (!raftManager.getRole().equals(role)) {
             if (role.equals(NodeRole.CONTROLLER)) {
-                return ByteBuffer.wrap(
-                        new RedirectMessage(
-                                raftManager.getControllerConfig(),
-                                NodeRole.CONTROLLER
-                        ).serialize()
-                );
+                byte[] messageBytes;
+                NodeConfig controllerConfig = raftManager.getControllerConfig();
+
+                if (controllerConfig != null) {
+                    messageBytes = new RedirectMessage(controllerConfig, NodeRole.CONTROLLER).serialize();
+                } else {
+                    messageBytes = new ErrorMessage(RaftErrorType.CONTROLLER_UNKNOWN, null).serialize();
+                }
+
+                return ByteBuffer.wrap(messageBytes);
             }
         }
 
@@ -324,9 +336,7 @@ public class RaftServer {
 
         // Adding all logged commands
         Path path = logHandler.getLogger().getPath();
-        for (RaftLogHandler.Log logEntry : RaftLogHandler.deserialize(path)) {
-            logs.add(logEntry);
-        }
+        logs.addAll(RaftLogHandler.deserialize(path));
     }
 
     public void handleCommand(Command command, CompletableFuture<Boolean> fut) {
@@ -374,22 +384,10 @@ public class RaftServer {
         long currentLogId = logHandler.getLogId();
         long currentTerm = logHandler.getTerm();
 
-        if (request.term() > currentTerm) {
+        if (request.term() > currentTerm || request.term() == currentTerm && request.id() > currentLogId) {
             // Switching from controller to broker;
             raftManager.setRole(NodeRole.BROKER);
-            raftManager.startBrokerClients();
-            return ByteBuffer.wrap(new ErrorMessage(
-                    RaftErrorType.GREATER_TERM, null
-            ).serialize());
-        }
-
-        if (request.term() == currentTerm && request.id() > currentLogId) {
-            // Switching from controller to broker;
-            raftManager.setRole(NodeRole.BROKER);
-            raftManager.startBrokerClients();
-            return ByteBuffer.wrap(new ErrorMessage(
-                    RaftErrorType.GREATER_LOG_ID, null
-            ).serialize());
+            return null;
         }
 
         // Handling a fresh follower
@@ -564,17 +562,17 @@ public class RaftServer {
     // === BROKER METHODS ===
 
     private ByteBuffer handleRequestVote(RequestVote msg) throws IOException {
-        if (msg.term() > raftManager.getLastSeenTerm() && msg.term() > raftManager.getVotedTerm()) {
-            raftManager.setLastSeenTerm(msg.term());
-
-            if (msg.prevLogId() >= raftManager.getKVStore().getLogHandler().getLogId()) {
-                raftManager.setVotedTerm(msg.term());
-                RequestVoteResponse response = new RequestVoteResponse(true, msg.term());
-                return ByteBuffer.wrap(response.serialize());
-            }
-
-            raftManager.initiateElection();
-        }
+//        if (msg.term() > raftManager.getLastSeenTerm() && msg.term() > raftManager.getLastVotedTerm()) {
+//            raftManager.setLastSeenTerm(msg.term());
+//
+//            if (msg.prevLogId() >= raftManager.getKVStore().getLogHandler().getLogId()) {
+//                raftManager.setLastVotedTerm(msg.term());
+//                RequestVoteResponse response = new RequestVoteResponse(true, msg.term());
+//                return ByteBuffer.wrap(response.serialize());
+//            }
+//
+//            raftManager.initiateElection();
+//        }
 
         return null;
     }
@@ -591,6 +589,10 @@ public class RaftServer {
 
     public boolean isRunning() {
         return isRunning;
+    }
+
+    private interface MessageHandler {
+        ByteBuffer run() throws IOException;
     }
 
     private class RaftClientSession extends ClientSession {
@@ -616,10 +618,6 @@ public class RaftServer {
         public void setTerm(long term) {
             this.term = term;
         }
-    }
-
-    private interface MessageHandler {
-        ByteBuffer run() throws IOException;
     }
 
     private class CommandTask {

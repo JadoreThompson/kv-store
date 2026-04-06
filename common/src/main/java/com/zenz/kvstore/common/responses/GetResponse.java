@@ -17,7 +17,6 @@ public record GetResponse(ResponseType type, byte[] value) implements BaseRespon
 
     @Override
     public byte[] serialize() {
-        // Handle null case: use -1 as length indicator for null
         if (value == null) {
             ByteBuffer buffer = ByteBuffer.allocate(4 + 4);
             buffer.putInt(type.getValue());

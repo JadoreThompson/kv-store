@@ -9,7 +9,7 @@ public interface BaseResponse {
 
     byte[] serialize();
 
-    public static BaseResponse deserialize(ByteBuffer buffer) {
+    static BaseResponse deserialize(ByteBuffer buffer) {
         int typeValue = buffer.getInt();
         ResponseType type = ResponseType.fromValue(typeValue);
 

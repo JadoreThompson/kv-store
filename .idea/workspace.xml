@@ -4,32 +4,57 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="f2a63f83-7187-4a54-8703-b4d1ce6944cf" name="Changes" comment="saving - Handling broker disconnect during election">
+    <list default="true" id="f2a63f83-7187-4a54-8703-b4d1ce6944cf" name="Changes" comment="Created BrokerClient">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/client/target/maven-status/maven-compiler-plugin/compile/default-compile/createdFiles.lst" beforeDir="false" afterPath="$PROJECT_DIR$/client/target/maven-status/maven-compiler-plugin/compile/default-compile/createdFiles.lst" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/server/src/main/java/com/zenz/kvstore/server/raft/BrokerClient.java" beforeDir="false" afterPath="$PROJECT_DIR$/server/src/main/java/com/zenz/kvstore/server/raft/BrokerClient.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/server/src/main/java/com/zenz/kvstore/server/raft/Manager.java" beforeDir="false" afterPath="$PROJECT_DIR$/server/src/main/java/com/zenz/kvstore/server/raft/Manager.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/server/src/test/java/com/zenz/kvstore/server/raft/LeaderElectionTest.java" beforeDir="false" afterPath="$PROJECT_DIR$/server/src/test/java/com/zenz/kvstore/server/raft/LeaderElectionTest.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
     <option name="LAST_RESOLUTION" value="IGNORE" />
   </component>
+  <component name="FileTemplateManagerImpl">
+    <option name="RECENT_TEMPLATES">
+      <list>
+        <option value="Record" />
+        <option value="Class" />
+      </list>
+    </option>
+  </component>
+  <component name="FormatOnSaveOptions">
+    <option name="myRunOnSave" value="true" />
+  </component>
   <component name="Git.Settings">
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
   </component>
-  <component name="GitHubPullRequestSearchHistory"><![CDATA[{
-  "lastFilter": {
-    "state": "OPEN",
-    "assignee": "JadoreThompson"
+  <component name="GitHubPullRequestSearchHistory">{
+  &quot;lastFilter&quot;: {
+    &quot;state&quot;: &quot;OPEN&quot;,
+    &quot;assignee&quot;: &quot;JadoreThompson&quot;
   }
-}]]></component>
-  <component name="GithubPullRequestsUISettings"><![CDATA[{
-  "selectedUrlAndAccountId": {
-    "url": "https://github.com/JadoreThompson/kv-store.git",
-    "accountId": "1f8b3808-e4a8-4946-9225-280343a681cb"
+}</component>
+  <component name="GithubPullRequestsUISettings">{
+  &quot;selectedUrlAndAccountId&quot;: {
+    &quot;url&quot;: &quot;https://github.com/JadoreThompson/kv-store.git&quot;,
+    &quot;accountId&quot;: &quot;1f8b3808-e4a8-4946-9225-280343a681cb&quot;
   }
-}]]></component>
-  <component name="ProjectColorInfo"><![CDATA[{
-  "associatedIndex": 2
-}]]></component>
+}</component>
+  <component name="KubernetesApiPersistence">{}</component>
+  <component name="KubernetesApiProvider">{
+  &quot;isMigrated&quot;: true
+}</component>
+  <component name="OptimizeOnSaveOptions">
+    <option name="myRunOnSave" value="true" />
+  </component>
+  <component name="ProblemsViewState">
+    <option name="selectedTabId" value="CurrentFile" />
+  </component>
+  <component name="ProjectColorInfo">{
+  &quot;associatedIndex&quot;: 2
+}</component>
   <component name="ProjectId" id="3BD4nVipPFOw8IZF14l9piRxcQM" />
   <component name="ProjectLevelVcsManager">
     <ConfirmationsSetting value="2" id="Add" />
@@ -40,42 +65,160 @@
   </component>
   <component name="PropertiesComponent"><![CDATA[{
   "keyToString": {
+    "JUnit.DiscoveryServiceTest$EdgeCaseTests.executor": "Run",
+    "JUnit.DiscoveryServiceTest$GetMemberTests.getMember_shouldReturnDeserializedNodeConfig.executor": "Run",
+    "JUnit.DiscoveryServiceTest$GetMembersTests.getMembers_shouldHandleIOException.executor": "Run",
+    "JUnit.DiscoveryServiceTest.executor": "Run",
+    "JUnit.KVMapSnapshotterTest.executor": "Run",
+    "JUnit.KVMapTest and 2 more.executor": "Run",
+    "JUnit.KVStoreTest.executor": "Run",
+    "JUnit.KVStoreTest.search_afterRestoreFromSnapshotAndWAL_returnsCorrectResults.executor": "Run",
+    "JUnit.KVStoreTest.search_afterRestoreFromSnapshot_returnsCorrectResults.executor": "Run",
+    "JUnit.KVStoreTest.search_afterRestoreFromWALWithDeletes_returnsCorrectResults.executor": "Run",
+    "JUnit.KVStoreTest.search_afterRestoreFromWAL_returnsCorrectResults.executor": "Run",
+    "JUnit.KVStoreTest.search_afterRestoreWithDeletes_returnsCorrectResults.executor": "Run",
+    "JUnit.KVStoreTest.search_afterRestoreWithEmptyKey_handlesCorrectly.executor": "Run",
+    "JUnit.KVStoreTest.search_afterRestoreWithKeyDeletedInWAL_keyNotFound.executor": "Run",
+    "JUnit.KVStoreTest.search_afterRestoreWithOverlappingKeys_returnsCorrectResults.executor": "Run",
+    "JUnit.KVStoreTest.search_afterRestoreWithReaddedKey_keyFound.executor": "Run",
+    "JUnit.KVStoreTest.search_emptySnapshot_returnsEmptyList.executor": "Run",
+    "JUnit.KVStoreTest.search_largeDatasetAfterRestore_returnsCorrectResults.executor": "Run",
+    "JUnit.LeaderElectionNewTest.executor": "Run",
+    "JUnit.LeaderElectionNewTest.testBootstrapConcludes_withFreshNodes.executor": "Run",
+    "JUnit.LeaderElectionTest.brokerConnectionFailure_incrementsVoteCount_duringElection.executor": "Run",
+    "JUnit.LeaderElectionTest.brokerWithHigherLogTerm_initiatesOwnElection_onStaleVoteRequest.executor": "Run",
+    "JUnit.LeaderElectionTest.completeElectionCycle_fromInitiationToCompletion_with3Nodes.executor": "Run",
+    "JUnit.LeaderElectionTest.electionCompletes_withMultipleBrokerConnectionFailures.executor": "Run",
+    "JUnit.LeaderElectionTest.electionSucceeds_despiteInitialVoteDenial.executor": "Run",
+    "JUnit.LeaderElectionTest.executor": "Run",
+    "JUnit.LeaderElectionTest.multipleElections_withIncreasingTerms.executor": "Run",
+    "JUnit.LeaderElectionTest.nodeReceivingVoteRequest_withGreaterTermLowerLogId_initiatesElectionWithoutDuplicate.executor": "Run",
+    "JUnit.LeaderElectionTest.testBootstrapConcludes_withFreshNodes.executor": "Run",
+    "JUnit.LeaderElectionTest.voteResponseWithMismatchedTerm_isIgnored_duringElection.executor": "Run",
+    "JUnit.RaftCommandHandlerNewTest.brokerState_returnsRedirectToController.executor": "Run",
+    "JUnit.RaftCommandHandlerNewTest.deleteCommand_candidateState_returnsInElectionError.executor": "Run",
+    "JUnit.RaftCommandHandlerNewTest.deleteCommand_minimumMajority_completesAtThreshold.executor": "Run",
+    "JUnit.RaftCommandHandlerNewTest.executor": "Run",
+    "JUnit.RaftCommandHandlerNewTest.handleCommand_fastNodes_majorityReached.executor": "Run",
+    "JUnit.RaftCommandHandlerNewTest.handleCommand_slowNodes_majorityReachedAfterDelay.executor": "Run",
+    "JUnit.RaftCommandHandlerTest.executor": "Run",
+    "JUnit.RaftCommandHandlerTest.handleCommand_fastNodes_majorityReached.executor": "Run",
+    "JUnit.RaftCommandHandlerTest.handleCommand_largeValue_processesCorrectly.executor": "Run",
+    "JUnit.RaftControllerTest.executor": "Run",
+    "JUnit.RaftControllerTest.findingNextLog_returnsCorrectNextLog.executor": "Run",
+    "JUnit.RaftControllerTest.followerUpToDate_sameLogIdAndTerm_returnsMostRecentLog.executor": "Run",
+    "JUnit.RaftControllerTest.freshFollower_bothNodesEmpty_returnsEmptyCommand.executor": "Run",
+    "JUnit.RaftControllerTest.freshFollower_noSnapshot_returnsFirstLog.executor": "Run",
+    "JUnit.RaftControllerTest.freshFollower_withSnapshot_returnsSnapshot.executor": "Run",
+    "JUnit.RaftControllerTest.requestLogIdBeforeFirstLog_withSnapshot_returnsSnapshot.executor": "Run",
+    "JUnit.RaftControllerTest.sameLogIdDifferentTerm_returnsError.executor": "Run",
+    "JUnit.RestorerTest and 1 more.executor": "Run",
+    "JUnit.TrieTest$AddMethodTests.executor": "Run",
+    "JUnit.TrieTest$AddMethodTests.shouldHandleCaseSensitivity.executor": "Run",
+    "JUnit.TrieTest$ConstructorTests.executor": "Run",
+    "JUnit.TrieTest$EdgeCaseTests.executor": "Run",
+    "JUnit.TrieTest$GetCharacterMethodTests.executor": "Run",
+    "JUnit.TrieTest$IntegrationTests.executor": "Run",
+    "JUnit.TrieTest$RemoveMethodTests.executor": "Run",
+    "JUnit.TrieTest$SearchMethodTests.executor": "Run",
+    "JUnit.TrieTest.executor": "Run",
+    "JUnit.raft in server.executor": "Run",
+    "JUnit.server in server.executor": "Run",
     "RunOnceActivity.ShowReadmeOnStart": "true",
+    "RunOnceActivity.TerminalTabsStorage.copyFrom.TerminalArrangementManager.252": "true",
     "RunOnceActivity.git.unshallow": "true",
     "RunOnceActivity.typescript.service.memoryLimit.init": "true",
-    "git-widget-placeholder": "main",
+    "git-widget-placeholder": "feature/node-discovery",
     "kotlin-language-version-configured": "true",
+    "last_opened_file_path": "C:/Users/ADMIN/MyProjects/kvstore",
+    "node.js.detected.package.eslint": "true",
+    "node.js.selected.package.eslint": "(autodetect)",
+    "nodejs_package_manager_path": "npm",
+    "settings.editor.selected.configurable": "preferences.lookFeel",
     "vue.rearranger.settings.migration": "true"
   }
 }]]></component>
+  <component name="RecentsManager">
+    <key name="CopyFile.RECENT_KEYS">
+      <recent name="C:\Users\ADMIN\MyProjects\kvstore" />
+    </key>
+    <key name="MoveClassesOrPackagesDialog.RECENTS_KEY">
+      <recent name="com.zenz.kvstore.server.raft" />
+    </key>
+    <key name="CopyClassDialog.RECENTS_KEY">
+      <recent name="com.zenz.kvstore.server" />
+      <recent name="com.zenz.kvstore.server.raft" />
+    </key>
+  </component>
   <component name="RunManager" selected="JUnit.LeaderElectionTest">
+    <configuration name="DiscoveryServiceTest$GetMembersTests.getMembers_shouldHandleIOException" type="JUnit" factoryName="JUnit" temporary="true" nameIsGenerated="true">
+      <module name="server" />
+      <extension name="coverage">
+        <pattern>
+          <option name="PATTERN" value="com.zenz.kvstore.server.raft.*" />
+          <option name="ENABLED" value="true" />
+        </pattern>
+      </extension>
+      <option name="PACKAGE_NAME" value="com.zenz.kvstore.server.raft.DiscoveryServiceTest" />
+      <option name="MAIN_CLASS_NAME" value="com.zenz.kvstore.server.raft.DiscoveryServiceTest$GetMembersTests" />
+      <option name="METHOD_NAME" value="getMembers_shouldHandleIOException" />
+      <option name="TEST_OBJECT" value="method" />
+      <dir value="$PROJECT_DIR$/server/src/test/java/com/zenz/kvstore/server/raft" />
+      <method v="2">
+        <option name="Make" enabled="true" />
+      </method>
+    </configuration>
     <configuration name="LeaderElectionTest" type="JUnit" factoryName="JUnit" temporary="true" nameIsGenerated="true">
       <module name="server" />
       <extension name="coverage">
         <pattern>
-          <option name="PATTERN" value="com.zenz.kvstore.server.*" />
+          <option name="PATTERN" value="com.zenz.kvstore.server.raft.*" />
           <option name="ENABLED" value="true" />
         </pattern>
       </extension>
-      <option name="PACKAGE_NAME" value="com.zenz.kvstore.server" />
-      <option name="MAIN_CLASS_NAME" value="com.zenz.kvstore.server.LeaderElectionTest" />
+      <option name="PACKAGE_NAME" value="com.zenz.kvstore.server.raft" />
+      <option name="MAIN_CLASS_NAME" value="com.zenz.kvstore.server.raft.LeaderElectionTest" />
       <option name="TEST_OBJECT" value="class" />
       <method v="2">
         <option name="Make" enabled="true" />
       </method>
     </configuration>
-    <configuration name="LeaderElectionTest.brokerConnectionFailure_incrementsVoteCount_duringElection" type="JUnit" factoryName="JUnit" temporary="true" nameIsGenerated="true">
+    <configuration name="LeaderElectionTest.electionCompletes_withMultipleBrokerConnectionFailures" type="JUnit" factoryName="JUnit" temporary="true" nameIsGenerated="true">
       <module name="server" />
       <extension name="coverage">
         <pattern>
-          <option name="PATTERN" value="com.zenz.kvstore.server.*" />
+          <option name="PATTERN" value="com.zenz.kvstore.server.raft.*" />
           <option name="ENABLED" value="true" />
         </pattern>
       </extension>
-      <option name="PACKAGE_NAME" value="com.zenz.kvstore.server" />
-      <option name="MAIN_CLASS_NAME" value="com.zenz.kvstore.server.LeaderElectionTest" />
-      <option name="METHOD_NAME" value="brokerConnectionFailure_incrementsVoteCount_duringElection" />
+      <option name="PACKAGE_NAME" value="com.zenz.kvstore.server.raft" />
+      <option name="MAIN_CLASS_NAME" value="com.zenz.kvstore.server.raft.LeaderElectionTest" />
+      <option name="METHOD_NAME" value="electionCompletes_withMultipleBrokerConnectionFailures" />
       <option name="TEST_OBJECT" value="method" />
+      <method v="2">
+        <option name="Make" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="LeaderElectionTest.voteResponseWithMismatchedTerm_isIgnored_duringElection" type="JUnit" factoryName="JUnit" temporary="true" nameIsGenerated="true">
+      <module name="server" />
+      <extension name="coverage">
+        <pattern>
+          <option name="PATTERN" value="com.zenz.kvstore.server.raft.*" />
+          <option name="ENABLED" value="true" />
+        </pattern>
+      </extension>
+      <option name="PACKAGE_NAME" value="com.zenz.kvstore.server.raft" />
+      <option name="MAIN_CLASS_NAME" value="com.zenz.kvstore.server.raft.LeaderElectionTest" />
+      <option name="METHOD_NAME" value="voteResponseWithMismatchedTerm_isIgnored_duringElection" />
+      <option name="TEST_OBJECT" value="method" />
+      <method v="2">
+        <option name="Make" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="raft in server" type="JUnit" factoryName="JUnit" temporary="true" nameIsGenerated="true">
+      <module name="server" />
+      <option name="TEST_OBJECT" value="directory" />
+      <dir value="$PROJECT_DIR$/server/src/test/java/com/zenz/kvstore/server/raft" />
       <method v="2">
         <option name="Make" enabled="true" />
       </method>
@@ -83,7 +226,10 @@
     <recent_temporary>
       <list>
         <item itemvalue="JUnit.LeaderElectionTest" />
-        <item itemvalue="JUnit.LeaderElectionTest.brokerConnectionFailure_incrementsVoteCount_duringElection" />
+        <item itemvalue="JUnit.LeaderElectionTest.electionCompletes_withMultipleBrokerConnectionFailures" />
+        <item itemvalue="JUnit.raft in server" />
+        <item itemvalue="JUnit.DiscoveryServiceTest$GetMembersTests.getMembers_shouldHandleIOException" />
+        <item itemvalue="JUnit.LeaderElectionTest.voteResponseWithMismatchedTerm_isIgnored_duringElection" />
       </list>
     </recent_temporary>
   </component>
@@ -110,9 +256,95 @@
       <option name="number" value="Default" />
       <option name="presentableId" value="Default" />
       <updated>1774010476851</updated>
-      <workItem from="1774010479217" duration="319000" />
+      <workItem from="1774010479217" duration="1509000" />
+      <workItem from="1774082447552" duration="18917000" />
+      <workItem from="1774170445148" duration="9291000" />
+      <workItem from="1774197145801" duration="27000" />
+      <workItem from="1774206851267" duration="2441000" />
+      <workItem from="1774254361876" duration="567000" />
+      <workItem from="1774255864972" duration="2347000" />
+      <workItem from="1774262626856" duration="879000" />
+      <workItem from="1774342692688" duration="10000" />
+      <workItem from="1774342789677" duration="808000" />
+      <workItem from="1774726608390" duration="12000" />
+      <workItem from="1774813150194" duration="598000" />
+      <workItem from="1774861471975" duration="3849000" />
+      <workItem from="1774865416340" duration="10920000" />
+      <workItem from="1774947162648" duration="2748000" />
+      <workItem from="1775027439935" duration="251000" />
+      <workItem from="1775035621087" duration="1104000" />
+      <workItem from="1775036903045" duration="10457000" />
+      <workItem from="1775119053698" duration="264000" />
+      <workItem from="1775119488041" duration="699000" />
+      <workItem from="1775120603632" duration="1547000" />
+      <workItem from="1775122547204" duration="650000" />
+      <workItem from="1775123573915" duration="1661000" />
+      <workItem from="1775231793724" duration="3305000" />
+      <workItem from="1775239701419" duration="1298000" />
+      <workItem from="1775294213933" duration="19517000" />
+      <workItem from="1775329992710" duration="4428000" />
+      <workItem from="1775340402418" duration="1228000" />
+      <workItem from="1775378215717" duration="6911000" />
+      <workItem from="1775397572068" duration="12654000" />
+      <workItem from="1775460581804" duration="20592000" />
     </task>
-    <option name="localTasksCounter" value="2" />
+    <task id="LOCAL-00002" summary="Handling broker disconnect during election">
+      <option name="closed" value="true" />
+      <created>1774011184264</created>
+      <option name="number" value="00002" />
+      <option name="presentableId" value="LOCAL-00002" />
+      <option name="project" value="LOCAL" />
+      <updated>1774011184265</updated>
+    </task>
+    <task id="LOCAL-00003" summary="Added broker failure tests within LeaderElectionTest">
+      <option name="closed" value="true" />
+      <created>1774011215700</created>
+      <option name="number" value="00003" />
+      <option name="presentableId" value="LOCAL-00003" />
+      <option name="project" value="LOCAL" />
+      <updated>1774011215700</updated>
+    </task>
+    <task id="LOCAL-00004" summary="Renamed NodeState to NodeRole ; Created RedirectMessage and RegisterMessage ; Created NodeConfig ; Implemented RegisterMessage on connect in RaftBrokerClient ; Created RegisterMessage handler in RaftManager and added support for new NodeConfig class ; Created RaftServer class merging RaftBrokerServerHandler and RaftCommandHandler">
+      <option name="closed" value="true" />
+      <created>1774104152135</created>
+      <option name="number" value="00004" />
+      <option name="presentableId" value="LOCAL-00004" />
+      <option name="project" value="LOCAL" />
+      <updated>1774104152135</updated>
+    </task>
+    <task id="LOCAL-00005" summary="Updated .gitignore">
+      <option name="closed" value="true" />
+      <created>1774863788011</created>
+      <option name="number" value="00005" />
+      <option name="presentableId" value="LOCAL-00005" />
+      <option name="project" value="LOCAL" />
+      <updated>1774863788011</updated>
+    </task>
+    <task id="LOCAL-00006" summary="Updated .gitignore">
+      <option name="closed" value="true" />
+      <created>1774863891928</created>
+      <option name="number" value="00006" />
+      <option name="presentableId" value="LOCAL-00006" />
+      <option name="project" value="LOCAL" />
+      <updated>1774863891928</updated>
+    </task>
+    <task id="LOCAL-00007" summary="Renamed raft.handlers and raft.messages packages to raft.handler and raft.message ; Renamed BaseMessage to Message">
+      <option name="closed" value="true" />
+      <created>1775301857429</created>
+      <option name="number" value="00007" />
+      <option name="presentableId" value="LOCAL-00007" />
+      <option name="project" value="LOCAL" />
+      <updated>1775301857429</updated>
+    </task>
+    <task id="LOCAL-00008" summary="Created BrokerClient">
+      <option name="closed" value="true" />
+      <created>1775302796783</created>
+      <option name="number" value="00008" />
+      <option name="presentableId" value="LOCAL-00008" />
+      <option name="project" value="LOCAL" />
+      <updated>1775302796783</updated>
+    </task>
+    <option name="localTasksCounter" value="9" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -120,6 +352,12 @@
   </component>
   <component name="VcsManagerConfiguration">
     <MESSAGE value="saving - Handling broker disconnect during election" />
-    <option name="LAST_COMMIT_MESSAGE" value="saving - Handling broker disconnect during election" />
+    <MESSAGE value="Handling broker disconnect during election" />
+    <MESSAGE value="Added broker failure tests within LeaderElectionTest" />
+    <MESSAGE value="Renamed NodeState to NodeRole ; Created RedirectMessage and RegisterMessage ; Created NodeConfig ; Implemented RegisterMessage on connect in RaftBrokerClient ; Created RegisterMessage handler in RaftManager and added support for new NodeConfig class ; Created RaftServer class merging RaftBrokerServerHandler and RaftCommandHandler" />
+    <MESSAGE value="Updated .gitignore" />
+    <MESSAGE value="Renamed raft.handlers and raft.messages packages to raft.handler and raft.message ; Renamed BaseMessage to Message" />
+    <MESSAGE value="Created BrokerClient" />
+    <option name="LAST_COMMIT_MESSAGE" value="Created BrokerClient" />
   </component>
 </project>

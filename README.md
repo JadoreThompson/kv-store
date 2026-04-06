@@ -10,10 +10,10 @@ for JSON deserialization.
 
 The KVStore supports two deployment modes:
 
-| Mode             | Command                                | Description                                          |
-|------------------|----------------------------------------|------------------------------------------------------|
-| **Single-Node**  | `run -h <host> -p <port>`              | Standalone server with direct command execution      |
-| **Raft Cluster** | `raft -f <config-file> --id <node-id>` | Distributed cluster with consensus-based replication |
+| Mode             | Command                                   | Description                                          |
+|------------------|-------------------------------------------|------------------------------------------------------|
+| **Single-Node**  | `run -h <host> -p <port>`                 | Standalone server with direct command execution      |
+| **Raft Cluster** | `raft -f <config-file> --id <manager-id>` | Distributed cluster with consensus-based replication |
 
 ### Supported Commands
 
@@ -91,7 +91,8 @@ ever-growing logs and reduce start-up time when the store is being restored.
 
 **Paper**: [In Search of an Understandable Consensus Algorithm](https://raft.github.io/raft.pdf)
 
-As per the official Raft paper, a node can either be a follower or leader. Leaders are in charge of replicating commands
+As per the official Raft paper, a manager can either be a follower or leader. Leaders are in charge of replicating
+commands
 to followers and returning responses to clients. Followers are responsible for receiving these requests to replicate
 state and applying them, along with handling the election process when the leader goes down.
 
@@ -107,8 +108,8 @@ state and applying them, along with handling the election process when the leade
 
 The `RaftManager` is the coordinator. It maintains:
 
-- Clients connected to brokers and/or controller depending on the node's role
-- The node's server (instantiated once, handler replaced on role switch)
+- Clients connected to brokers and/or controller depending on the manager's role
+- The manager's server (instantiated once, handler replaced on role switch)
 
 Each handler provides common methods for handling events within an NIO server.
 
@@ -183,7 +184,7 @@ Each handler provides common methods for handling events within an NIO server.
 
 The KVStore is a distributed key-value store supporting two deployment modes:
 
-- **Single-node mode**: Standalone server with direct command execution
+- **Single-manager mode**: Standalone server with direct command execution
 - **Raft mode**: Distributed cluster with consensus-based replication
 
 ---
@@ -367,7 +368,7 @@ classDiagram
     %% Raft Components
     class RaftManager {
         -KVStore store
-        -RaftNode node
+        -RaftNode manager
         -ArrayList~RaftNode~ brokerConfigs
         -NodeState state
         -RaftControllerClient controllerClient
