@@ -10,14 +10,12 @@ import org.junit.jupiter.api.*;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
-import java.nio.ByteBuffer;
 import java.nio.channels.SocketChannel;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -72,49 +70,6 @@ class RaftControllerTest {
         stopManagerNew();
     }
 
-    private SocketChannel connectClient(InetSocketAddress address) throws IOException {
-        System.out.println(1);
-        SocketChannel client = SocketChannel.open();
-        System.out.println(2);
-        client.configureBlocking(true);
-        client.connect(address);
-        System.out.println(3);
-        return client;
-    }
-
-    private void sendMessage(SocketChannel channel, Message message) throws IOException {
-        byte[] serialized = message.serialize();
-        ByteBuffer buffer = ByteBuffer.wrap(serialized);
-//        buffer.flip();
-        while (buffer.hasRemaining()) {
-            channel.write(buffer);
-        }
-    }
-
-    private Message receiveMessage(SocketChannel channel) throws IOException {
-        ByteBuffer buffer = ByteBuffer.allocate(8192);
-        System.out.println("Waiting for message...");
-        int bytesRead = channel.read(buffer);
-        System.out.println("Read " + bytesRead + " bytes");
-        buffer.flip();
-        return Message.deserialize(buffer);
-    }
-
-    private void startManager() {
-        NodeConfig nodeConfig = toNodeConfig(nodes.get(0));
-        manager = new RaftManager(nodeConfig, kvStore);
-        managerThread = new Thread(() -> {
-            try {
-                List<NodeConfig> nodeConfigs = nodes.stream().map(this::toNodeConfig).toList();
-                manager.start(nodeConfigs);
-            } catch (Exception e) {
-                System.out.println("An error occurred within the sever thread:");
-                e.printStackTrace();
-            }
-        });
-        managerThread.start();
-    }
-
     private void startManagerNew() {
         this.managerNew = new Manager(kvStore, nodeConfig, Collections.emptyList());
         managerThread = new Thread(() -> {
@@ -126,16 +81,6 @@ class RaftControllerTest {
             }
         });
         managerThread.start();
-    }
-
-    private NodeConfig toNodeConfig(RaftNodeConfig node) {
-        return new NodeConfig(String.valueOf(node.id()), node.nodeAddress(), null);
-    }
-
-    private void stopManager() throws InterruptedException, IOException {
-        manager.stop();
-        managerThread.interrupt();
-        managerThread.join(5000);
     }
 
     private void stopManagerNew() throws InterruptedException, IOException {
@@ -159,12 +104,12 @@ class RaftControllerTest {
 
         System.out.println(1);
         this.managerNew.setRole(NodeRole.CONTROLLER);
-        SocketChannel client = connectClient(this.nodeConfig.serverAddress());
+        SocketChannel client = Utils.connectClient(this.nodeConfig.serverAddress());
         System.out.println(2);
-        sendMessage(client, new RequestEntry(0, 0));
+        Utils.sendMessage(client, new RequestEntry(0, 0));
         System.out.println(3);
 
-        Message resp = receiveMessage(client);
+        Message resp = Utils.receiveMessage(client);
         System.out.println(4);
         assertTrue(resp instanceof AppendEntry, "Expected log response");
         AppendEntry response = (AppendEntry) resp;
@@ -193,11 +138,11 @@ class RaftControllerTest {
         startManagerNew();
         Thread.sleep(500);
 
-        SocketChannel client = connectClient(this.nodeConfig.serverAddress());
+        SocketChannel client = Utils.connectClient(this.nodeConfig.serverAddress());
         this.managerNew.setRole(NodeRole.CONTROLLER);
-        sendMessage(client, new RequestEntry(0, 0));
+        Utils.sendMessage(client, new RequestEntry(0, 0));
 
-        Message resp = receiveMessage(client);
+        Message resp = Utils.receiveMessage(client);
         assertTrue(resp instanceof InstallSnapshot, "Expected append snapshot message");
         InstallSnapshot response = (InstallSnapshot) resp;
         assertNotNull(response);
@@ -223,11 +168,11 @@ class RaftControllerTest {
         startManagerNew();
         Thread.sleep(500);
 
-        SocketChannel client = connectClient(this.nodeConfig.serverAddress());
+        SocketChannel client = Utils.connectClient(this.nodeConfig.serverAddress());
         this.managerNew.setRole(NodeRole.CONTROLLER);
-        sendMessage(client, new RequestEntry(0, 0));
+        Utils.sendMessage(client, new RequestEntry(0, 0));
 
-        Message resp = receiveMessage(client);
+        Message resp = Utils.receiveMessage(client);
         assertTrue(resp instanceof AppendEntry, "Expected append entry");
 
         AppendEntry response = (AppendEntry) resp;
@@ -257,11 +202,11 @@ class RaftControllerTest {
         startManagerNew();
         Thread.sleep(500);
 
-        SocketChannel client = connectClient(this.nodeConfig.serverAddress());
+        SocketChannel client = Utils.connectClient(this.nodeConfig.serverAddress());
         this.managerNew.setRole(NodeRole.CONTROLLER);
-        sendMessage(client, new RequestEntry(3, 2));
+        Utils.sendMessage(client, new RequestEntry(3, 2));
 
-        Message resp = receiveMessage(client);
+        Message resp = Utils.receiveMessage(client);
         assertTrue(resp instanceof AppendEntry, "Expected append entry");
 
         client.close();
@@ -281,12 +226,12 @@ class RaftControllerTest {
         startManagerNew();
         Thread.sleep(500);
 
-        SocketChannel client = connectClient(this.nodeConfig.serverAddress());
+        SocketChannel client = Utils.connectClient(this.nodeConfig.serverAddress());
         // Request with same prevLogId but different term
         this.managerNew.setRole(NodeRole.CONTROLLER);
-        sendMessage(client, new RequestEntry(5, 2));
+        Utils.sendMessage(client, new RequestEntry(5, 2));
 
-//        Message resp = receiveMessage(client);
+//        Message resp = Utils.receiveMessage(client);
 //        assertTrue(resp instanceof ErrorMessage, "Expected error response. Received " + resp);
         Thread.sleep(500);
         assertEquals(
@@ -322,12 +267,12 @@ class RaftControllerTest {
         startManagerNew();
         Thread.sleep(500);
 
-        SocketChannel client = connectClient(this.nodeConfig.serverAddress());
+        SocketChannel client = Utils.connectClient(this.nodeConfig.serverAddress());
         // Request with prevLogId 0 (fresh follower) - should return snapshot
         this.managerNew.setRole(NodeRole.CONTROLLER);
-        sendMessage(client, new RequestEntry(0, 0));
+        Utils.sendMessage(client, new RequestEntry(0, 0));
 
-        Message resp = receiveMessage(client);
+        Message resp = Utils.receiveMessage(client);
         assertInstanceOf(InstallSnapshot.class, resp, "Expected log response");
         InstallSnapshot response = (InstallSnapshot) resp;
 
@@ -351,12 +296,12 @@ class RaftControllerTest {
         startManagerNew();
         Thread.sleep(500);
 
-        SocketChannel client = connectClient(this.nodeConfig.serverAddress());
+        SocketChannel client = Utils.connectClient(this.nodeConfig.serverAddress());
         // Request with prevLogId 5 - follower has processed log 5, needs log 6
         this.managerNew.setRole(NodeRole.CONTROLLER);
-        sendMessage(client, new RequestEntry(5, 2));
+        Utils.sendMessage(client, new RequestEntry(5, 2));
 
-        Message resp = receiveMessage(client);
+        Message resp = Utils.receiveMessage(client);
         assertInstanceOf(AppendEntry.class, resp, "Expected append entry. Received " + resp.getClass().getName());
         AppendEntry response = (AppendEntry) resp;
         assertNotNull(response);
@@ -379,12 +324,12 @@ class RaftControllerTest {
         startManagerNew();
         Thread.sleep(500);
 
-        SocketChannel client = connectClient(this.nodeConfig.serverAddress());
+        SocketChannel client = Utils.connectClient(this.nodeConfig.serverAddress());
         this.managerNew.setRole(NodeRole.CONTROLLER);
-        sendMessage(client, new RequestEntry(0, 2));
+        Utils.sendMessage(client, new RequestEntry(0, 2));
 
         // Log file is empty and the store is loaded from a snapshot
-        Message resp = receiveMessage(client);
+        Message resp = Utils.receiveMessage(client);
         assertTrue(resp instanceof InstallSnapshot, "Expected append snapshot. Received " + resp);
 
         client.close();
@@ -403,18 +348,18 @@ class RaftControllerTest {
         startManagerNew();
         Thread.sleep(500);
 
-        SocketChannel client = connectClient(this.nodeConfig.serverAddress());
+        SocketChannel client = Utils.connectClient(this.nodeConfig.serverAddress());
         this.managerNew.setRole(NodeRole.CONTROLLER);
-        sendMessage(client, new RequestEntry(0, 0));
+        Utils.sendMessage(client, new RequestEntry(0, 0));
 
-        Message resp = receiveMessage(client);
+        Message resp = Utils.receiveMessage(client);
         assertTrue(resp instanceof AppendEntry, "Expected log response");
         AppendEntry response = (AppendEntry) resp;
         assertNotNull(response);
         assertEquals(1, response.id());
 
-        sendMessage(client, new RequestEntry(1, 1));
-        resp = receiveMessage(client);
+        Utils.sendMessage(client, new RequestEntry(1, 1));
+        resp = Utils.receiveMessage(client);
         assertTrue(resp instanceof AppendEntry, "Expected log response");
         response = (AppendEntry) resp;
         assertNotNull(response);
@@ -440,11 +385,11 @@ class RaftControllerTest {
         startManagerNew();
         Thread.sleep(500);
 
-        SocketChannel client = connectClient(this.nodeConfig.serverAddress());
+        SocketChannel client = Utils.connectClient(this.nodeConfig.serverAddress());
         this.managerNew.setRole(NodeRole.CONTROLLER);
-        sendMessage(client, new RequestEntry(0, 0));
+        Utils.sendMessage(client, new RequestEntry(0, 0));
 
-        Message resp = receiveMessage(client);
+        Message resp = Utils.receiveMessage(client);
         assertTrue(resp instanceof InstallSnapshot, "Expected append snapshot");
         InstallSnapshot response = (InstallSnapshot) resp;
         assertNotNull(response.snapshot());
@@ -474,13 +419,13 @@ class RaftControllerTest {
         startManagerNew();
         Thread.sleep(500);
 
-        SocketChannel client = connectClient(this.nodeConfig.serverAddress());
+        SocketChannel client = Utils.connectClient(this.nodeConfig.serverAddress());
         this.managerNew.setRole(NodeRole.CONTROLLER);
 
-        sendMessage(client, new RequestEntry(0, 0));
-
-        Message resp = receiveMessage(client);
-        assertTrue(resp instanceof InstallSnapshot, "Expected append snapshot");
+        Utils.sendMessage(client, new RequestEntry(0, 0));
+        Thread.sleep(500);
+        Message resp = Utils.receiveMessage(client);
+        assertInstanceOf(InstallSnapshot.class, resp, "Expected install snapshot");
         InstallSnapshot response = (InstallSnapshot) resp;
         assertNotNull(response.snapshot());
         assertArrayEquals(largeSnapshot, response.snapshot());
@@ -499,12 +444,12 @@ class RaftControllerTest {
         startManagerNew();
         Thread.sleep(500);
 
-        SocketChannel client = connectClient(this.nodeConfig.serverAddress());
+        SocketChannel client = Utils.connectClient(this.nodeConfig.serverAddress());
         this.managerNew.setRole(NodeRole.CONTROLLER);
-        sendMessage(client, new RequestEntry(0, 0));
+        Utils.sendMessage(client, new RequestEntry(0, 0));
 
         // Should return empty command response
-        Message resp = receiveMessage(client);
+        Message resp = Utils.receiveMessage(client);
         assertTrue(resp instanceof AppendEntry, "Expected append entry");
         AppendEntry response = (AppendEntry) resp;
         assertNotNull(response);
@@ -525,11 +470,11 @@ class RaftControllerTest {
         startManagerNew();
         Thread.sleep(500);
 
-        SocketChannel client = connectClient(this.nodeConfig.serverAddress());
+        SocketChannel client = Utils.connectClient(this.nodeConfig.serverAddress());
         this.managerNew.setRole(NodeRole.CONTROLLER);
-        sendMessage(client, new RequestEntry(0, 0));
+        Utils.sendMessage(client, new RequestEntry(0, 0));
 
-        Message resp = receiveMessage(client);
+        Message resp = Utils.receiveMessage(client);
         assertTrue(resp instanceof AppendEntry, "Expected append entry. Received " + resp);
         AppendEntry response = (AppendEntry) resp;
         assertNotNull(response);
@@ -559,13 +504,13 @@ class RaftControllerTest {
         startManagerNew();
         Thread.sleep(500);
 
-        SocketChannel client = connectClient(this.nodeConfig.serverAddress());
+        SocketChannel client = Utils.connectClient(this.nodeConfig.serverAddress());
         this.managerNew.setRole(NodeRole.CONTROLLER);
 
         // Request with term 1
-        sendMessage(client, new RequestEntry(2, 1));
+        Utils.sendMessage(client, new RequestEntry(2, 1));
 
-        Message resp = receiveMessage(client);
+        Message resp = Utils.receiveMessage(client);
         assertTrue(resp instanceof AppendEntry, "Expected append entry");
         AppendEntry response = (AppendEntry) resp;
         assertNotNull(response);
@@ -586,23 +531,23 @@ class RaftControllerTest {
         Thread.sleep(500);
 
         // Connect a follower and sync it first
-        SocketChannel client = connectClient(this.nodeConfig.serverAddress());
+        SocketChannel client = Utils.connectClient(this.nodeConfig.serverAddress());
         this.managerNew.setRole(NodeRole.CONTROLLER);
-        sendMessage(client, new RequestEntry(0, 0));
+        Utils.sendMessage(client, new RequestEntry(0, 0));
 
-        Message resp = receiveMessage(client);
+        Message resp = Utils.receiveMessage(client);
         assertTrue(resp instanceof AppendEntry, "Expected append entry after initial request");
 
         // Now send an AppendEntryResponse to update session state
-        sendMessage(client, new AppendEntryResponse(2, 1, true));
+        Utils.sendMessage(client, new AppendEntryResponse(2, 1, true));
 
         // Give the server time to process
         Thread.sleep(500);
 
         // Verify the session was updated by making a new request
         // The follower should now be at prevLogId 2, term 1
-        sendMessage(client, new RequestEntry(2, 1));
-        resp = receiveMessage(client);
+        Utils.sendMessage(client, new RequestEntry(2, 1));
+        resp = Utils.receiveMessage(client);
         assertTrue(resp instanceof AppendEntry, "Expected append entry");
         AppendEntry response = (AppendEntry) resp;
         // Follower is up to date, should get empty commands list
@@ -625,19 +570,19 @@ class RaftControllerTest {
         Thread.sleep(500);
 
         // Connect a follower
-        SocketChannel client = connectClient(this.nodeConfig.serverAddress());
+        SocketChannel client = Utils.connectClient(this.nodeConfig.serverAddress());
         this.managerNew.setRole(NodeRole.CONTROLLER);
-        sendMessage(client, new RequestEntry(0, 0));
+        Utils.sendMessage(client, new RequestEntry(0, 0));
 
-        Message resp = receiveMessage(client);
+        Message resp = Utils.receiveMessage(client);
         assertTrue(resp instanceof AppendEntry);
 
         // Now send an AppendEntryResponse with id=1 (behind current prevLogId=4)
         // This should trigger the controller to send catch-up entries
-        sendMessage(client, new AppendEntryResponse(1, 1, true));
+        Utils.sendMessage(client, new AppendEntryResponse(1, 1, true));
 
         // Receive the catch-up entries (logs 2, 3, 4)
-        resp = receiveMessage(client);
+        resp = Utils.receiveMessage(client);
         assertTrue(resp instanceof AppendEntry, "Expected catch-up append entry");
         AppendEntry response = (AppendEntry) resp;
         assertEquals(2, response.id(), "Expected catch-up to start from log 2");
@@ -659,34 +604,34 @@ class RaftControllerTest {
         Thread.sleep(500);
 
         // Connect 3 followers (majority = 2)
-        SocketChannel client1 = connectClient(this.nodeConfig.serverAddress());
-        SocketChannel client2 = connectClient(this.nodeConfig.serverAddress());
-        SocketChannel client3 = connectClient(this.nodeConfig.serverAddress());
+        SocketChannel client1 = Utils.connectClient(this.nodeConfig.serverAddress());
+        SocketChannel client2 = Utils.connectClient(this.nodeConfig.serverAddress());
+        SocketChannel client3 = Utils.connectClient(this.nodeConfig.serverAddress());
         this.managerNew.setRole(NodeRole.CONTROLLER);
 
         // Sync all followers to current state
-        sendMessage(client1, new RequestEntry(0, 0));
-        sendMessage(client2, new RequestEntry(0, 0));
-        sendMessage(client3, new RequestEntry(0, 0));
+        Utils.sendMessage(client1, new RequestEntry(0, 0));
+        Utils.sendMessage(client2, new RequestEntry(0, 0));
+        Utils.sendMessage(client3, new RequestEntry(0, 0));
 
-        receiveMessage(client1);
-        receiveMessage(client2);
-        receiveMessage(client3);
+        Utils.receiveMessage(client1);
+        Utils.receiveMessage(client2);
+        Utils.receiveMessage(client3);
 
         // Now simulate a command broadcast by having followers at prevLogId 1
         // Send responses from 2 followers (majority)
-        sendMessage(client1, new AppendEntryResponse(1, 1, true));
+        Utils.sendMessage(client1, new AppendEntryResponse(1, 1, true));
         Thread.sleep(50);
-        sendMessage(client2, new AppendEntryResponse(1, 1, true));
+        Utils.sendMessage(client2, new AppendEntryResponse(1, 1, true));
         Thread.sleep(100);
 
         // Both followers should have their sessions updated
-        sendMessage(client1, new RequestEntry(1, 1));
-        Message resp1 = receiveMessage(client1);
+        Utils.sendMessage(client1, new RequestEntry(1, 1));
+        Message resp1 = Utils.receiveMessage(client1);
         assertTrue(resp1 instanceof AppendEntry);
 
-        sendMessage(client2, new RequestEntry(1, 1));
-        Message resp2 = receiveMessage(client2);
+        Utils.sendMessage(client2, new RequestEntry(1, 1));
+        Message resp2 = Utils.receiveMessage(client2);
         assertTrue(resp2 instanceof AppendEntry);
 
         client1.close();
@@ -706,30 +651,30 @@ class RaftControllerTest {
         Thread.sleep(500);
 
         // Connect multiple followers
-        SocketChannel client1 = connectClient(this.nodeConfig.serverAddress());
-        SocketChannel client2 = connectClient(this.nodeConfig.serverAddress());
-        SocketChannel client3 = connectClient(this.nodeConfig.serverAddress());
+        SocketChannel client1 = Utils.connectClient(this.nodeConfig.serverAddress());
+        SocketChannel client2 = Utils.connectClient(this.nodeConfig.serverAddress());
+        SocketChannel client3 = Utils.connectClient(this.nodeConfig.serverAddress());
         this.managerNew.setRole(NodeRole.CONTROLLER);
 
         // Sync all followers first
-        sendMessage(client1, new RequestEntry(0, 0));
-        sendMessage(client2, new RequestEntry(0, 0));
-        sendMessage(client3, new RequestEntry(0, 0));
+        Utils.sendMessage(client1, new RequestEntry(0, 0));
+        Utils.sendMessage(client2, new RequestEntry(0, 0));
+        Utils.sendMessage(client3, new RequestEntry(0, 0));
 
-        receiveMessage(client1);
-        receiveMessage(client2);
-        receiveMessage(client3);
+        Utils.receiveMessage(client1);
+        Utils.receiveMessage(client2);
+        Utils.receiveMessage(client3);
 
         // Simulate a command being handled (this would normally set up majority tracking)
         // For this test, we verify that responses with matching ids are handled
-        sendMessage(client1, new AppendEntryResponse(1, 1, true));
+        Utils.sendMessage(client1, new AppendEntryResponse(1, 1, true));
 
         // Give server time to process
         Thread.sleep(100);
 
         // The session should be updated
-        sendMessage(client1, new RequestEntry(1, 1));
-        Message resp = receiveMessage(client1);
+        Utils.sendMessage(client1, new RequestEntry(1, 1));
+        Message resp = Utils.receiveMessage(client1);
         assertTrue(resp instanceof AppendEntry);
 
         client1.close();
@@ -751,21 +696,21 @@ class RaftControllerTest {
         Thread.sleep(500);
 
         // Connect a follower
-        SocketChannel client = connectClient(this.nodeConfig.serverAddress());
+        SocketChannel client = Utils.connectClient(this.nodeConfig.serverAddress());
         this.managerNew.setRole(NodeRole.CONTROLLER);
 
         // Initial sync - follower gets all logs
-        sendMessage(client, new RequestEntry(0, 0));
-        Message resp = receiveMessage(client);
+        Utils.sendMessage(client, new RequestEntry(0, 0));
+        Message resp = Utils.receiveMessage(client);
         assertTrue(resp instanceof AppendEntry);
         AppendEntry initialResponse = (AppendEntry) resp;
         assertEquals(1, initialResponse.id());
 
         // Follower responds that it only applied up to log 2 (behind)
-        sendMessage(client, new AppendEntryResponse(2, 1, true));
+        Utils.sendMessage(client, new AppendEntryResponse(2, 1, true));
 
         // Controller should send catch-up entries (logs 3, 4, 5)
-        resp = receiveMessage(client);
+        resp = Utils.receiveMessage(client);
         assertTrue(resp instanceof AppendEntry, "Expected catch-up entries");
         AppendEntry catchUpResponse = (AppendEntry) resp;
         assertEquals(3, catchUpResponse.id(), "Catch-up should start from log 3");
@@ -787,41 +732,41 @@ class RaftControllerTest {
         Thread.sleep(500);
 
         // Connect 3 followers
-        SocketChannel client1 = connectClient(this.nodeConfig.serverAddress());
-        SocketChannel client2 = connectClient(this.nodeConfig.serverAddress());
-        SocketChannel client3 = connectClient(this.nodeConfig.serverAddress());
+        SocketChannel client1 = Utils.connectClient(this.nodeConfig.serverAddress());
+        SocketChannel client2 = Utils.connectClient(this.nodeConfig.serverAddress());
+        SocketChannel client3 = Utils.connectClient(this.nodeConfig.serverAddress());
         this.managerNew.setRole(NodeRole.CONTROLLER);
 
         // Sync all followers
-        sendMessage(client1, new RequestEntry(0, 0));
-        sendMessage(client2, new RequestEntry(0, 0));
-        sendMessage(client3, new RequestEntry(0, 0));
+        Utils.sendMessage(client1, new RequestEntry(0, 0));
+        Utils.sendMessage(client2, new RequestEntry(0, 0));
+        Utils.sendMessage(client3, new RequestEntry(0, 0));
 
-        receiveMessage(client1);
-        receiveMessage(client2);
-        receiveMessage(client3);
+        Utils.receiveMessage(client1);
+        Utils.receiveMessage(client2);
+        Utils.receiveMessage(client3);
 
         // Follower 1 responds with current prevLogId (up to date)
-        sendMessage(client1, new AppendEntryResponse(3, 1, true));
+        Utils.sendMessage(client1, new AppendEntryResponse(3, 1, true));
         Thread.sleep(50);
 
         // Follower 2 responds with older prevLogId (behind)
-        sendMessage(client2, new AppendEntryResponse(1, 1, true));
+        Utils.sendMessage(client2, new AppendEntryResponse(1, 1, true));
         Thread.sleep(50);
 
         // Follower 2 should receive catch-up entries
-        Message resp2 = receiveMessage(client2);
+        Message resp2 = Utils.receiveMessage(client2);
         assertTrue(resp2 instanceof AppendEntry, "Follower 2 should get catch-up");
         AppendEntry catchUp = (AppendEntry) resp2;
         assertEquals(2, catchUp.id(), "Catch-up should start from log 2");
 
         // Follower 3 responds with current prevLogId
-        sendMessage(client3, new AppendEntryResponse(3, 1, true));
+        Utils.sendMessage(client3, new AppendEntryResponse(3, 1, true));
         Thread.sleep(50);
 
         // Verify all sessions are properly tracked
-        sendMessage(client1, new RequestEntry(3, 1));
-        Message resp1 = receiveMessage(client1);
+        Utils.sendMessage(client1, new RequestEntry(3, 1));
+        Message resp1 = Utils.receiveMessage(client1);
         assertTrue(resp1 instanceof AppendEntry);
 
         client1.close();

@@ -89,12 +89,6 @@ public class Manager {
         this.controllerConfig = findController(this.nodeConfigs);
         log(debugPrefix + "Controller config: " + this.controllerConfig);
         if (this.controllerConfig != null) {
-            for (BrokerClient brokerClient : this.brokerClients) {
-                if (brokerClient.getRemoteAddress().equals(this.controllerConfig.serverAddress())) {
-                    brokerClient.stop();
-                }
-            }
-
             this.controllerClient = new ControllerClient(this.controllerConfig.serverAddress(), this);
             this.executorService.submit(() -> Utils.checkedRunnableWrapper(this.controllerClient::start));
         }
@@ -151,7 +145,9 @@ public class Manager {
 
     private void startBrokerClient(NodeConfig nodeConfig) {
         BrokerClient brokerClient = new BrokerClient(nodeConfig.serverAddress(), this);
-        this.brokerClients.add(brokerClient);
+        synchronized (this.brokerClients) {
+            this.brokerClients.add(brokerClient);
+        }
         this.executorService.submit(() -> Utils.checkedRunnableWrapper(brokerClient::start));
     }
 
@@ -213,13 +209,15 @@ public class Manager {
      */
     public void startElection() {
         final String debugPrefix = this.DEBUG_PREFIX + "[startElection] ";
-        log(debugPrefix + "Starting election...");
-        int brokerCount = 1 + (int) this.brokerClients
-                .stream()
-                .filter((brokerClient -> brokerClient.getStatus() == ClientStatus.CONNECTED))
-                .count();
+        int brokerCount = 1;
+        synchronized (this.brokerClients) {
+            brokerCount += (int) this.brokerClients
+                    .stream()
+                    .filter((brokerClient -> brokerClient.getStatus() == ClientStatus.CONNECTED))
+                    .count();
+        }
 
-        log(debugPrefix + "Broker count: " + brokerCount);
+        log(debugPrefix + "Cluster size: " + brokerCount + ", broker count: " + (brokerCount - 1));
         final int majority = brokerCount / 2 + 1;
 
         synchronized (this.currentTermLock) {
@@ -298,7 +296,9 @@ public class Manager {
             // Incrementing the voteCount to emulate a re-calculation of the majority
             handleVoteResponse(new RequestVoteResponse(true, this.election.term));
         }
-        this.brokerClients.remove(brokerClient);
+        synchronized (this.brokerClients) {
+            this.brokerClients.remove(brokerClient);
+        }
         this.nodeConfigs.removeIf(config -> config.serverAddress().equals(brokerClient.getRemoteAddress()));
     }
 

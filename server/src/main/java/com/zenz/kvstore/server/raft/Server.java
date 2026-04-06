@@ -222,7 +222,6 @@ public class Server {
         ByteBuffer buffer = queue.peek();
         while (buffer != null) {
             final int bytesWritten = client.write(buffer);
-
             if (bytesWritten == 0) {
                 break;  // Send buffer full
             }
@@ -362,7 +361,6 @@ public class Server {
                 String fname = loadSnapshotBytesResult.getValue();
 
                 long[] details = extractLogIdAndTerm(fname);
-
                 return ByteBuffer.wrap(new InstallSnapshot(
                         snapshotBytes, details[0], details[1]
                 ).serialize());
@@ -373,7 +371,6 @@ public class Server {
                 List<RaftLogHandler.Log> commands = new ArrayList<>();
                 long firstLogId = logs.getFirst().id();
                 long logTerm = logs.getFirst().term();
-
 
                 for (RaftLogHandler.Log log : logs) {
                     commands.add(log);

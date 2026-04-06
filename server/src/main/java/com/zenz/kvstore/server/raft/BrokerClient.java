@@ -51,7 +51,6 @@ public class BrokerClient {
 
         while (this.isRunning) {
             final int readyCount = selector.select(100);
-
             // Handling roles
             final NodeRole role = manager.getRole();
             if (role == NodeRole.CANDIDATE) {

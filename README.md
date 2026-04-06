@@ -1000,3 +1000,8 @@ efficiently.
 - **BROKER**: Follower, connects to leader, applies replicated commands
 - **CONTROLLER**: Leader, accepts client commands, coordinates replication
 - **CANDIDATE**: Transitional state during leader election
+
+# Notes
+
+- Etcd, MongoDB and Kafka are a couple examples of real world applications using the Raft algorithm to handle
+  log replication and automatic failover.
