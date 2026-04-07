@@ -22,7 +22,7 @@ public class KVMap {
     public KVMap(float loadFactor, int rehashBuckets) {
         this.loadFactor = loadFactor;
         this.rehashBuckets = rehashBuckets;
-        ht1 = new KVArray();
+        this.ht1 = new KVArray();
     }
 
     public void put(String key, byte[] value) {
@@ -32,10 +32,10 @@ public class KVMap {
             rehash();
 
             // Inserting into ht1
-            int idx = bucketIndex(hashCode, ht1.length());
-            NodeList nl = ht1.get(idx);
+            int idx = bucketIndex(hashCode, this.ht1.length());
+            NodeList nl = this.ht1.get(idx);
             if (nl != null) {
-                Node node = findNode(key, nl);
+                Node node = this.findNode(key, nl);
                 if (node != null) {
                     node.value = value;
                 } else {
@@ -45,14 +45,14 @@ public class KVMap {
             }
 
             // Inserting into ht2
-            idx = bucketIndex(hashCode, ht2.length());
-            nl = ht2.get(idx);
+            idx = bucketIndex(hashCode, this.ht2.length());
+            nl = this.ht2.get(idx);
             if (nl == null) {
-                nl = new NodeList(ht2);
-                ht2.set(idx, nl);
+                nl = new NodeList(this.ht2);
+                this.ht2.set(idx, nl);
             }
 
-            Node node = findNode(key, nl);
+            Node node = this.findNode(key, nl);
             if (node != null) {
                 node.value = value;
             } else {
@@ -60,14 +60,14 @@ public class KVMap {
             }
         } else {
             // Inserting into ht1
-            int idx = bucketIndex(hashCode, ht1.length());
-            NodeList nl = ht1.get(idx);
+            int idx = bucketIndex(hashCode, this.ht1.length());
+            NodeList nl = this.ht1.get(idx);
             if (nl == null) {
-                nl = new NodeList(ht1);
-                ht1.set(idx, nl);
+                nl = new NodeList(this.ht1);
+                this.ht1.set(idx, nl);
             }
 
-            Node node = findNode(key, nl);
+            Node node = this.findNode(key, nl);
             if (node != null) {
                 node.value = value;
             } else {
@@ -83,19 +83,19 @@ public class KVMap {
             rehash();
 
             // Checking ht1
-            int idx = bucketIndex(hashCode, ht1.length());
-            NodeList nl = ht1.get(idx);
-            if (nl != null) return findNode(key, nl);
+            int idx = bucketIndex(hashCode, this.ht1.length());
+            NodeList nl = this.ht1.get(idx);
+            if (nl != null) return this.findNode(key, nl);
 
             // Checking ht2
-            idx = bucketIndex(hashCode, ht2.length());
-            nl = ht2.get(idx);
-            return nl == null ? null : findNode(key, nl);
+            idx = bucketIndex(hashCode, this.ht2.length());
+            nl = this.ht2.get(idx);
+            return nl == null ? null : this.findNode(key, nl);
         }
 
-        int idx = bucketIndex(hashCode, ht1.length());
-        NodeList nl = ht1.get(idx);
-        return nl == null ? null : findNode(key, nl);
+        int idx = bucketIndex(hashCode, this.ht1.length());
+        NodeList nl = this.ht1.get(idx);
+        return nl == null ? null : this.findNode(key, nl);
     }
 
     public boolean remove(String key) {
@@ -105,32 +105,32 @@ public class KVMap {
             rehash();
 
             // Checking ht1
-            int idx = bucketIndex(hashCode, ht1.length());
-            NodeList nl = ht1.get(idx);
+            int idx = bucketIndex(hashCode, this.ht1.length());
+            NodeList nl = this.ht1.get(idx);
             if (nl != null) {
-                Node node = findNode(key, nl);
+                Node node = this.findNode(key, nl);
                 if (node == null) return false;
                 nl.remove(node);
                 return true;
             }
 
             // Checking ht2
-            idx = bucketIndex(hashCode, ht2.length());
-            nl = ht2.get(idx);
+            idx = bucketIndex(hashCode, this.ht2.length());
+            nl = this.ht2.get(idx);
             if (nl == null) return false;
 
-            Node node = findNode(key, nl);
+            Node node = this.findNode(key, nl);
             if (node == null) return false;
             nl.remove(node);
             return true;
         }
 
         // Checking ht1
-        int idx = bucketIndex(hashCode, ht1.length());
-        NodeList nl = ht1.get(idx);
+        int idx = bucketIndex(hashCode, this.ht1.length());
+        NodeList nl = this.ht1.get(idx);
         if (nl == null) return false;
 
-        Node node = findNode(key, nl);
+        Node node = this.findNode(key, nl);
         if (node == null) return false;
         nl.remove(node);
         return true;
@@ -151,19 +151,19 @@ public class KVMap {
     }
 
     public boolean isRehashing() {
-        if (rehashIdx >= ht1.length()) {
-            ht1 = ht2;
-            ht2 = null;
-            rehashIdx = -1;
+        if (this.rehashIdx >= this.ht1.length()) {
+            this.ht1 = this.ht2;
+            this.ht2 = null;
+            this.rehashIdx = -1;
             return false;
         }
 
-        if (rehashIdx >= 0) return true;
+        if (this.rehashIdx >= 0) return true;
 
-        final int capacity = ht1.length();
-        if (ht1.size() >= (int) (capacity * loadFactor)) {
-            ht2 = new KVArray(capacity * 2);
-            rehashIdx = 0;
+        final int capacity = this.ht1.length();
+        if (this.ht1.size() >= (int) (capacity * this.loadFactor)) {
+            this.ht2 = new KVArray(capacity * 2);
+            this.rehashIdx = 0;
             return true;
         }
 
@@ -171,18 +171,18 @@ public class KVMap {
     }
 
     public void rehash() {
-        for (int i = 0; i < Math.min(ht1.length(), rehashBuckets); i++) {
-            NodeList nodeList = ht1.get(rehashIdx);
+        for (int i = 0; i < Math.min(this.ht1.length(), this.rehashBuckets); i++) {
+            NodeList nodeList = this.ht1.get(this.rehashIdx);
 
             if (nodeList != null) {
                 String key = nodeList.head.key;
-                int bucketIndex = bucketIndex(key.hashCode(), ht2.length());
-                NodeList nl = ht2.get(bucketIndex);
+                int bucketIndex = bucketIndex(key.hashCode(), this.ht2.length());
+                NodeList nl = this.ht2.get(bucketIndex);
                 if (nl != null) nl.merge(nodeList);
-                else ht2.set(bucketIndex, nodeList);
+                else this.ht2.set(bucketIndex, nodeList);
             }
 
-            rehashIdx += 1;
+            this.rehashIdx += 1;
         }
     }
 
@@ -195,23 +195,23 @@ public class KVMap {
 
 
     public KVArray getHt1() {
-        return ht1;
+        return this.ht1;
     }
 
     public KVArray getHt2() {
-        return ht2;
+        return this.ht2;
     }
 
     public int capacity() {
-        return isRehashing() ? ht2.length() : ht1.length();
+        return isRehashing() ? this.ht2.length() : this.ht1.length();
     }
 
     public float loadFactor() {
-        return loadFactor;
+        return this.loadFactor;
     }
 
     public int size() {
-        return isRehashing() ? ht2.size() + ht1.size() : ht1.size();
+        return isRehashing() ? this.ht2.size() + this.ht1.size() : this.ht1.size();
     }
 
     public static class Node {
@@ -226,23 +226,23 @@ public class KVMap {
         }
 
         public String key() {
-            return key;
+            return this.key;
         }
 
         public byte[] value() {
-            return value;
+            return this.value;
         }
 
         @Override
         public int hashCode() {
-            return Objects.hash(key);
+            return Objects.hash(this.key);
         }
 
         @Override
         public boolean equals(Object obj) {
             if (this == obj) return true;
             if (!(obj instanceof KVMap.Node other)) return false;
-            return Objects.equals(key, other.key);
+            return Objects.equals(this.key, other.key);
         }
     }
 
@@ -262,17 +262,17 @@ public class KVMap {
          * @param node
          */
         public void add(Node node) {
-            if (head == null) {
-                head = node;
-                tail = node;
+            if (this.head == null) {
+                this.head = node;
+                this.tail = node;
             } else {
-                tail.next = node;
-                node.prev = tail;
-                tail = node;
+                this.tail.next = node;
+                node.prev = this.tail;
+                this.tail = node;
             }
 
-            ++size;
-            ++array.size;
+            ++this.size;
+            ++this.array.size;
         }
 
         /**
@@ -282,12 +282,12 @@ public class KVMap {
          * @param other
          */
         public void merge(NodeList other) {
-            other.tail.next = head;
-            head.prev = other.tail;
-            head = other.head;
+            other.tail.next = this.head;
+            this.head.prev = other.tail;
+            this.head = other.head;
 
-            array.size += other.size;
-            size += other.size;
+            this.array.size += other.size;
+            this.size += other.size;
         }
 
         public void remove(Node node) {
@@ -299,27 +299,27 @@ public class KVMap {
                 node.next.prev = node.prev;
             }
 
-            if (node == head) {
-                head = node.next;
+            if (node == this.head) {
+                this.head = node.next;
             }
 
-            if (node == tail) {
-                tail = node.prev;
+            if (node == this.tail) {
+                this.tail = node.prev;
             }
 
             node.prev = null;
             node.next = null;
 
-            --size;
-            --array.size;
+            --this.size;
+            --this.array.size;
         }
 
         public int size() {
-            return size;
+            return this.size;
         }
 
         public Iterator<Node> iterator() {
-            return new NodeIterator(head, this);
+            return new NodeIterator(this.head, this);
         }
     }
 
@@ -335,19 +335,19 @@ public class KVMap {
 
         @Override
         public boolean hasNext() {
-            return next != null;
+            return this.next != null;
         }
 
         @Override
         public Node next() {
-            cur = next;
-            next = cur.next;
-            return cur;
+            this.cur = this.next;
+            this.next = this.cur.next;
+            return this.cur;
         }
 
         @Override
         public void remove() {
-            nodeList.remove(cur);
+            this.nodeList.remove(this.cur);
         }
     }
 
@@ -358,7 +358,7 @@ public class KVMap {
         private final NodeList[] arr;
 
         private KVArray() {
-            this(INITIAL_CAPACITY);
+            this(KVArray.INITIAL_CAPACITY);
         }
 
         private KVArray(int initialCapacity) {
@@ -367,19 +367,19 @@ public class KVMap {
         }
 
         public NodeList get(int index) {
-            if (index < 0 || index >= arr.length) {
+            if (index < 0 || index >= this.arr.length) {
                 return null;
             }
 
-            return arr[index];
+            return this.arr[index];
         }
 
         public void set(int index, NodeList value) {
-            if (index < 0 || index >= arr.length) {
-                throw new ArrayIndexOutOfBoundsException("Index: " + index + ", Size: " + arr.length);
+            if (index < 0 || index >= this.arr.length) {
+                throw new ArrayIndexOutOfBoundsException("Index: " + index + ", Size: " + this.arr.length);
             }
 
-            arr[index] = value;
+            this.arr[index] = value;
         }
 
         @Override
@@ -388,11 +388,11 @@ public class KVMap {
         }
 
         public int size() {
-            return size;
+            return this.size;
         }
 
         public int length() {
-            return capacity;
+            return this.capacity;
         }
 
         private class NodeListIterator implements Iterator<NodeList> {
@@ -403,18 +403,18 @@ public class KVMap {
 
             @Override
             public boolean hasNext() {
-                index = nextIndex(index);
-                return index != -1;
+                this.index = nextIndex(this.index);
+                return this.index != -1;
             }
 
             @Override
             public NodeList next() {
-                if (index == -1) {
+                if (this.index == -1) {
                     throw new NoSuchElementException();
                 }
 
-                NodeList nodeList = arr[index];
-                index++;
+                NodeList nodeList = KVArray.this.arr[this.index];
+                this.index++;
                 return nodeList;
             }
 
@@ -424,8 +424,8 @@ public class KVMap {
              * Else -1 if it couldn't be found.
              */
             private int nextIndex(int start) {
-                for (int i = start; i < arr.length; i++) {
-                    if (arr[i] != null) return i;
+                for (int i = start; i < KVArray.this.arr.length; i++) {
+                    if (KVArray.this.arr[i] != null) return i;
                 }
 
                 return -1;
