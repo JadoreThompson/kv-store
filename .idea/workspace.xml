@@ -147,7 +147,7 @@
       <recent name="com.zenz.kvstore.server.raft" />
     </key>
   </component>
-  <component name="RunManager" selected="JUnit.LeaderElectionTest.electionCompletes_withMultipleBrokerConnectionFailures">
+  <component name="RunManager" selected="JUnit.RaftCommandHandlerTest">
     <configuration name="LeaderElectionTest" type="JUnit" factoryName="JUnit" temporary="true" nameIsGenerated="true">
       <module name="server" />
       <extension name="coverage">
@@ -211,7 +211,7 @@
         <option name="Make" enabled="true" />
       </method>
     </configuration>
-    <configuration name="LeaderElectionTest.testBootstrapConcludes_withFreshNodes" type="JUnit" factoryName="JUnit" temporary="true" nameIsGenerated="true">
+    <configuration name="RaftCommandHandlerTest" type="JUnit" factoryName="JUnit" temporary="true" nameIsGenerated="true">
       <module name="server" />
       <extension name="coverage">
         <pattern>
@@ -220,20 +220,19 @@
         </pattern>
       </extension>
       <option name="PACKAGE_NAME" value="com.zenz.kvstore.server.raft" />
-      <option name="MAIN_CLASS_NAME" value="com.zenz.kvstore.server.raft.LeaderElectionTest" />
-      <option name="METHOD_NAME" value="testBootstrapConcludes_withFreshNodes" />
-      <option name="TEST_OBJECT" value="method" />
+      <option name="MAIN_CLASS_NAME" value="com.zenz.kvstore.server.raft.RaftCommandHandlerTest" />
+      <option name="TEST_OBJECT" value="class" />
       <method v="2">
         <option name="Make" enabled="true" />
       </method>
     </configuration>
     <recent_temporary>
       <list>
+        <item itemvalue="JUnit.RaftCommandHandlerTest" />
         <item itemvalue="JUnit.LeaderElectionTest.electionCompletes_withMultipleBrokerConnectionFailures" />
         <item itemvalue="JUnit.LeaderElectionTest" />
         <item itemvalue="JUnit.LeaderElectionTest.electionSucceeds_despiteInitialVoteDenial" />
         <item itemvalue="JUnit.LeaderElectionTest.completeElectionCycle_fromInitiationToCompletion_with3Nodes" />
-        <item itemvalue="JUnit.LeaderElectionTest.testBootstrapConcludes_withFreshNodes" />
       </list>
     </recent_temporary>
   </component>

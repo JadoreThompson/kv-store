@@ -8,7 +8,6 @@ import com.zenz.kvstore.common.responses.ErrorResponse;
 import com.zenz.kvstore.common.responses.PutResponse;
 import com.zenz.kvstore.common.responses.RedirectResponse;
 import com.zenz.kvstore.server.KVMapSnapshotter;
-import com.zenz.kvstore.server.KVServer;
 import com.zenz.kvstore.server.KVStore;
 import com.zenz.kvstore.server.command.handler.RaftCommandHandler;
 import com.zenz.kvstore.server.logging.WALogger;
@@ -22,7 +21,6 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.io.IOException;
@@ -52,76 +50,66 @@ import static org.junit.jupiter.api.Assertions.*;
 @ExtendWith(MockitoExtension.class)
 class RaftCommandHandlerTest {
 
-    private static final String TEST_HOST = "localhost";
-    private static final int TEST_PORT = 9999;
     private static final Random random = new Random();
 
     private ExecutorService executorService;
-    private RaftManager manager;
-    private ArrayList<RaftNodeConfig> nodes;
-    private Thread managerThread;
+
     private Thread managerNewThread;
+
     private Path logsDir;
+
     private Path snapshotsDir;
-    private KVMapSnapshotter snapshotter;
-    private WALogger logger;
+
     private RaftLogHandler logHandler;
+
     private KVStore kvStore;
-    private KVServer kvServer;
+
     private RaftCommandHandler commandHandler;
+
     private NodeConfig nodeConfig;
-    private Manager managerNew;
-    @Mock
-    private SocketChannel mockSocketChannel;
+
+    private Manager manager;
 
     @BeforeEach
     void beforeEach() throws IOException, InterruptedException {
-        executorService = Executors.newCachedThreadPool();
-        logsDir = Files.createTempDirectory("logs-");
-        snapshotsDir = Files.createTempDirectory("snapshots-");
+        this.executorService = Executors.newCachedThreadPool();
+        this.logsDir = Files.createTempDirectory("logs-");
+        this.snapshotsDir = Files.createTempDirectory("snapshots-");
 
-        snapshotter = new KVMapSnapshotter(snapshotsDir);
-        logger = new WALogger(logsDir.resolve("0.log"));
-        logHandler = new RaftLogHandler(logger);
-        kvStore = new KVStore(new KVStore.Builder()
+        final KVMapSnapshotter snapshotter = new KVMapSnapshotter(snapshotsDir);
+        final WALogger logger = new WALogger(logsDir.resolve("0.log"));
+        this.logHandler = new RaftLogHandler(logger);
+        this.kvStore = new KVStore(new KVStore.Builder()
                 .setLogHandler(logHandler)
                 .setSnapshotter(snapshotter)
         );
 
-        nodes = new ArrayList<>();
-        nodes.add(new RaftNodeConfig(0, new InetSocketAddress(TEST_HOST, TEST_PORT), null, NodeRole.CONTROLLER));
-        nodeConfig = new NodeConfig(
-                "broker",
-                new InetSocketAddress(TEST_HOST, random.nextInt(1000, 9000)),
+        this.nodeConfig = new NodeConfig(
+                "origin",
+                new InetSocketAddress("localhost", random.nextInt(1000, 9000)),
                 null);
-
-//        startManager();
-//        startManagerNew();
         Thread.sleep(500);
-//        commandHandler = new RaftCommandHandler(kvStore, manager);
-        commandHandler = new RaftCommandHandler(kvStore, this.managerNew);
-//        kvServer = new KVServer(TEST_HOST, TEST_PORT, commandHandler);
-        executorService.submit(() -> com.zenz.kvstore.common.utils.Utils.checkedRunnableWrapper(kvServer::start));
+        this.commandHandler = new RaftCommandHandler(kvStore, this.manager);
     }
 
     @AfterEach
     void afterEach() throws IOException, InterruptedException {
         logsDir.toFile().delete();
         snapshotsDir.toFile().delete();
-//        stopManager();
-        stopManagerNew();
+        stopManager();
     }
 
-    private void startManagerNew() {
-        this.managerNew = new Manager(kvStore, nodeConfig, Collections.emptyList());
-        this.managerNewThread = new Thread(() -> com.zenz.kvstore.common.utils.Utils.checkedRunnableWrapper(this.managerNew::start));
+    private void startManager() {
+        this.manager = new Manager(kvStore, nodeConfig, Collections.emptyList());
+        this.managerNewThread = new Thread(
+                () -> com.zenz.kvstore.common.utils.Utils.checkedRunnableWrapper(this.manager::start));
         this.managerNewThread.start();
-        this.managerNew.setRole(NodeRole.CONTROLLER);
+        this.manager.setRole(NodeRole.CONTROLLER);
     }
 
-    private void stopManagerNew() throws InterruptedException, IOException {
-        if (this.managerNew != null) {
-            this.managerNew.stop();
+    private void stopManager() throws InterruptedException, IOException {
+        if (this.manager != null) {
+            this.manager.stop();
         }
 
         if (this.managerNewThread != null) {
@@ -137,7 +125,7 @@ class RaftCommandHandlerTest {
     private void syncFollower(SocketChannel client) throws IOException {
         Utils.sendMessage(client, new RequestEntry(0, 0));
         Message response = Utils.receiveMessage(client);
-        assertTrue(response instanceof AppendEntry, "Expected AppendEntry during sync");
+        assertInstanceOf(AppendEntry.class, response, "Expected AppendEntry during sync");
     }
 
     /**
@@ -152,11 +140,10 @@ class RaftCommandHandlerTest {
 
         try {
             logHandler.setTerm(1);
-
-            // Restart to reload logs
-            startManagerNew();
-            this.commandHandler = new RaftCommandHandler(this.kvStore, this.managerNew);
+            startManager();
+            this.commandHandler = new RaftCommandHandler(this.kvStore, this.manager);
             Thread.sleep(500);
+
             // Connect 3 followers (majority = 2)
             SocketChannel client1 = Utils.connectClient(nodeConfig.serverAddress());
             SocketChannel client2 = Utils.connectClient(this.nodeConfig.serverAddress());
@@ -172,11 +159,7 @@ class RaftCommandHandlerTest {
 
             // Create a command to handle
             final PutCommand command = new PutCommand("testKey", "testValue".getBytes(StandardCharsets.UTF_8));
-
-            // Handle command in a separate thread
-            Future<ByteBuffer> fut = executorService.submit(() -> this.commandHandler.handleCommand(command));
-
-            // Wait for AppendEntry to be sent to followers
+            Future<ByteBuffer> fut = this.executorService.submit(() -> this.commandHandler.handleCommand(command));
             Thread.sleep(500);
 
             // Simulate fast responses from 2 followers (majority)
@@ -202,10 +185,8 @@ class RaftCommandHandlerTest {
     void handleCommand_slowNodes_majorityReachedAfterDelay() throws Exception {
         logHandler.setTerm(1);
 
-//        stopManager();
-//        startManager();
-        startManagerNew();
-        this.commandHandler = new RaftCommandHandler(this.kvStore, this.managerNew);
+        startManager();
+        this.commandHandler = new RaftCommandHandler(this.kvStore, this.manager);
         Thread.sleep(500);
 
         // Connect 3 followers
@@ -220,14 +201,7 @@ class RaftCommandHandlerTest {
             syncFollower(client3);
 
             PutCommand command = new PutCommand("slowKey", "slowValue".getBytes(StandardCharsets.UTF_8));
-//        CompletableFuture<Boolean> fut = new CompletableFuture<>();
-
-//        Thread commandThread = new Thread(() ->
-//                manager.getServer().handleCommand(command, fut)
-//        );
-//        commandThread.start();
-            Future<ByteBuffer> fut = executorService.submit(() -> this.commandHandler.handleCommand(command));
-
+            Future<ByteBuffer> fut = this.executorService.submit(() -> this.commandHandler.handleCommand(command));
             Thread.sleep(100);
 
             // Simulate slow response from first follower (delayed)
@@ -241,8 +215,6 @@ class RaftCommandHandlerTest {
             // Future should complete after majority
             fut.get(3, TimeUnit.SECONDS);
             assertTrue(fut.isDone(), "Future should complete even with slow nodes");
-
-//        commandThread.join(1000);
         } finally {
             client1.close();
             client2.close();
@@ -258,9 +230,8 @@ class RaftCommandHandlerTest {
     @DisplayName("HandleCommand with large value - processes correctly")
     void handleCommand_largeValue_processesCorrectly() throws Exception {
         logHandler.setTerm(1);
-
-        startManagerNew();
-        this.commandHandler = new RaftCommandHandler(this.kvStore, this.managerNew);
+        startManager();
+        this.commandHandler = new RaftCommandHandler(this.kvStore, this.manager);
         Thread.sleep(500);
 
         // Connect 2 followers (majority = 2)
@@ -278,7 +249,7 @@ class RaftCommandHandlerTest {
             }
             PutCommand command = new PutCommand("largeKey", largeValue);
 
-            Future<ByteBuffer> fut = executorService.submit(() -> this.commandHandler.handleCommand(command));
+            Future<ByteBuffer> fut = this.executorService.submit(() -> this.commandHandler.handleCommand(command));
 
             Thread.sleep(500);
 
@@ -304,8 +275,8 @@ class RaftCommandHandlerTest {
     void handleCommand_multipleSequentialCommands_allComplete() throws Exception {
         logHandler.setTerm(1);
 
-        startManagerNew();
-        this.commandHandler = new RaftCommandHandler(this.kvStore, this.managerNew);
+        startManager();
+        this.commandHandler = new RaftCommandHandler(this.kvStore, this.manager);
         Thread.sleep(500);
 
         // Connect 2 followers
@@ -318,8 +289,7 @@ class RaftCommandHandlerTest {
 
             // First command
             PutCommand command1 = new PutCommand("key1", "value1".getBytes(StandardCharsets.UTF_8));
-            Future<ByteBuffer> fut1 = executorService.submit(() -> this.commandHandler.handleCommand(command1));
-
+            Future<ByteBuffer> fut1 = this.executorService.submit(() -> this.commandHandler.handleCommand(command1));
             Thread.sleep(500);
 
             // Respond from followers for first command
@@ -331,8 +301,7 @@ class RaftCommandHandlerTest {
 
             // Second command
             PutCommand command2 = new PutCommand("key2", "value2".getBytes(StandardCharsets.UTF_8));
-            Future<ByteBuffer> fut2 = executorService.submit(() -> this.commandHandler.handleCommand(command2));
-
+            Future<ByteBuffer> fut2 = this.executorService.submit(() -> this.commandHandler.handleCommand(command2));
             Thread.sleep(500);
 
             // Respond from followers for second command
@@ -355,9 +324,8 @@ class RaftCommandHandlerTest {
     @DisplayName("HandleCommand with minimum majority - completes exactly at threshold")
     void handleCommand_minimumMajority_completesAtThreshold() throws Exception {
         logHandler.setTerm(1);
-
-        startManagerNew();
-        this.commandHandler = new RaftCommandHandler(this.kvStore, this.managerNew);
+        startManager();
+        this.commandHandler = new RaftCommandHandler(this.kvStore, this.manager);
         Thread.sleep(500);
 
         // Connect 5 followers (majority = 3)
@@ -375,7 +343,7 @@ class RaftCommandHandlerTest {
             syncFollower(client5);
 
             PutCommand command = new PutCommand("majorityKey", "majorityValue".getBytes(StandardCharsets.UTF_8));
-            Future<ByteBuffer> fut = executorService.submit(() -> this.commandHandler.handleCommand(command));
+            Future<ByteBuffer> fut = this.executorService.submit(() -> this.commandHandler.handleCommand(command));
 
             Thread.sleep(500);
 
@@ -410,9 +378,8 @@ class RaftCommandHandlerTest {
     @DisplayName("RaftCommandHandler handleCommand PUT - returns OK response")
     void raftCommandHandler_putCommand_returnsOk() throws Exception {
         logHandler.setTerm(1);
-
-        startManagerNew();
-        this.commandHandler = new RaftCommandHandler(this.kvStore, this.managerNew);
+        startManager();
+        this.commandHandler = new RaftCommandHandler(this.kvStore, this.manager);
         Thread.sleep(500);
 
         SocketChannel client1 = Utils.connectClient(this.nodeConfig.serverAddress());
@@ -422,12 +389,10 @@ class RaftCommandHandlerTest {
             syncFollower(client1);
             syncFollower(client2);
 
-            Future<ByteBuffer> fut = executorService.submit(() -> {
+            Future<ByteBuffer> fut = this.executorService.submit(() -> {
                 PutCommand command = new PutCommand("handlerKey", "handlerValue".getBytes(StandardCharsets.UTF_8));
                 return commandHandler.handleCommand(command);
             });
-
-            // Wait for command to be sent
             Thread.sleep(500);
 
             // Respond from majority
@@ -451,20 +416,19 @@ class RaftCommandHandlerTest {
     void candidateState_returnsInElectionError() throws Exception {
         // Create a manager and set it to CANDIDATE state
         final int basePort = this.nodeConfig.serverAddress().getPort();
-        NodeConfig candidateConfig = new NodeConfig("candidate", new InetSocketAddress(TEST_HOST, basePort + 40), null);
-        this.managerNew = new Manager(kvStore, candidateConfig, Collections.emptyList());
-        this.managerNew.setRole(NodeRole.CANDIDATE);
+        NodeConfig candidateConfig = new NodeConfig("candidate", new InetSocketAddress("localhost", basePort + 40), null);
+        this.manager = new Manager(kvStore, candidateConfig, Collections.emptyList());
+        this.manager.setRole(NodeRole.CANDIDATE);
 
         // Verify manager is in CANDIDATE state
-        assertEquals(NodeRole.CANDIDATE, managerNew.getRole(), "Manager should be in CANDIDATE state");
+        assertEquals(NodeRole.CANDIDATE, manager.getRole(), "Manager should be in CANDIDATE state");
 
         // Create command handler
-        RaftCommandHandler candidateHandler = new RaftCommandHandler(kvStore, managerNew);
+        RaftCommandHandler candidateHandler = new RaftCommandHandler(kvStore, manager);
 
         // Send a command
         PutCommand command = new PutCommand("testKey", "testValue".getBytes(StandardCharsets.UTF_8));
         ByteBuffer responseBuffer = candidateHandler.handleCommand(command);
-
         assertNotNull(responseBuffer, "Response should not be null");
 
         // Deserialize and verify it's an ErrorResponse with IN_ELECTION
@@ -486,13 +450,12 @@ class RaftCommandHandlerTest {
         // Create a broker node configuration
         final int basePort = this.nodeConfig.serverAddress().getPort();
         int brokerPort = basePort + 1;
-        InetSocketAddress controllerClientAddress = new InetSocketAddress(TEST_HOST, basePort + 2);
+        InetSocketAddress controllerClientAddress = new InetSocketAddress("localhost", basePort + 2);
 
         // Create broker node config
-        NodeConfig brokerConfig = new NodeConfig("broker", new InetSocketAddress(TEST_HOST, brokerPort), null);
-
+        NodeConfig brokerConfig = new NodeConfig("broker", new InetSocketAddress("localhost", brokerPort), null);
         NodeConfig controllerConfig =
-                new NodeConfig("controller", new InetSocketAddress(TEST_HOST, basePort + 3), controllerClientAddress);
+                new NodeConfig("controller", new InetSocketAddress("localhost", basePort + 3), controllerClientAddress);
         TestControllerServer testControllerServer =
                 new TestControllerServer(controllerConfig.serverAddress().getPort());
         this.executorService.submit(() -> {
@@ -505,20 +468,16 @@ class RaftCommandHandlerTest {
         Thread.sleep(500);
 
         // Start the broker manager
-        this.managerNew = new Manager(kvStore, brokerConfig, List.of(controllerConfig));
-        this.managerNewThread = new Thread(() -> com.zenz.kvstore.common.utils.Utils.checkedRunnableWrapper(this.managerNew::start));
+        this.manager = new Manager(kvStore, brokerConfig, List.of(controllerConfig));
+        this.managerNewThread = new Thread(() -> com.zenz.kvstore.common.utils.Utils.checkedRunnableWrapper(this.manager::start));
         this.managerNewThread.start();
-////        this.managerNew.setControllerConfig(controllerConfig);
-
         Thread.sleep(10_000);
 
         // Verify manager is in BROKER state
-        assertEquals(NodeRole.BROKER, managerNew.getRole(), "Manager should be in BROKER state");
+        assertEquals(NodeRole.BROKER, manager.getRole(), "Manager should be in BROKER state");
 
         // Create command handler for the broker
-        RaftCommandHandler brokerHandler = new RaftCommandHandler(kvStore, managerNew);
-
-        // Create a command
+        RaftCommandHandler brokerHandler = new RaftCommandHandler(kvStore, manager);
         PutCommand command = new PutCommand("testKey", "testValue".getBytes(StandardCharsets.UTF_8));
         ByteBuffer responseBuffer = brokerHandler.handleCommand(command);
 
@@ -526,13 +485,12 @@ class RaftCommandHandlerTest {
 
         // Deserialize and verify it's a RedirectResponse
         BaseResponse response = BaseResponse.deserialize(responseBuffer);
-        assertTrue(response instanceof RedirectResponse, "Response should be a RedirectResponse. Received:" + response);
+        assertInstanceOf(RedirectResponse.class, response, "Response should be a RedirectResponse. Received:" + response);
 
         RedirectResponse redirectResponse = (RedirectResponse) response;
         assertEquals(controllerClientAddress, redirectResponse.address(),
                 "Redirect should point to controller's client-facing server serverAddress");
     }
-
 
     // --- DELETE Integration Tests ---
 
@@ -544,14 +502,13 @@ class RaftCommandHandlerTest {
     @DisplayName("DELETE command with majority consensus - completes successfully")
     void deleteCommand_majorityConsensus_completesSuccessfully() throws Exception {
         logHandler.setTerm(1);
-
-        startManagerNew();
-        this.commandHandler = new RaftCommandHandler(this.kvStore, this.managerNew);
+        startManager();
+        this.commandHandler = new RaftCommandHandler(this.kvStore, this.manager);
         Thread.sleep(500);
 
         // First, store a value to delete
-        kvStore.put("deleteKey", "deleteValue".getBytes(StandardCharsets.UTF_8));
-        assertNotNull(kvStore.get("deleteKey"), "Key should exist before delete");
+        this.kvStore.put("deleteKey", "deleteValue".getBytes(StandardCharsets.UTF_8));
+        assertNotNull(this.kvStore.get("deleteKey"), "Key should exist before delete");
 
         SocketChannel client1 = Utils.connectClient(this.nodeConfig.serverAddress());
         SocketChannel client2 = Utils.connectClient(this.nodeConfig.serverAddress());
@@ -561,7 +518,7 @@ class RaftCommandHandlerTest {
             syncFollower(client2);
 
             DeleteCommand command = new DeleteCommand("deleteKey");
-            Future<ByteBuffer> fut = executorService.submit(() -> this.commandHandler.handleCommand(command));
+            Future<ByteBuffer> fut = this.executorService.submit(() -> this.commandHandler.handleCommand(command));
 
             Thread.sleep(500);
 
@@ -588,12 +545,11 @@ class RaftCommandHandlerTest {
     @DisplayName("DELETE command with slow nodes - completes after delay")
     void deleteCommand_slowNodes_completesAfterDelay() throws Exception {
         logHandler.setTerm(1);
-
-        startManagerNew();
-        this.commandHandler = new RaftCommandHandler(this.kvStore, this.managerNew);
+        startManager();
+        this.commandHandler = new RaftCommandHandler(this.kvStore, this.manager);
         Thread.sleep(500);
 
-        kvStore.put("slowDeleteKey", "value".getBytes(StandardCharsets.UTF_8));
+        this.kvStore.put("slowDeleteKey", "value".getBytes(StandardCharsets.UTF_8));
 
         SocketChannel client1 = Utils.connectClient(this.nodeConfig.serverAddress());
         SocketChannel client2 = Utils.connectClient(this.nodeConfig.serverAddress());
@@ -605,7 +561,7 @@ class RaftCommandHandlerTest {
             syncFollower(client3);
 
             DeleteCommand command = new DeleteCommand("slowDeleteKey");
-            Future<ByteBuffer> fut = executorService.submit(() -> this.commandHandler.handleCommand(command));
+            Future<ByteBuffer> fut = this.executorService.submit(() -> this.commandHandler.handleCommand(command));
 
             // Slow responses
             Thread.sleep(300);
@@ -634,15 +590,14 @@ class RaftCommandHandlerTest {
     @DisplayName("Multiple sequential DELETE commands - all complete")
     void deleteCommand_multipleSequential_allComplete() throws Exception {
         logHandler.setTerm(1);
-
-        startManagerNew();
-        this.commandHandler = new RaftCommandHandler(this.kvStore, this.managerNew);
+        startManager();
+        this.commandHandler = new RaftCommandHandler(this.kvStore, this.manager);
         Thread.sleep(500);
 
         // Store multiple keys
-        kvStore.put("del1", "value1".getBytes(StandardCharsets.UTF_8));
-        kvStore.put("del2", "value2".getBytes(StandardCharsets.UTF_8));
-        kvStore.put("del3", "value3".getBytes(StandardCharsets.UTF_8));
+        this.kvStore.put("del1", "value1".getBytes(StandardCharsets.UTF_8));
+        this.kvStore.put("del2", "value2".getBytes(StandardCharsets.UTF_8));
+        this.kvStore.put("del3", "value3".getBytes(StandardCharsets.UTF_8));
 
         SocketChannel client1 = Utils.connectClient(this.nodeConfig.serverAddress());
         SocketChannel client2 = Utils.connectClient(this.nodeConfig.serverAddress());
@@ -653,7 +608,7 @@ class RaftCommandHandlerTest {
 
             // First DELETE
             DeleteCommand command1 = new DeleteCommand("del1");
-            Future<ByteBuffer> fut1 = executorService.submit(() -> this.commandHandler.handleCommand(command1));
+            Future<ByteBuffer> fut1 = this.executorService.submit(() -> this.commandHandler.handleCommand(command1));
 
             Thread.sleep(500);
 
@@ -668,7 +623,7 @@ class RaftCommandHandlerTest {
 
             // Second DELETE
             DeleteCommand command2 = new DeleteCommand("del2");
-            Future<ByteBuffer> fut2 = executorService.submit(() -> this.commandHandler.handleCommand(command2));
+            Future<ByteBuffer> fut2 = this.executorService.submit(() -> this.commandHandler.handleCommand(command2));
             nextLogId++;
             Thread.sleep(500);
 
@@ -680,7 +635,7 @@ class RaftCommandHandlerTest {
 
             // Third DELETE
             DeleteCommand command3 = new DeleteCommand("del3");
-            Future<ByteBuffer> fut3 = executorService.submit(() -> this.commandHandler.handleCommand(command3));
+            Future<ByteBuffer> fut3 = this.executorService.submit(() -> this.commandHandler.handleCommand(command3));
             nextLogId++;
 
             Thread.sleep(500);
@@ -705,11 +660,11 @@ class RaftCommandHandlerTest {
     void deleteCommand_minimumMajority_completesAtThreshold() throws Exception {
         logHandler.setTerm(1);
 
-        startManagerNew();
-        this.commandHandler = new RaftCommandHandler(this.kvStore, this.managerNew);
+        startManager();
+        this.commandHandler = new RaftCommandHandler(this.kvStore, this.manager);
         Thread.sleep(500);
 
-        kvStore.put("majorityDeleteKey", "value".getBytes(StandardCharsets.UTF_8));
+        this.kvStore.put("majorityDeleteKey", "value".getBytes(StandardCharsets.UTF_8));
 
         // Connect 5 followers (majority = 3)
         SocketChannel client1 = Utils.connectClient(this.nodeConfig.serverAddress());
@@ -726,7 +681,7 @@ class RaftCommandHandlerTest {
             syncFollower(client5);
 
             DeleteCommand command = new DeleteCommand("majorityDeleteKey");
-            Future<ByteBuffer> fut = executorService.submit(() -> this.commandHandler.handleCommand(command));
+            Future<ByteBuffer> fut = this.executorService.submit(() -> this.commandHandler.handleCommand(command));
 
             Thread.sleep(500);
 
@@ -761,13 +716,12 @@ class RaftCommandHandlerTest {
     @DisplayName("DELETE non-existent key - completes successfully")
     void deleteCommand_nonExistentKey_completesSuccessfully() throws Exception {
         logHandler.setTerm(1);
-
-        startManagerNew();
-        this.commandHandler = new RaftCommandHandler(this.kvStore, this.managerNew);
+        startManager();
+        this.commandHandler = new RaftCommandHandler(this.kvStore, this.manager);
         Thread.sleep(500);
 
         // Ensure key doesn't exist
-        assertNull(kvStore.get("nonExistentDeleteKey"), "Key should not exist");
+        assertNull(this.kvStore.get("nonExistentDeleteKey"), "Key should not exist");
 
         SocketChannel client1 = Utils.connectClient(this.nodeConfig.serverAddress());
         SocketChannel client2 = Utils.connectClient(this.nodeConfig.serverAddress());
@@ -777,7 +731,7 @@ class RaftCommandHandlerTest {
             syncFollower(client2);
 
             DeleteCommand command = new DeleteCommand("nonExistentDeleteKey");
-            Future<ByteBuffer> fut = executorService.submit(() -> this.commandHandler.handleCommand(command));
+            Future<ByteBuffer> fut = this.executorService.submit(() -> this.commandHandler.handleCommand(command));
 
             Thread.sleep(500);
 
@@ -800,9 +754,8 @@ class RaftCommandHandlerTest {
     @DisplayName("Mixed PUT and DELETE commands - all complete")
     void mixedCommands_putAndDelete_allComplete() throws Exception {
         logHandler.setTerm(1);
-
-        startManagerNew();
-        this.commandHandler = new RaftCommandHandler(this.kvStore, this.managerNew);
+        startManager();
+        this.commandHandler = new RaftCommandHandler(this.kvStore, this.manager);
         Thread.sleep(500);
 
         SocketChannel client1 = Utils.connectClient(this.nodeConfig.serverAddress());
@@ -814,8 +767,7 @@ class RaftCommandHandlerTest {
 
             // PUT command
             PutCommand putCommand = new PutCommand("mixedKey", "mixedValue".getBytes(StandardCharsets.UTF_8));
-            Future<ByteBuffer> putFut = executorService.submit(() -> this.commandHandler.handleCommand(putCommand));
-
+            Future<ByteBuffer> putFut = this.executorService.submit(() -> this.commandHandler.handleCommand(putCommand));
             Thread.sleep(500);
 
             Utils.sendMessage(client1, new AppendEntryResponse(1, 1, true));
@@ -826,8 +778,7 @@ class RaftCommandHandlerTest {
 
             // DELETE command
             DeleteCommand deleteCommand = new DeleteCommand("mixedKey");
-            Future<ByteBuffer> deleteFut = executorService.submit(() -> this.commandHandler.handleCommand(deleteCommand));
-
+            Future<ByteBuffer> deleteFut = this.executorService.submit(() -> this.commandHandler.handleCommand(deleteCommand));
             Thread.sleep(500);
 
             Utils.sendMessage(client1, new AppendEntryResponse(2, 1, true));
@@ -837,7 +788,7 @@ class RaftCommandHandlerTest {
             assertNotNull(deleteResult, "DELETE should complete");
 
             // Verify key is deleted
-            assertNull(kvStore.get("mixedKey"), "Key should be deleted");
+            assertNull(this.kvStore.get("mixedKey"), "Key should be deleted");
         } finally {
             client1.close();
             client2.close();
