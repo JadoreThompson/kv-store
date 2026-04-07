@@ -19,60 +19,61 @@ import java.util.Collections;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-/**
- * Test suite for RaftControllerServer's handleLogRequest method.
- * Tests various scenarios for how the controller responds to LogRequests from follower brokers.
- * Tests connect to the RaftControllerServer server via network connections.
- */
 class RaftControllerTest {
 
-    private static final String TEST_HOST = "localhost";
     private static final int TEST_PORT = 6969;
 
-    private RaftManager manager;
     private Manager managerNew;
+
     private ArrayList<RaftNodeConfig> nodes;
+
     private NodeConfig nodeConfig;
+
     private Thread managerThread;
+
     private Path logsDir;
+
     private Path snapshotsDir;
+
     private KVMapSnapshotter snapshotter;
+
     private WALogger logger;
+
     private RaftLogHandler logHandler;
+
     private KVStore kvStore;
 
     @BeforeEach
     void beforeEach() throws IOException, InterruptedException {
-        logsDir = Files.createTempDirectory("logs-");
-        snapshotsDir = Files.createTempDirectory("snapshots-");
+        this.logsDir = Files.createTempDirectory("logs-");
+        this.snapshotsDir = Files.createTempDirectory("snapshots-");
 
-        snapshotter = new KVMapSnapshotter(snapshotsDir);
-        logger = new WALogger(logsDir.resolve("0.log"));
-        logHandler = new RaftLogHandler(logger);
-        kvStore = new KVStore(new KVStore.Builder()
-                .setLogHandler(logHandler)
-                .setSnapshotter(snapshotter)
+        this.snapshotter = new KVMapSnapshotter(this.snapshotsDir);
+        this.logger = new WALogger(this.logsDir.resolve("0.log"));
+        this.logHandler = new RaftLogHandler(this.logger);
+        this.kvStore = new KVStore(new KVStore.Builder()
+                .setLogHandler(this.logHandler)
+                .setSnapshotter(this.snapshotter)
         );
 
-        nodes = new ArrayList<>();
-        nodes.add(new RaftNodeConfig(0, new InetSocketAddress(TEST_HOST, TEST_PORT), null, NodeRole.CONTROLLER));
-        nodeConfig = new NodeConfig("test-node", new InetSocketAddress(TEST_HOST, TEST_PORT), null);
-//        startManager();
-
+        this.nodes = new ArrayList<>();
+        this.nodes.add(new RaftNodeConfig(
+                0, new InetSocketAddress("localhost", TEST_PORT), null, NodeRole.CONTROLLER));
+        this.nodeConfig = new NodeConfig(
+                "test-node", new InetSocketAddress("localhost", TEST_PORT), null);
         Thread.sleep(500);
     }
 
     @AfterEach
     void afterEach() throws IOException, InterruptedException {
-        logsDir.toFile().delete();
-        snapshotsDir.toFile().delete();
-//        stopManager();
+        this.logsDir.toFile().delete();
+        this.snapshotsDir.toFile().delete();
         stopManagerNew();
     }
 
-    private void startManagerNew() {
-        this.managerNew = new Manager(kvStore, nodeConfig, Collections.emptyList());
-        managerThread = new Thread(() -> {
+    private void startManager() {
+        this.managerNew = new Manager(this.kvStore, this.nodeConfig, Collections.emptyList());
+        this.managerThread = new Thread(() -> {
             try {
                 this.managerNew.start();
             } catch (Exception e) {
@@ -80,7 +81,7 @@ class RaftControllerTest {
                 e.printStackTrace();
             }
         });
-        managerThread.start();
+        this.managerThread.start();
     }
 
     private void stopManagerNew() throws InterruptedException, IOException {
@@ -91,155 +92,134 @@ class RaftControllerTest {
 
     @Test
     @DisplayName("Fresh follower with both nodes having no processed commands")
-    void
-    freshFollower_bothNodesEmpty_returnsEmptyCommand() throws Exception {
-        logHandler.setLogId(0);
-        logHandler.setTerm(1);
-
-        // Need to restart controller to reload logs
-//        stopManager();
-//        startManager();
-        startManagerNew();
+    void freshFollower_bothNodesEmpty_returnsEmptyCommand() throws Exception {
+        this.logHandler.setLogId(0);
+        this.logHandler.setTerm(1);
+        startManager();
         Thread.sleep(500);
 
-        System.out.println(1);
         this.managerNew.setRole(NodeRole.CONTROLLER);
-        SocketChannel client = Utils.connectClient(this.nodeConfig.serverAddress());
-        System.out.println(2);
-        Utils.sendMessage(client, new RequestEntry(0, 0));
-        System.out.println(3);
 
-        Message resp = Utils.receiveMessage(client);
-        System.out.println(4);
-        assertTrue(resp instanceof AppendEntry, "Expected log response");
-        AppendEntry response = (AppendEntry) resp;
-        assertNotNull(response);
-        assertEquals(0, response.id());
-        assertEquals(1, response.term());
-        assertTrue(response.entries().isEmpty()); // No processed commands yet
+        try (SocketChannel client = Utils.connectClient(this.nodeConfig.serverAddress())) {
+            Utils.sendMessage(client, new RequestEntry(0, 0));
 
-        client.close();
+            final Message resp = Utils.receiveMessage(client);
+            assertInstanceOf(AppendEntry.class, resp, "Expected log response");
+
+            final AppendEntry response = (AppendEntry) resp;
+            assertNotNull(response);
+            assertEquals(0, response.id());
+            assertEquals(1, response.term());
+            assertTrue(response.entries().isEmpty()); // No processed commands yet
+        }
     }
 
     @Test
     @DisplayName("Fresh follower when controller has snapshot - returns snapshot")
     void freshFollower_withSnapshot_returnsSnapshot() throws Exception {
-        logHandler.setTerm(2);
+        this.logHandler.setTerm(2);
         for (long i = 1; i <= 5; i++) {
-            kvStore.put("key" + i, ("value" + i).getBytes(StandardCharsets.UTF_8));
+            this.kvStore.put("key" + i, ("value" + i).getBytes(StandardCharsets.UTF_8));
         }
 
-        Path fpath = snapshotsDir.resolve(logHandler.getLogId() + "_" + logHandler.getTerm() + ".snapshot");
-        snapshotter.snapshot(kvStore.getMap(), fpath);
-        byte[] snapshotBytes = Files.readAllBytes(fpath);
+        final Path fpath = this.snapshotsDir.resolve(this.logHandler.getLogId() + "_" + this.logHandler.getTerm() + ".snapshot");
+        this.snapshotter.snapshot(this.kvStore.getMap(), fpath);
+        final byte[] snapshotBytes = Files.readAllBytes(fpath);
 
-        // Restart controller to reload logs
-//        stopManager();
-        startManagerNew();
+        startManager();
         Thread.sleep(500);
 
-        SocketChannel client = Utils.connectClient(this.nodeConfig.serverAddress());
-        this.managerNew.setRole(NodeRole.CONTROLLER);
-        Utils.sendMessage(client, new RequestEntry(0, 0));
+        try (SocketChannel client = Utils.connectClient(this.nodeConfig.serverAddress())) {
+            this.managerNew.setRole(NodeRole.CONTROLLER);
+            Utils.sendMessage(client, new RequestEntry(0, 0));
 
-        Message resp = Utils.receiveMessage(client);
-        assertTrue(resp instanceof InstallSnapshot, "Expected append snapshot message");
-        InstallSnapshot response = (InstallSnapshot) resp;
-        assertNotNull(response);
-        assertNotNull(response.snapshot());
-        assertArrayEquals(snapshotBytes, response.snapshot());
+            final Message resp = Utils.receiveMessage(client);
+            assertInstanceOf(InstallSnapshot.class, resp, "Expected append snapshot message");
 
-        client.close();
+            final InstallSnapshot response = (InstallSnapshot) resp;
+            assertNotNull(response);
+            assertNotNull(response.snapshot());
+            assertArrayEquals(snapshotBytes, response.snapshot());
+        }
     }
 
     @Test
     @DisplayName("Fresh follower when controller has logs but no snapshot - returns first log")
     void freshFollower_noSnapshot_returnsFirstLog() throws Exception {
-        // Setup: controller has processed some commands
-        logHandler.setDisabled(false);
-        logHandler.setTerm(1);
-        kvStore.put("firstKey", "firstValue".getBytes(StandardCharsets.UTF_8));
-        kvStore.put("secondKey", "secondValue".getBytes(StandardCharsets.UTF_8));
-        kvStore.put("thirdKey", "thirdValue".getBytes(StandardCharsets.UTF_8));
+        this.logHandler.setDisabled(false);
+        this.logHandler.setTerm(1);
+        this.kvStore.put("firstKey", "firstValue".getBytes(StandardCharsets.UTF_8));
+        this.kvStore.put("secondKey", "secondValue".getBytes(StandardCharsets.UTF_8));
+        this.kvStore.put("thirdKey", "thirdValue".getBytes(StandardCharsets.UTF_8));
         logger.close();
 
-        // Restart controller to reload logs
-//        stopManager();
-        startManagerNew();
+        startManager();
         Thread.sleep(500);
 
-        SocketChannel client = Utils.connectClient(this.nodeConfig.serverAddress());
-        this.managerNew.setRole(NodeRole.CONTROLLER);
-        Utils.sendMessage(client, new RequestEntry(0, 0));
+        try (SocketChannel client = Utils.connectClient(this.nodeConfig.serverAddress())) {
+            this.managerNew.setRole(NodeRole.CONTROLLER);
+            Utils.sendMessage(client, new RequestEntry(0, 0));
 
-        Message resp = Utils.receiveMessage(client);
-        assertTrue(resp instanceof AppendEntry, "Expected append entry");
+            final Message resp = Utils.receiveMessage(client);
+            assertInstanceOf(AppendEntry.class, resp, "Expected append entry");
 
-        AppendEntry response = (AppendEntry) resp;
-        assertNotNull(response);
-        assertEquals(1, response.id());
-        assertEquals(1, response.term());
-        assertFalse(response.entries().isEmpty());
+            final AppendEntry response = (AppendEntry) resp;
+            assertNotNull(response);
+            assertEquals(1, response.id());
+            assertEquals(1, response.term());
+            assertFalse(response.entries().isEmpty());
 
-        PutCommand cmd = (PutCommand) response.entries().get(0).command();
-        assertEquals("firstKey", cmd.key());
-        assertEquals("firstValue", new String(cmd.value(), StandardCharsets.UTF_8));
-
-        client.close();
+            final PutCommand cmd = (PutCommand) response.entries().getFirst().command();
+            assertEquals("firstKey", cmd.key());
+            assertEquals("firstValue", new String(cmd.value(), StandardCharsets.UTF_8));
+        }
     }
 
     @Test
     @DisplayName("Follower up to date - same prevLogId and term")
     void followerUpToDate_sameLogIdAndTerm_returnsMostRecentLog() throws Exception {
         // Setup
-        logHandler.setTerm(2L);
-        kvStore.put("firstKey", "firstValue".getBytes(StandardCharsets.UTF_8));
-        kvStore.put("secondKey", "secondValue".getBytes(StandardCharsets.UTF_8));
-        kvStore.put("thirdKey", "thirdValue".getBytes(StandardCharsets.UTF_8));
+        this.logHandler.setTerm(2L);
+        this.kvStore.put("firstKey", "firstValue".getBytes(StandardCharsets.UTF_8));
+        this.kvStore.put("secondKey", "secondValue".getBytes(StandardCharsets.UTF_8));
+        this.kvStore.put("thirdKey", "thirdValue".getBytes(StandardCharsets.UTF_8));
 
-        // Restart controller to reload logs
-//        stopManager();
-        startManagerNew();
+        startManager();
         Thread.sleep(500);
 
-        SocketChannel client = Utils.connectClient(this.nodeConfig.serverAddress());
-        this.managerNew.setRole(NodeRole.CONTROLLER);
-        Utils.sendMessage(client, new RequestEntry(3, 2));
+        try (SocketChannel client = Utils.connectClient(this.nodeConfig.serverAddress())) {
+            this.managerNew.setRole(NodeRole.CONTROLLER);
+            Utils.sendMessage(client, new RequestEntry(3, 2));
 
-        Message resp = Utils.receiveMessage(client);
-        assertTrue(resp instanceof AppendEntry, "Expected append entry");
+            final Message resp = Utils.receiveMessage(client);
+            assertInstanceOf(AppendEntry.class, resp, "Expected append entry");
 
-        client.close();
+        }
     }
 
     @Test
     @DisplayName("Same prevLogId but different term - returns error")
     void sameLogIdDifferentTerm_returnsError() throws Exception {
         // Setup
-        logHandler.setTerm(1L);
+        this.logHandler.setTerm(1L);
         for (long i = 1; i <= 5; i++) {
-            kvStore.put("key" + i, ("value" + i).getBytes(StandardCharsets.UTF_8));
+            this.kvStore.put("key" + i, ("value" + i).getBytes(StandardCharsets.UTF_8));
         }
 
-        // Restart controller to reload logs
-//        stopManager();
-        startManagerNew();
+        startManager();
         Thread.sleep(500);
 
-        SocketChannel client = Utils.connectClient(this.nodeConfig.serverAddress());
-        // Request with same prevLogId but different term
-        this.managerNew.setRole(NodeRole.CONTROLLER);
-        Utils.sendMessage(client, new RequestEntry(5, 2));
+        try (SocketChannel client = Utils.connectClient(this.nodeConfig.serverAddress())) {
+            this.managerNew.setRole(NodeRole.CONTROLLER);
+            Utils.sendMessage(client, new RequestEntry(5, 2));
 
-//        Message resp = Utils.receiveMessage(client);
-//        assertTrue(resp instanceof ErrorMessage, "Expected error response. Received " + resp);
-        Thread.sleep(500);
-        assertEquals(
-                NodeRole.BROKER,
-                this.managerNew.getRole(),
-                "Manager should step down as controller to broker when receiving request entry with greater term"
-        );
-        client.close();
+            Thread.sleep(500);
+            assertEquals(
+                    NodeRole.BROKER,
+                    this.managerNew.getRole(),
+                    "Manager should step down as controller to broker when receiving request entry with greater term"
+            );
+        }
     }
 
     /**
@@ -252,159 +232,150 @@ class RaftControllerTest {
     @Test
     @DisplayName("Request prevLogId before first log with snapshot - returns snapshot")
     void requestLogIdBeforeFirstLog_withSnapshot_returnsSnapshot() throws Exception {
-        logHandler.setTerm(2);
-        logHandler.setDisabled(false);
+        this.logHandler.setTerm(2);
+        this.logHandler.setDisabled(false);
         for (int i = 1; i <= 5; i++) {
-            kvStore.put("key" + i, ("value" + i).getBytes(StandardCharsets.UTF_8));
+            this.kvStore.put("key" + i, ("value" + i).getBytes(StandardCharsets.UTF_8));
         }
 
         // Create snapshot - this is required for the controller to have higher log ids
-        Path snapshotPath = snapshotter.getDir().resolve(logHandler.getLogId() + "_" + logHandler.getTerm() + ".snapshot");
-        snapshotter.snapshot(kvStore.getMap(), snapshotPath);
+        final Path snapshotPath = this.snapshotter.getDir().resolve(this.logHandler.getLogId() + "_" + this.logHandler.getTerm() + ".snapshot");
+        this.snapshotter.snapshot(this.kvStore.getMap(), snapshotPath);
 
-        // Restart controller to reload logs
-//        stopManager();
-        startManagerNew();
+        startManager();
         Thread.sleep(500);
 
-        SocketChannel client = Utils.connectClient(this.nodeConfig.serverAddress());
-        // Request with prevLogId 0 (fresh follower) - should return snapshot
-        this.managerNew.setRole(NodeRole.CONTROLLER);
-        Utils.sendMessage(client, new RequestEntry(0, 0));
+        try (SocketChannel client = Utils.connectClient(this.nodeConfig.serverAddress())) {
+            this.managerNew.setRole(NodeRole.CONTROLLER);
+            Utils.sendMessage(client, new RequestEntry(0, 0));
 
-        Message resp = Utils.receiveMessage(client);
-        assertInstanceOf(InstallSnapshot.class, resp, "Expected log response");
-        InstallSnapshot response = (InstallSnapshot) resp;
+            final Message resp = Utils.receiveMessage(client);
+            assertInstanceOf(InstallSnapshot.class, resp, "Expected log response");
 
-        assertNotNull(response);
-        assertNotNull(response.snapshot());
-
-        client.close();
+            final InstallSnapshot response = (InstallSnapshot) resp;
+            assertNotNull(response);
+            assertNotNull(response.snapshot());
+        }
     }
 
     @Test
     @DisplayName("Finding next log - returns correct next log entry")
     void findingNextLog_returnsCorrectNextLog() throws Exception {
         // Setup - logs start at id 1
-        logHandler.setTerm(2);
+        this.logHandler.setTerm(2);
         for (long i = 1; i <= 10; i++) {
-            kvStore.put("key" + i, ("value" + i).getBytes(StandardCharsets.UTF_8));
+            this.kvStore.put("key" + i, ("value" + i).getBytes(StandardCharsets.UTF_8));
         }
 
-        // Restart controller to reload logs
-//        stopManager();
-        startManagerNew();
+        startManager();
         Thread.sleep(500);
 
-        SocketChannel client = Utils.connectClient(this.nodeConfig.serverAddress());
-        // Request with prevLogId 5 - follower has processed log 5, needs log 6
-        this.managerNew.setRole(NodeRole.CONTROLLER);
-        Utils.sendMessage(client, new RequestEntry(5, 2));
+        try (SocketChannel client = Utils.connectClient(this.nodeConfig.serverAddress())) {
+            this.managerNew.setRole(NodeRole.CONTROLLER);
+            Utils.sendMessage(client, new RequestEntry(5, 2));
 
-        Message resp = Utils.receiveMessage(client);
-        assertInstanceOf(AppendEntry.class, resp, "Expected append entry. Received " + resp.getClass().getName());
-        AppendEntry response = (AppendEntry) resp;
-        assertNotNull(response);
-        assertFalse(response.entries().isEmpty());
+            final Message resp = Utils.receiveMessage(client);
+            assertInstanceOf(AppendEntry.class, resp, "Expected append entry. Received " + resp.getClass().getName());
 
-        client.close();
+            final AppendEntry response = (AppendEntry) resp;
+            assertNotNull(response);
+            assertFalse(response.entries().isEmpty());
+        }
     }
 
     @Test
     @DisplayName("Request with prevLogId 0 but non-zero term")
     void logIdZeroWithNonZeroTerm() throws Exception {
-        // Setup
-        logHandler.setTerm(2);
-        logHandler.setDisabled(false);
-        kvStore.put("key1", "value1".getBytes(StandardCharsets.UTF_8));
-        Path path = snapshotter.getDir().resolve(logHandler.getLogId() + "_" + logHandler.getTerm() + ".snapshot");
-        snapshotter.snapshot(kvStore.getMap(), path);
+        this.logHandler.setTerm(2);
+        this.logHandler.setDisabled(false);
+        this.kvStore.put("key1", "value1".getBytes(StandardCharsets.UTF_8));
+        final Path path = this.snapshotter.getDir().resolve(this.logHandler.getLogId() + "_" + this.logHandler.getTerm() + ".snapshot");
+        this.snapshotter.snapshot(this.kvStore.getMap(), path);
 
         // Restart controller to reload logs
-        startManagerNew();
+        startManager();
         Thread.sleep(500);
 
-        SocketChannel client = Utils.connectClient(this.nodeConfig.serverAddress());
-        this.managerNew.setRole(NodeRole.CONTROLLER);
-        Utils.sendMessage(client, new RequestEntry(0, 2));
+        try (SocketChannel client = Utils.connectClient(this.nodeConfig.serverAddress())) {
+            this.managerNew.setRole(NodeRole.CONTROLLER);
+            Utils.sendMessage(client, new RequestEntry(0, 2));
 
-        // Log file is empty and the store is loaded from a snapshot
-        Message resp = Utils.receiveMessage(client);
-        assertTrue(resp instanceof InstallSnapshot, "Expected append snapshot. Received " + resp);
-
-        client.close();
+            // Log file is empty and the store is loaded from a snapshot
+            final Message resp = Utils.receiveMessage(client);
+            assertInstanceOf(InstallSnapshot.class, resp, "Expected append snapshot. Received " + resp);
+        }
     }
 
     @Test
     @DisplayName("Multiple sequential requests from same client")
     void multipleSequentialRequests_sameClient() throws Exception {
         // Setup
-        logHandler.setTerm(1);
+        this.logHandler.setTerm(1);
         for (long i = 1; i <= 5; i++) {
-            kvStore.put("key" + i, ("value" + i).getBytes(StandardCharsets.UTF_8));
+            this.kvStore.put("key" + i, ("value" + i).getBytes(StandardCharsets.UTF_8));
         }
 
         // Restart controller to reload logs
-        startManagerNew();
+        startManager();
         Thread.sleep(500);
 
-        SocketChannel client = Utils.connectClient(this.nodeConfig.serverAddress());
-        this.managerNew.setRole(NodeRole.CONTROLLER);
-        Utils.sendMessage(client, new RequestEntry(0, 0));
+        try (SocketChannel client = Utils.connectClient(this.nodeConfig.serverAddress())) {
+            this.managerNew.setRole(NodeRole.CONTROLLER);
+            Utils.sendMessage(client, new RequestEntry(0, 0));
 
-        Message resp = Utils.receiveMessage(client);
-        assertTrue(resp instanceof AppendEntry, "Expected log response");
-        AppendEntry response = (AppendEntry) resp;
-        assertNotNull(response);
-        assertEquals(1, response.id());
+            Message resp = Utils.receiveMessage(client);
+            assertInstanceOf(AppendEntry.class, resp, "Expected log response");
+            AppendEntry response = (AppendEntry) resp;
+            assertNotNull(response);
+            assertEquals(1, response.id());
 
-        Utils.sendMessage(client, new RequestEntry(1, 1));
-        resp = Utils.receiveMessage(client);
-        assertTrue(resp instanceof AppendEntry, "Expected log response");
-        response = (AppendEntry) resp;
-        assertNotNull(response);
-
-        client.close();
+            Utils.sendMessage(client, new RequestEntry(1, 1));
+            resp = Utils.receiveMessage(client);
+            assertInstanceOf(AppendEntry.class, resp, "Expected log response");
+            response = (AppendEntry) resp;
+            assertNotNull(response);
+        }
     }
 
     @Test
     @DisplayName("Request with binary data in snapshot")
     void snapshotWithBinaryData() throws Exception {
         // Setup
-        logHandler.setTerm(1);
+        this.logHandler.setTerm(1);
         for (long i = 1; i <= 3; i++) {
-            kvStore.put("key" + i, ("value" + i).getBytes(StandardCharsets.UTF_8));
+            this.kvStore.put("key" + i, ("value" + i).getBytes(StandardCharsets.UTF_8));
         }
 
         // Create snapshot with binary data
         byte[] binarySnapshot = new byte[]{0, 1, 2, 3, 127, (byte) 128, (byte) 255};
-        Path snapshotPath = snapshotter.getDir().resolve(logHandler.getLogId() + "_" + logHandler.getTerm() + ".snapshot");
+        final Path snapshotPath = this.snapshotter.getDir().resolve(
+                this.logHandler.getLogId() + "_" + this.logHandler.getTerm() + ".snapshot");
         Files.write(snapshotPath, binarySnapshot);
 
         // Restart controller to reload logs
-        startManagerNew();
+        startManager();
         Thread.sleep(500);
 
-        SocketChannel client = Utils.connectClient(this.nodeConfig.serverAddress());
-        this.managerNew.setRole(NodeRole.CONTROLLER);
-        Utils.sendMessage(client, new RequestEntry(0, 0));
+        try (SocketChannel client = Utils.connectClient(this.nodeConfig.serverAddress())) {
+            this.managerNew.setRole(NodeRole.CONTROLLER);
+            Utils.sendMessage(client, new RequestEntry(0, 0));
 
-        Message resp = Utils.receiveMessage(client);
-        assertTrue(resp instanceof InstallSnapshot, "Expected append snapshot");
-        InstallSnapshot response = (InstallSnapshot) resp;
-        assertNotNull(response.snapshot());
-        assertArrayEquals(binarySnapshot, response.snapshot());
+            final Message resp = Utils.receiveMessage(client);
+            assertInstanceOf(InstallSnapshot.class, resp, "Expected append snapshot");
 
-        client.close();
+            final InstallSnapshot response = (InstallSnapshot) resp;
+            assertNotNull(response.snapshot());
+            assertArrayEquals(binarySnapshot, response.snapshot());
+        }
     }
 
     @Test
     @DisplayName("Request with large snapshot")
     void largeSnapshot() throws Exception {
         // Setup
-        logHandler.setTerm(1);
+        this.logHandler.setTerm(1);
         for (long i = 1; i <= 3; i++) {
-            kvStore.put("key" + i, ("value" + i).getBytes(StandardCharsets.UTF_8));
+            this.kvStore.put("key" + i, ("value" + i).getBytes(StandardCharsets.UTF_8));
         }
 
         // Create large snapshot (1KB)
@@ -412,183 +383,180 @@ class RaftControllerTest {
         for (int i = 0; i < largeSnapshot.length; i++) {
             largeSnapshot[i] = (byte) (i % 256);
         }
-        Path snapshotPath = snapshotter.getDir().resolve(logHandler.getLogId() + "_" + logHandler.getTerm() + ".snapshot");
+        final Path snapshotPath = this.snapshotter.getDir().resolve(
+                this.logHandler.getLogId() + "_" + this.logHandler.getTerm() + ".snapshot");
         Files.write(snapshotPath, largeSnapshot);
 
         // Restart controller to reload logs
-        startManagerNew();
+        startManager();
         Thread.sleep(500);
 
-        SocketChannel client = Utils.connectClient(this.nodeConfig.serverAddress());
-        this.managerNew.setRole(NodeRole.CONTROLLER);
+        try (SocketChannel client = Utils.connectClient(this.nodeConfig.serverAddress())) {
+            this.managerNew.setRole(NodeRole.CONTROLLER);
 
-        Utils.sendMessage(client, new RequestEntry(0, 0));
-        Thread.sleep(500);
-        Message resp = Utils.receiveMessage(client);
-        assertInstanceOf(InstallSnapshot.class, resp, "Expected install snapshot");
-        InstallSnapshot response = (InstallSnapshot) resp;
-        assertNotNull(response.snapshot());
-        assertArrayEquals(largeSnapshot, response.snapshot());
+            Utils.sendMessage(client, new RequestEntry(0, 0));
+            Thread.sleep(500);
+            final Message resp = Utils.receiveMessage(client);
+            assertInstanceOf(InstallSnapshot.class, resp, "Expected install snapshot");
 
-        client.close();
+            final InstallSnapshot response = (InstallSnapshot) resp;
+            assertNotNull(response.snapshot());
+            assertArrayEquals(largeSnapshot, response.snapshot());
+        }
     }
 
     @Test
     @DisplayName("Request with empty logs and no snapshot")
     void emptyLogsNoSnapshot() throws Exception {
         // Setup - empty logs
-        logHandler.setLogId(0);
-        logHandler.setTerm(1);
+        this.logHandler.setLogId(0);
+        this.logHandler.setTerm(1);
 
         // Restart controller to reload logs
-        startManagerNew();
+        startManager();
         Thread.sleep(500);
 
-        SocketChannel client = Utils.connectClient(this.nodeConfig.serverAddress());
-        this.managerNew.setRole(NodeRole.CONTROLLER);
-        Utils.sendMessage(client, new RequestEntry(0, 0));
+        try (SocketChannel client = Utils.connectClient(this.nodeConfig.serverAddress())) {
+            this.managerNew.setRole(NodeRole.CONTROLLER);
+            Utils.sendMessage(client, new RequestEntry(0, 0));
 
-        // Should return empty command response
-        Message resp = Utils.receiveMessage(client);
-        assertTrue(resp instanceof AppendEntry, "Expected append entry");
-        AppendEntry response = (AppendEntry) resp;
-        assertNotNull(response);
-        assertEquals(0, response.id());
-        assertEquals(1, response.term());
+            // Should return empty command response
+            final Message resp = Utils.receiveMessage(client);
+            assertInstanceOf(AppendEntry.class, resp, "Expected append entry");
 
-        client.close();
+            final AppendEntry response = (AppendEntry) resp;
+            assertNotNull(response);
+            assertEquals(0, response.id());
+            assertEquals(1, response.term());
+        }
     }
 
     @Test
     @DisplayName("Request with single log entry")
     void singleLogEntry() throws Exception {
         // Setup
-        logHandler.setTerm(1);
-        kvStore.put("singleKey", "singleValue".getBytes(StandardCharsets.UTF_8));
+        this.logHandler.setTerm(1);
+        this.kvStore.put("singleKey", "singleValue".getBytes(StandardCharsets.UTF_8));
 
         // Restart controller to reload logs
-        startManagerNew();
+        startManager();
         Thread.sleep(500);
 
-        SocketChannel client = Utils.connectClient(this.nodeConfig.serverAddress());
-        this.managerNew.setRole(NodeRole.CONTROLLER);
-        Utils.sendMessage(client, new RequestEntry(0, 0));
+        try (SocketChannel client = Utils.connectClient(this.nodeConfig.serverAddress())) {
+            this.managerNew.setRole(NodeRole.CONTROLLER);
+            Utils.sendMessage(client, new RequestEntry(0, 0));
 
-        Message resp = Utils.receiveMessage(client);
-        assertTrue(resp instanceof AppendEntry, "Expected append entry. Received " + resp);
-        AppendEntry response = (AppendEntry) resp;
-        assertNotNull(response);
-        assertEquals(1, response.id());
-        assertEquals(1, response.term());
-        assertFalse(response.entries().isEmpty());
-        PutCommand cmd = (PutCommand) response.entries().get(0).command();
-        assertEquals("singleKey", cmd.key());
+            final Message resp = Utils.receiveMessage(client);
+            assertInstanceOf(AppendEntry.class, resp, "Expected append entry. Received " + resp);
 
-        client.close();
+            final AppendEntry response = (AppendEntry) resp;
+            assertNotNull(response);
+            assertEquals(1, response.id());
+            assertEquals(1, response.term());
+            assertFalse(response.entries().isEmpty());
+
+            final PutCommand cmd = (PutCommand) response.entries().getFirst().command();
+            assertEquals("singleKey", cmd.key());
+        }
     }
 
     @Test
     @DisplayName("Request with different term values")
     void differentTermValues() throws Exception {
         // Setup with logs from different terms
-        logHandler.setTerm(1);
-        kvStore.put("key1", "value1".getBytes(StandardCharsets.UTF_8));
-        kvStore.put("key2", "value2".getBytes(StandardCharsets.UTF_8));
-        logHandler.setTerm(2);
-        kvStore.put("key3", "value3".getBytes(StandardCharsets.UTF_8));
-        kvStore.put("key4", "value4".getBytes(StandardCharsets.UTF_8));
-        logHandler.setTerm(3);
-        kvStore.put("key5", "value5".getBytes(StandardCharsets.UTF_8));
+        this.logHandler.setTerm(1);
+        this.kvStore.put("key1", "value1".getBytes(StandardCharsets.UTF_8));
+        this.kvStore.put("key2", "value2".getBytes(StandardCharsets.UTF_8));
+        this.logHandler.setTerm(2);
+        this.kvStore.put("key3", "value3".getBytes(StandardCharsets.UTF_8));
+        this.kvStore.put("key4", "value4".getBytes(StandardCharsets.UTF_8));
+        this.logHandler.setTerm(3);
+        this.kvStore.put("key5", "value5".getBytes(StandardCharsets.UTF_8));
 
         // Restart controller to reload logs
-        startManagerNew();
+        startManager();
         Thread.sleep(500);
 
-        SocketChannel client = Utils.connectClient(this.nodeConfig.serverAddress());
-        this.managerNew.setRole(NodeRole.CONTROLLER);
+        try (SocketChannel client = Utils.connectClient(this.nodeConfig.serverAddress())) {
+            this.managerNew.setRole(NodeRole.CONTROLLER);
 
-        // Request with term 1
-        Utils.sendMessage(client, new RequestEntry(2, 1));
+            // Request with term 1
+            Utils.sendMessage(client, new RequestEntry(2, 1));
 
-        Message resp = Utils.receiveMessage(client);
-        assertTrue(resp instanceof AppendEntry, "Expected append entry");
-        AppendEntry response = (AppendEntry) resp;
-        assertNotNull(response);
-        assertFalse(response.entries().isEmpty());
+            final Message resp = Utils.receiveMessage(client);
+            assertInstanceOf(AppendEntry.class, resp, "Expected append entry");
 
-        client.close();
+            final AppendEntry response = (AppendEntry) resp;
+            assertNotNull(response);
+            assertFalse(response.entries().isEmpty());
+        }
     }
 
     @Test
     @DisplayName("AppendEntryResponse updates session prevLogId and term")
     void appendEntryResponse_updatesSessionState() throws Exception {
         // Setup - create logs so controller has state
-        logHandler.setTerm(1);
-        kvStore.put("key1", "value1".getBytes(StandardCharsets.UTF_8));
-        kvStore.put("key2", "value2".getBytes(StandardCharsets.UTF_8));
+        this.logHandler.setTerm(1);
+        this.kvStore.put("key1", "value1".getBytes(StandardCharsets.UTF_8));
+        this.kvStore.put("key2", "value2".getBytes(StandardCharsets.UTF_8));
 
-        startManagerNew();
+        startManager();
         Thread.sleep(500);
 
         // Connect a follower and sync it first
-        SocketChannel client = Utils.connectClient(this.nodeConfig.serverAddress());
-        this.managerNew.setRole(NodeRole.CONTROLLER);
-        Utils.sendMessage(client, new RequestEntry(0, 0));
+        try (SocketChannel client = Utils.connectClient(this.nodeConfig.serverAddress())) {
+            this.managerNew.setRole(NodeRole.CONTROLLER);
+            Utils.sendMessage(client, new RequestEntry(0, 0));
 
-        Message resp = Utils.receiveMessage(client);
-        assertTrue(resp instanceof AppendEntry, "Expected append entry after initial request");
+            Message resp = Utils.receiveMessage(client);
+            assertInstanceOf(AppendEntry.class, resp, "Expected append entry after initial request");
 
-        // Now send an AppendEntryResponse to update session state
-        Utils.sendMessage(client, new AppendEntryResponse(2, 1, true));
+            Utils.sendMessage(client, new AppendEntryResponse(2, 1, true));
+            Thread.sleep(500);
 
-        // Give the server time to process
-        Thread.sleep(500);
+            // Verify the session was updated by making a new request
+            // The follower should now be at prevLogId 2, term 1
+            Utils.sendMessage(client, new RequestEntry(2, 1));
+            resp = Utils.receiveMessage(client);
+            assertInstanceOf(AppendEntry.class, resp, "Expected append entry");
 
-        // Verify the session was updated by making a new request
-        // The follower should now be at prevLogId 2, term 1
-        Utils.sendMessage(client, new RequestEntry(2, 1));
-        resp = Utils.receiveMessage(client);
-        assertTrue(resp instanceof AppendEntry, "Expected append entry");
-        AppendEntry response = (AppendEntry) resp;
-        // Follower is up to date, should get empty commands list
-        assertTrue(response.entries().isEmpty(), "Expected empty commands for up-to-date follower");
-
-        client.close();
+            final AppendEntry response = (AppendEntry) resp;
+            assertTrue(response.entries().isEmpty(), "Expected empty commands for up-to-date follower");
+        }
     }
 
     @Test
-    @DisplayName("AppendEntryResponse with lower id triggers catch-up send")
+    @DisplayName("AppendEntryResponse with lower id sends catch-up entries")
     void appendEntryResponse_withLowerId_sendsCatchUpEntries() throws Exception {
         // Setup - create multiple logs
-        logHandler.setTerm(1);
-        kvStore.put("key1", "value1".getBytes(StandardCharsets.UTF_8));
-        kvStore.put("key2", "value2".getBytes(StandardCharsets.UTF_8));
-        kvStore.put("key3", "value3".getBytes(StandardCharsets.UTF_8));
-        kvStore.put("key4", "value4".getBytes(StandardCharsets.UTF_8));
+        this.logHandler.setTerm(1);
+        this.kvStore.put("key1", "value1".getBytes(StandardCharsets.UTF_8));
+        this.kvStore.put("key2", "value2".getBytes(StandardCharsets.UTF_8));
+        this.kvStore.put("key3", "value3".getBytes(StandardCharsets.UTF_8));
+        this.kvStore.put("key4", "value4".getBytes(StandardCharsets.UTF_8));
 
-        startManagerNew();
+        startManager();
         Thread.sleep(500);
 
         // Connect a follower
-        SocketChannel client = Utils.connectClient(this.nodeConfig.serverAddress());
-        this.managerNew.setRole(NodeRole.CONTROLLER);
-        Utils.sendMessage(client, new RequestEntry(0, 0));
+        try (SocketChannel client = Utils.connectClient(this.nodeConfig.serverAddress())) {
+            this.managerNew.setRole(NodeRole.CONTROLLER);
+            Utils.sendMessage(client, new RequestEntry(0, 0));
 
-        Message resp = Utils.receiveMessage(client);
-        assertTrue(resp instanceof AppendEntry);
+            Message resp = Utils.receiveMessage(client);
+            assertInstanceOf(AppendEntry.class, resp);
+            // Now send an AppendEntryResponse with id=1 (behind current prevLogId=4)
+            // This should trigger the controller to send catch-up entries
+            Utils.sendMessage(client, new AppendEntryResponse(1, 1, true));
 
-        // Now send an AppendEntryResponse with id=1 (behind current prevLogId=4)
-        // This should trigger the controller to send catch-up entries
-        Utils.sendMessage(client, new AppendEntryResponse(1, 1, true));
+            // Receive the catch-up entries (logs 2, 3, 4)
+            resp = Utils.receiveMessage(client);
+            assertInstanceOf(AppendEntry.class, resp, "Expected catch-up append entry");
 
-        // Receive the catch-up entries (logs 2, 3, 4)
-        resp = Utils.receiveMessage(client);
-        assertTrue(resp instanceof AppendEntry, "Expected catch-up append entry");
-        AppendEntry response = (AppendEntry) resp;
-        assertEquals(2, response.id(), "Expected catch-up to start from log 2");
-        assertFalse(response.entries().isEmpty(), "Expected catch-up commands");
-
-        client.close();
+            final AppendEntry response = (AppendEntry) resp;
+            assertEquals(2, response.id(), "Expected catch-up to start from log 2");
+            assertFalse(response.entries().isEmpty(), "Expected catch-up commands");
+        }
     }
 
     // Integration Tests for handleAppendEntryResponse
@@ -597,46 +565,43 @@ class RaftControllerTest {
     @DisplayName("Majority reached completes future")
     void majorityReached_completesFuture() throws Exception {
         // Setup - create logs
-        logHandler.setTerm(1);
-        kvStore.put("key1", "value1".getBytes(StandardCharsets.UTF_8));
+        this.logHandler.setTerm(1);
+        this.kvStore.put("key1", "value1".getBytes(StandardCharsets.UTF_8));
 
-        startManagerNew();
+        startManager();
         Thread.sleep(500);
 
         // Connect 3 followers (majority = 2)
-        SocketChannel client1 = Utils.connectClient(this.nodeConfig.serverAddress());
-        SocketChannel client2 = Utils.connectClient(this.nodeConfig.serverAddress());
-        SocketChannel client3 = Utils.connectClient(this.nodeConfig.serverAddress());
-        this.managerNew.setRole(NodeRole.CONTROLLER);
+        try (SocketChannel client1 = Utils.connectClient(this.nodeConfig.serverAddress());
+             SocketChannel client2 = Utils.connectClient(this.nodeConfig.serverAddress());
+             SocketChannel client3 = Utils.connectClient(this.nodeConfig.serverAddress())) {
+            this.managerNew.setRole(NodeRole.CONTROLLER);
 
-        // Sync all followers to current state
-        Utils.sendMessage(client1, new RequestEntry(0, 0));
-        Utils.sendMessage(client2, new RequestEntry(0, 0));
-        Utils.sendMessage(client3, new RequestEntry(0, 0));
+            // Sync all followers to current state
+            Utils.sendMessage(client1, new RequestEntry(0, 0));
+            Utils.sendMessage(client2, new RequestEntry(0, 0));
+            Utils.sendMessage(client3, new RequestEntry(0, 0));
 
-        Utils.receiveMessage(client1);
-        Utils.receiveMessage(client2);
-        Utils.receiveMessage(client3);
+            Utils.receiveMessage(client1);
+            Utils.receiveMessage(client2);
+            Utils.receiveMessage(client3);
 
-        // Now simulate a command broadcast by having followers at prevLogId 1
-        // Send responses from 2 followers (majority)
-        Utils.sendMessage(client1, new AppendEntryResponse(1, 1, true));
-        Thread.sleep(50);
-        Utils.sendMessage(client2, new AppendEntryResponse(1, 1, true));
-        Thread.sleep(100);
+            // Now simulate a command broadcast by having followers at prevLogId 1
+            // Send responses from 2 followers (majority)
+            Utils.sendMessage(client1, new AppendEntryResponse(1, 1, true));
+            Thread.sleep(50);
+            Utils.sendMessage(client2, new AppendEntryResponse(1, 1, true));
+            Thread.sleep(100);
 
-        // Both followers should have their sessions updated
-        Utils.sendMessage(client1, new RequestEntry(1, 1));
-        Message resp1 = Utils.receiveMessage(client1);
-        assertTrue(resp1 instanceof AppendEntry);
+            // Both followers should have their sessions updated
+            Utils.sendMessage(client1, new RequestEntry(1, 1));
+            final Message resp1 = Utils.receiveMessage(client1);
+            assertInstanceOf(AppendEntry.class, resp1);
 
-        Utils.sendMessage(client2, new RequestEntry(1, 1));
-        Message resp2 = Utils.receiveMessage(client2);
-        assertTrue(resp2 instanceof AppendEntry);
-
-        client1.close();
-        client2.close();
-        client3.close();
+            Utils.sendMessage(client2, new RequestEntry(1, 1));
+            final Message resp2 = Utils.receiveMessage(client2);
+            assertInstanceOf(AppendEntry.class, resp2);
+        }
     }
 
     @Test
@@ -644,42 +609,40 @@ class RaftControllerTest {
     @Disabled
     void appendEntryResponse_withMatchingId_incrementsCount() throws Exception {
         // Setup - create logs
-        logHandler.setTerm(1);
-        kvStore.put("key1", "value1".getBytes(StandardCharsets.UTF_8));
+        this.logHandler.setTerm(1);
+        this.kvStore.put("key1", "value1".getBytes(StandardCharsets.UTF_8));
 
-        startManagerNew();
+        startManager();
         Thread.sleep(500);
 
         // Connect multiple followers
-        SocketChannel client1 = Utils.connectClient(this.nodeConfig.serverAddress());
-        SocketChannel client2 = Utils.connectClient(this.nodeConfig.serverAddress());
-        SocketChannel client3 = Utils.connectClient(this.nodeConfig.serverAddress());
-        this.managerNew.setRole(NodeRole.CONTROLLER);
+        try (SocketChannel client1 = Utils.connectClient(this.nodeConfig.serverAddress());
+             SocketChannel client2 = Utils.connectClient(this.nodeConfig.serverAddress());
+             SocketChannel client3 = Utils.connectClient(this.nodeConfig.serverAddress())) {
 
-        // Sync all followers first
-        Utils.sendMessage(client1, new RequestEntry(0, 0));
-        Utils.sendMessage(client2, new RequestEntry(0, 0));
-        Utils.sendMessage(client3, new RequestEntry(0, 0));
+            this.managerNew.setRole(NodeRole.CONTROLLER);
 
-        Utils.receiveMessage(client1);
-        Utils.receiveMessage(client2);
-        Utils.receiveMessage(client3);
+            // Sync all followers first
+            Utils.sendMessage(client1, new RequestEntry(0, 0));
+            Utils.sendMessage(client2, new RequestEntry(0, 0));
+            Utils.sendMessage(client3, new RequestEntry(0, 0));
 
-        // Simulate a command being handled (this would normally set up majority tracking)
-        // For this test, we verify that responses with matching ids are handled
-        Utils.sendMessage(client1, new AppendEntryResponse(1, 1, true));
+            Utils.receiveMessage(client1);
+            Utils.receiveMessage(client2);
+            Utils.receiveMessage(client3);
 
-        // Give server time to process
-        Thread.sleep(100);
+            // Simulate a command being handled (this would normally set up majority tracking)
+            // For this test, we verify that responses with matching ids are handled
+            Utils.sendMessage(client1, new AppendEntryResponse(1, 1, true));
 
-        // The session should be updated
-        Utils.sendMessage(client1, new RequestEntry(1, 1));
-        Message resp = Utils.receiveMessage(client1);
-        assertTrue(resp instanceof AppendEntry);
+            // Give server time to process
+            Thread.sleep(100);
 
-        client1.close();
-        client2.close();
-        client3.close();
+            // The session should be updated
+            Utils.sendMessage(client1, new RequestEntry(1, 1));
+            final Message resp = Utils.receiveMessage(client1);
+            assertInstanceOf(AppendEntry.class, resp);
+        }
     }
 
     @Test
@@ -687,90 +650,87 @@ class RaftControllerTest {
     @Disabled
     void followerBehind_receivesCatchUpViaNetwork() throws Exception {
         // Setup - create multiple logs
-        logHandler.setTerm(1);
+        this.logHandler.setTerm(1);
         for (long i = 1; i <= 5; i++) {
-            kvStore.put("key" + i, ("value" + i).getBytes(StandardCharsets.UTF_8));
+            this.kvStore.put("key" + i, ("value" + i).getBytes(StandardCharsets.UTF_8));
         }
 
-        startManagerNew();
+        startManager();
         Thread.sleep(500);
 
         // Connect a follower
-        SocketChannel client = Utils.connectClient(this.nodeConfig.serverAddress());
-        this.managerNew.setRole(NodeRole.CONTROLLER);
+        try (SocketChannel client = Utils.connectClient(this.nodeConfig.serverAddress())) {
+            this.managerNew.setRole(NodeRole.CONTROLLER);
 
-        // Initial sync - follower gets all logs
-        Utils.sendMessage(client, new RequestEntry(0, 0));
-        Message resp = Utils.receiveMessage(client);
-        assertTrue(resp instanceof AppendEntry);
-        AppendEntry initialResponse = (AppendEntry) resp;
-        assertEquals(1, initialResponse.id());
+            // Initial sync - follower gets all logs
+            Utils.sendMessage(client, new RequestEntry(0, 0));
+            Message resp = Utils.receiveMessage(client);
+            assertInstanceOf(AppendEntry.class, resp);
+            AppendEntry initialResponse = (AppendEntry) resp;
+            assertEquals(1, initialResponse.id());
 
-        // Follower responds that it only applied up to log 2 (behind)
-        Utils.sendMessage(client, new AppendEntryResponse(2, 1, true));
+            // Follower responds that it only applied up to log 2 (behind)
+            Utils.sendMessage(client, new AppendEntryResponse(2, 1, true));
+            // Controller should send catch-up entries (logs 3, 4, 5)
+            resp = Utils.receiveMessage(client);
+            assertInstanceOf(AppendEntry.class, resp, "Expected catch-up entries");
 
-        // Controller should send catch-up entries (logs 3, 4, 5)
-        resp = Utils.receiveMessage(client);
-        assertTrue(resp instanceof AppendEntry, "Expected catch-up entries");
-        AppendEntry catchUpResponse = (AppendEntry) resp;
-        assertEquals(3, catchUpResponse.id(), "Catch-up should start from log 3");
-        assertFalse(catchUpResponse.entries().isEmpty(), "Expected catch-up commands");
-
-        client.close();
+            final AppendEntry catchUpResponse = (AppendEntry) resp;
+            assertEquals(3, catchUpResponse.id(), "Catch-up should start from log 3");
+            assertFalse(catchUpResponse.entries().isEmpty(), "Expected catch-up commands");
+        }
     }
 
     @Test
     @DisplayName("Multiple followers with mixed states")
     void multipleFollowers_mixedStates_handledCorrectly() throws Exception {
         // Setup - create logs
-        logHandler.setTerm(1);
+        this.logHandler.setTerm(1);
         for (long i = 1; i <= 3; i++) {
-            kvStore.put("key" + i, ("value" + i).getBytes(StandardCharsets.UTF_8));
+            this.kvStore.put("key" + i, ("value" + i).getBytes(StandardCharsets.UTF_8));
         }
 
-        startManagerNew();
+        startManager();
         Thread.sleep(500);
 
         // Connect 3 followers
-        SocketChannel client1 = Utils.connectClient(this.nodeConfig.serverAddress());
-        SocketChannel client2 = Utils.connectClient(this.nodeConfig.serverAddress());
-        SocketChannel client3 = Utils.connectClient(this.nodeConfig.serverAddress());
-        this.managerNew.setRole(NodeRole.CONTROLLER);
+        try (SocketChannel client1 = Utils.connectClient(this.nodeConfig.serverAddress());
+             SocketChannel client2 = Utils.connectClient(this.nodeConfig.serverAddress());
+             SocketChannel client3 = Utils.connectClient(this.nodeConfig.serverAddress())) {
+            this.managerNew.setRole(NodeRole.CONTROLLER);
 
-        // Sync all followers
-        Utils.sendMessage(client1, new RequestEntry(0, 0));
-        Utils.sendMessage(client2, new RequestEntry(0, 0));
-        Utils.sendMessage(client3, new RequestEntry(0, 0));
+            // Sync all followers
+            Utils.sendMessage(client1, new RequestEntry(0, 0));
+            Utils.sendMessage(client2, new RequestEntry(0, 0));
+            Utils.sendMessage(client3, new RequestEntry(0, 0));
 
-        Utils.receiveMessage(client1);
-        Utils.receiveMessage(client2);
-        Utils.receiveMessage(client3);
+            Utils.receiveMessage(client1);
+            Utils.receiveMessage(client2);
+            Utils.receiveMessage(client3);
 
-        // Follower 1 responds with current prevLogId (up to date)
-        Utils.sendMessage(client1, new AppendEntryResponse(3, 1, true));
-        Thread.sleep(50);
+            // Follower 1 responds with current prevLogId (up to date)
+            Utils.sendMessage(client1, new AppendEntryResponse(3, 1, true));
+            Thread.sleep(50);
 
-        // Follower 2 responds with older prevLogId (behind)
-        Utils.sendMessage(client2, new AppendEntryResponse(1, 1, true));
-        Thread.sleep(50);
+            // Follower 2 responds with older prevLogId (behind)
+            Utils.sendMessage(client2, new AppendEntryResponse(1, 1, true));
+            Thread.sleep(50);
 
-        // Follower 2 should receive catch-up entries
-        Message resp2 = Utils.receiveMessage(client2);
-        assertTrue(resp2 instanceof AppendEntry, "Follower 2 should get catch-up");
-        AppendEntry catchUp = (AppendEntry) resp2;
-        assertEquals(2, catchUp.id(), "Catch-up should start from log 2");
+            // Follower 2 should receive catch-up entries
+            final Message resp2 = Utils.receiveMessage(client2);
+            assertInstanceOf(AppendEntry.class, resp2, "Follower 2 should get catch-up");
 
-        // Follower 3 responds with current prevLogId
-        Utils.sendMessage(client3, new AppendEntryResponse(3, 1, true));
-        Thread.sleep(50);
+            final AppendEntry catchUp = (AppendEntry) resp2;
+            assertEquals(2, catchUp.id(), "Catch-up should start from log 2");
 
-        // Verify all sessions are properly tracked
-        Utils.sendMessage(client1, new RequestEntry(3, 1));
-        Message resp1 = Utils.receiveMessage(client1);
-        assertTrue(resp1 instanceof AppendEntry);
+            // Follower 3 responds with current prevLogId
+            Utils.sendMessage(client3, new AppendEntryResponse(3, 1, true));
+            Thread.sleep(50);
 
-        client1.close();
-        client2.close();
-        client3.close();
+            // Verify all sessions are properly tracked
+            Utils.sendMessage(client1, new RequestEntry(3, 1));
+            final Message resp1 = Utils.receiveMessage(client1);
+            assertInstanceOf(AppendEntry.class, resp1);
+        }
     }
 }

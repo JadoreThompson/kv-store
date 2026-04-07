@@ -3,10 +3,10 @@ package com.zenz.kvstore.server.raft;
 import com.zenz.kvstore.common.commands.DeleteCommand;
 import com.zenz.kvstore.common.commands.PutCommand;
 import com.zenz.kvstore.common.enums.ErrorType;
-import com.zenz.kvstore.common.responses.BaseResponse;
-import com.zenz.kvstore.common.responses.ErrorResponse;
-import com.zenz.kvstore.common.responses.PutResponse;
-import com.zenz.kvstore.common.responses.RedirectResponse;
+import com.zenz.kvstore.common.response.BaseResponse;
+import com.zenz.kvstore.common.response.ErrorResponse;
+import com.zenz.kvstore.common.response.PutResponse;
+import com.zenz.kvstore.common.response.RedirectResponse;
 import com.zenz.kvstore.server.KVMapSnapshotter;
 import com.zenz.kvstore.server.KVStore;
 import com.zenz.kvstore.server.command.handler.RaftCommandHandler;
@@ -30,7 +30,6 @@ import java.nio.channels.SocketChannel;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Random;
@@ -136,21 +135,16 @@ class RaftCommandHandlerTest {
     @DisplayName("HandleCommand with fast responding nodes - majority reached quickly")
     void handleCommand_fastNodes_majorityReached() throws Exception {
         Thread commandThread = null;
-        ArrayList<SocketChannel> clients = new ArrayList<>();
 
-        try {
+        try (
+                SocketChannel client1 = Utils.connectClient(nodeConfig.serverAddress());
+                SocketChannel client2 = Utils.connectClient(this.nodeConfig.serverAddress());
+                SocketChannel client3 = Utils.connectClient(this.nodeConfig.serverAddress())
+        ) {
             logHandler.setTerm(1);
             startManager();
             this.commandHandler = new RaftCommandHandler(this.kvStore, this.manager);
             Thread.sleep(500);
-
-            // Connect 3 followers (majority = 2)
-            SocketChannel client1 = Utils.connectClient(nodeConfig.serverAddress());
-            SocketChannel client2 = Utils.connectClient(this.nodeConfig.serverAddress());
-            SocketChannel client3 = Utils.connectClient(this.nodeConfig.serverAddress());
-            clients.add(client1);
-            clients.add(client2);
-            clients.add(client3);
 
             // Sync all followers
             syncFollower(client1);
@@ -171,8 +165,9 @@ class RaftCommandHandlerTest {
             assertTrue(fut.isDone(), "Future should complete when majority responds");
 
         } finally {
-            if (commandThread != null) commandThread.join(1000);
-            for (SocketChannel client : clients) client.close();
+            if (commandThread != null) {
+                commandThread.join(1000);
+            }
         }
     }
 
@@ -190,11 +185,8 @@ class RaftCommandHandlerTest {
         Thread.sleep(500);
 
         // Connect 3 followers
-        SocketChannel client1 = Utils.connectClient(this.nodeConfig.serverAddress());
-        SocketChannel client2 = Utils.connectClient(this.nodeConfig.serverAddress());
-        SocketChannel client3 = Utils.connectClient(this.nodeConfig.serverAddress());
 
-        try {
+        try (SocketChannel client1 = Utils.connectClient(this.nodeConfig.serverAddress()); SocketChannel client2 = Utils.connectClient(this.nodeConfig.serverAddress()); SocketChannel client3 = Utils.connectClient(this.nodeConfig.serverAddress())) {
             // Sync all followers
             syncFollower(client1);
             syncFollower(client2);
@@ -215,10 +207,6 @@ class RaftCommandHandlerTest {
             // Future should complete after majority
             fut.get(3, TimeUnit.SECONDS);
             assertTrue(fut.isDone(), "Future should complete even with slow nodes");
-        } finally {
-            client1.close();
-            client2.close();
-            client3.close();
         }
     }
 
@@ -235,10 +223,9 @@ class RaftCommandHandlerTest {
         Thread.sleep(500);
 
         // Connect 2 followers (majority = 2)
-        SocketChannel client1 = Utils.connectClient(this.nodeConfig.serverAddress());
-        SocketChannel client2 = Utils.connectClient(this.nodeConfig.serverAddress());
-
-        try {
+        try (SocketChannel client1 = Utils.connectClient(this.nodeConfig.serverAddress());
+             SocketChannel client2 = Utils.connectClient(this.nodeConfig.serverAddress())
+        ) {
             syncFollower(client1);
             syncFollower(client2);
 
@@ -260,9 +247,6 @@ class RaftCommandHandlerTest {
             ByteBuffer result = fut.get(2, TimeUnit.SECONDS);
             assertNotNull(result, "Response should not be null for large value command");
             assertTrue(fut.isDone(), "Future should complete for large value command");
-        } finally {
-            client1.close();
-            client2.close();
         }
     }
 
@@ -280,10 +264,11 @@ class RaftCommandHandlerTest {
         Thread.sleep(500);
 
         // Connect 2 followers
-        SocketChannel client1 = Utils.connectClient(this.nodeConfig.serverAddress());
-        SocketChannel client2 = Utils.connectClient(this.nodeConfig.serverAddress());
 
-        try {
+        try (
+                SocketChannel client1 = Utils.connectClient(this.nodeConfig.serverAddress());
+                SocketChannel client2 = Utils.connectClient(this.nodeConfig.serverAddress())
+        ) {
             syncFollower(client1);
             syncFollower(client2);
 
@@ -310,9 +295,6 @@ class RaftCommandHandlerTest {
 
             ByteBuffer result2 = fut2.get(2, TimeUnit.SECONDS);
             assertNotNull(result2, "Second command should return a response");
-        } finally {
-            client1.close();
-            client2.close();
         }
     }
 
@@ -329,13 +311,14 @@ class RaftCommandHandlerTest {
         Thread.sleep(500);
 
         // Connect 5 followers (majority = 3)
-        SocketChannel client1 = Utils.connectClient(this.nodeConfig.serverAddress());
-        SocketChannel client2 = Utils.connectClient(this.nodeConfig.serverAddress());
-        SocketChannel client3 = Utils.connectClient(this.nodeConfig.serverAddress());
-        SocketChannel client4 = Utils.connectClient(this.nodeConfig.serverAddress());
-        SocketChannel client5 = Utils.connectClient(this.nodeConfig.serverAddress());
 
-        try {
+        try (
+                SocketChannel client1 = Utils.connectClient(this.nodeConfig.serverAddress());
+                SocketChannel client2 = Utils.connectClient(this.nodeConfig.serverAddress());
+                SocketChannel client3 = Utils.connectClient(this.nodeConfig.serverAddress());
+                SocketChannel client4 = Utils.connectClient(this.nodeConfig.serverAddress());
+                SocketChannel client5 = Utils.connectClient(this.nodeConfig.serverAddress())
+        ) {
             syncFollower(client1);
             syncFollower(client2);
             syncFollower(client3);
@@ -361,12 +344,6 @@ class RaftCommandHandlerTest {
             // Now future should complete
             ByteBuffer result = fut.get(2, TimeUnit.SECONDS);
             assertNotNull(result, "Future should complete exactly at majority threshold");
-        } finally {
-            client1.close();
-            client2.close();
-            client3.close();
-            client4.close();
-            client5.close();
         }
     }
 
@@ -382,10 +359,10 @@ class RaftCommandHandlerTest {
         this.commandHandler = new RaftCommandHandler(this.kvStore, this.manager);
         Thread.sleep(500);
 
-        SocketChannel client1 = Utils.connectClient(this.nodeConfig.serverAddress());
-        SocketChannel client2 = Utils.connectClient(this.nodeConfig.serverAddress());
-
-        try {
+        try (
+                SocketChannel client1 = Utils.connectClient(this.nodeConfig.serverAddress());
+                SocketChannel client2 = Utils.connectClient(this.nodeConfig.serverAddress())
+        ) {
             syncFollower(client1);
             syncFollower(client2);
 
@@ -405,18 +382,16 @@ class RaftCommandHandlerTest {
             // Check response is Success
             PutResponse putResponse = PutResponse.deserialize(response);
             assertNotNull(putResponse, "Response should not be null");
-        } finally {
-            client1.close();
-            client2.close();
         }
     }
 
     @Test
     @DisplayName("CANDIDATE state returns IN_ELECTION error")
-    void candidateState_returnsInElectionError() throws Exception {
+    void candidateState_returnsInElectionError() {
         // Create a manager and set it to CANDIDATE state
         final int basePort = this.nodeConfig.serverAddress().getPort();
-        NodeConfig candidateConfig = new NodeConfig("candidate", new InetSocketAddress("localhost", basePort + 40), null);
+        NodeConfig candidateConfig =
+                new NodeConfig("candidate", new InetSocketAddress("localhost", basePort + 40), null);
         this.manager = new Manager(kvStore, candidateConfig, Collections.emptyList());
         this.manager.setRole(NodeRole.CANDIDATE);
 
@@ -433,7 +408,7 @@ class RaftCommandHandlerTest {
 
         // Deserialize and verify it's an ErrorResponse with IN_ELECTION
         BaseResponse response = BaseResponse.deserialize(responseBuffer);
-        assertTrue(response instanceof ErrorResponse, "Response should be an ErrorResponse");
+        assertInstanceOf(ErrorResponse.class, response, "Response should be an ErrorResponse");
 
         ErrorResponse errorResponse = (ErrorResponse) response;
         assertEquals(ErrorType.IN_ELECTION, errorResponse.errorType(),
@@ -510,10 +485,10 @@ class RaftCommandHandlerTest {
         this.kvStore.put("deleteKey", "deleteValue".getBytes(StandardCharsets.UTF_8));
         assertNotNull(this.kvStore.get("deleteKey"), "Key should exist before delete");
 
-        SocketChannel client1 = Utils.connectClient(this.nodeConfig.serverAddress());
-        SocketChannel client2 = Utils.connectClient(this.nodeConfig.serverAddress());
-
-        try {
+        try (
+                SocketChannel client1 = Utils.connectClient(this.nodeConfig.serverAddress());
+                SocketChannel client2 = Utils.connectClient(this.nodeConfig.serverAddress())
+        ) {
             syncFollower(client1);
             syncFollower(client2);
 
@@ -531,9 +506,6 @@ class RaftCommandHandlerTest {
 
             ByteBuffer result = fut.get(2, TimeUnit.SECONDS);
             assertNotNull(result, "DELETE command should complete with majority");
-        } finally {
-            client1.close();
-            client2.close();
         }
     }
 
@@ -551,11 +523,11 @@ class RaftCommandHandlerTest {
 
         this.kvStore.put("slowDeleteKey", "value".getBytes(StandardCharsets.UTF_8));
 
-        SocketChannel client1 = Utils.connectClient(this.nodeConfig.serverAddress());
-        SocketChannel client2 = Utils.connectClient(this.nodeConfig.serverAddress());
-        SocketChannel client3 = Utils.connectClient(this.nodeConfig.serverAddress());
-
-        try {
+        try (
+                SocketChannel client1 = Utils.connectClient(this.nodeConfig.serverAddress());
+                SocketChannel client2 = Utils.connectClient(this.nodeConfig.serverAddress());
+                SocketChannel client3 = Utils.connectClient(this.nodeConfig.serverAddress())
+        ) {
             syncFollower(client1);
             syncFollower(client2);
             syncFollower(client3);
@@ -575,10 +547,6 @@ class RaftCommandHandlerTest {
 
             ByteBuffer result = fut.get(3, TimeUnit.SECONDS);
             assertNotNull(result, "DELETE should complete even with slow nodes");
-        } finally {
-            client1.close();
-            client2.close();
-            client3.close();
         }
     }
 
@@ -599,10 +567,10 @@ class RaftCommandHandlerTest {
         this.kvStore.put("del2", "value2".getBytes(StandardCharsets.UTF_8));
         this.kvStore.put("del3", "value3".getBytes(StandardCharsets.UTF_8));
 
-        SocketChannel client1 = Utils.connectClient(this.nodeConfig.serverAddress());
-        SocketChannel client2 = Utils.connectClient(this.nodeConfig.serverAddress());
-
-        try {
+        try (
+                SocketChannel client1 = Utils.connectClient(this.nodeConfig.serverAddress());
+                SocketChannel client2 = Utils.connectClient(this.nodeConfig.serverAddress())
+        ) {
             syncFollower(client1);
             syncFollower(client2);
 
@@ -645,9 +613,6 @@ class RaftCommandHandlerTest {
 
             ByteBuffer result3 = fut3.get(2, TimeUnit.SECONDS);
             assertNotNull(result3, "Third DELETE should complete");
-        } finally {
-            client1.close();
-            client2.close();
         }
     }
 
@@ -667,13 +632,14 @@ class RaftCommandHandlerTest {
         this.kvStore.put("majorityDeleteKey", "value".getBytes(StandardCharsets.UTF_8));
 
         // Connect 5 followers (majority = 3)
-        SocketChannel client1 = Utils.connectClient(this.nodeConfig.serverAddress());
-        SocketChannel client2 = Utils.connectClient(this.nodeConfig.serverAddress());
-        SocketChannel client3 = Utils.connectClient(this.nodeConfig.serverAddress());
-        SocketChannel client4 = Utils.connectClient(this.nodeConfig.serverAddress());
-        SocketChannel client5 = Utils.connectClient(this.nodeConfig.serverAddress());
 
-        try {
+        try (
+                SocketChannel client1 = Utils.connectClient(this.nodeConfig.serverAddress());
+                SocketChannel client2 = Utils.connectClient(this.nodeConfig.serverAddress());
+                SocketChannel client3 = Utils.connectClient(this.nodeConfig.serverAddress());
+                SocketChannel client4 = Utils.connectClient(this.nodeConfig.serverAddress());
+                SocketChannel client5 = Utils.connectClient(this.nodeConfig.serverAddress())
+        ) {
             syncFollower(client1);
             syncFollower(client2);
             syncFollower(client3);
@@ -699,12 +665,6 @@ class RaftCommandHandlerTest {
 
             ByteBuffer result = fut.get(2, TimeUnit.SECONDS);
             assertNotNull(result, "DELETE should complete exactly at majority threshold");
-        } finally {
-            client1.close();
-            client2.close();
-            client3.close();
-            client4.close();
-            client5.close();
         }
     }
 
@@ -723,10 +683,10 @@ class RaftCommandHandlerTest {
         // Ensure key doesn't exist
         assertNull(this.kvStore.get("nonExistentDeleteKey"), "Key should not exist");
 
-        SocketChannel client1 = Utils.connectClient(this.nodeConfig.serverAddress());
-        SocketChannel client2 = Utils.connectClient(this.nodeConfig.serverAddress());
-
-        try {
+        try (
+                SocketChannel client1 = Utils.connectClient(this.nodeConfig.serverAddress());
+                SocketChannel client2 = Utils.connectClient(this.nodeConfig.serverAddress())
+        ) {
             syncFollower(client1);
             syncFollower(client2);
 
@@ -740,9 +700,6 @@ class RaftCommandHandlerTest {
 
             ByteBuffer result = fut.get(2, TimeUnit.SECONDS);
             assertNotNull(result, "DELETE for non-existent key should complete");
-        } finally {
-            client1.close();
-            client2.close();
         }
     }
 
@@ -758,10 +715,10 @@ class RaftCommandHandlerTest {
         this.commandHandler = new RaftCommandHandler(this.kvStore, this.manager);
         Thread.sleep(500);
 
-        SocketChannel client1 = Utils.connectClient(this.nodeConfig.serverAddress());
-        SocketChannel client2 = Utils.connectClient(this.nodeConfig.serverAddress());
-
-        try {
+        try (
+                SocketChannel client1 = Utils.connectClient(this.nodeConfig.serverAddress());
+                SocketChannel client2 = Utils.connectClient(this.nodeConfig.serverAddress())
+        ) {
             syncFollower(client1);
             syncFollower(client2);
 
@@ -789,9 +746,6 @@ class RaftCommandHandlerTest {
 
             // Verify key is deleted
             assertNull(this.kvStore.get("mixedKey"), "Key should be deleted");
-        } finally {
-            client1.close();
-            client2.close();
         }
     }
 }

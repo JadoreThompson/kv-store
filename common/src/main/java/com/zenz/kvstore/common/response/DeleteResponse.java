@@ -1,4 +1,4 @@
-package com.zenz.kvstore.common.responses;
+package com.zenz.kvstore.common.response;
 
 import com.zenz.kvstore.common.enums.ResponseType;
 

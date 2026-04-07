@@ -3,7 +3,7 @@ package com.zenz.kvstore.client;
 import com.zenz.kvstore.common.commands.*;
 import com.zenz.kvstore.common.enums.ErrorType;
 import com.zenz.kvstore.common.enums.ResponseType;
-import com.zenz.kvstore.common.responses.*;
+import com.zenz.kvstore.common.response.*;
 
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;

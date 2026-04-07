@@ -6,7 +6,7 @@ import com.zenz.kvstore.common.commands.GetCommand;
 import com.zenz.kvstore.common.commands.PutCommand;
 import com.zenz.kvstore.common.enums.CommandType;
 import com.zenz.kvstore.common.enums.ErrorType;
-import com.zenz.kvstore.common.responses.*;
+import com.zenz.kvstore.common.response.*;
 import com.zenz.kvstore.server.KVMap;
 import com.zenz.kvstore.server.KVStore;
 import com.zenz.kvstore.server.raft.*;

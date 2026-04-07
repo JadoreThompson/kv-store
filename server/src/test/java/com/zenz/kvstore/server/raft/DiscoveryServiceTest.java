@@ -1,8 +1,8 @@
 package com.zenz.kvstore.server.raft;
 
 import com.zenz.kvstore.client.KVStoreClient;
-import com.zenz.kvstore.common.responses.GetResponse;
-import com.zenz.kvstore.common.responses.SearchResponse;
+import com.zenz.kvstore.common.response.GetResponse;
+import com.zenz.kvstore.common.response.SearchResponse;
 import com.zenz.kvstore.common.utils.Utils;
 import com.zenz.kvstore.server.KVMapSnapshotter;
 import com.zenz.kvstore.server.KVServer;

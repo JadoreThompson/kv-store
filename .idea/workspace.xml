@@ -4,8 +4,9 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="f2a63f83-7187-4a54-8703-b4d1ce6944cf" name="Changes" comment="saving - Implemented client utils in raft test package">
-      <change beforePath="$PROJECT_DIR$/server/src/test/java/com/zenz/kvstore/server/raft/DiscoveryServiceTest.java.bak" beforeDir="false" afterPath="$PROJECT_DIR$/server/src/test/java/com/zenz/kvstore/server/raft/DiscoveryServiceTest.java" afterDir="false" />
+    <list default="true" id="f2a63f83-7187-4a54-8703-b4d1ce6944cf" name="Changes" comment="Improved code quality in RaftControllerTest ; Fixed compilation error in DiscoveryServiceTest">
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/server/src/test/java/com/zenz/kvstore/server/raft/RaftCommandHandlerTest.java" beforeDir="false" afterPath="$PROJECT_DIR$/server/src/test/java/com/zenz/kvstore/server/raft/RaftCommandHandlerTest.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -59,82 +60,83 @@
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent">{
-  &quot;keyToString&quot;: {
-    &quot;JUnit.DiscoveryServiceTest$EdgeCaseTests.executor&quot;: &quot;Run&quot;,
-    &quot;JUnit.DiscoveryServiceTest$GetMemberTests.getMember_shouldReturnDeserializedNodeConfig.executor&quot;: &quot;Run&quot;,
-    &quot;JUnit.DiscoveryServiceTest$GetMembersTests.getMembers_shouldHandleIOException.executor&quot;: &quot;Run&quot;,
-    &quot;JUnit.DiscoveryServiceTest.executor&quot;: &quot;Run&quot;,
-    &quot;JUnit.KVMapSnapshotterTest.executor&quot;: &quot;Run&quot;,
-    &quot;JUnit.KVMapTest and 2 more.executor&quot;: &quot;Run&quot;,
-    &quot;JUnit.KVStoreTest.executor&quot;: &quot;Run&quot;,
-    &quot;JUnit.KVStoreTest.search_afterRestoreFromSnapshotAndWAL_returnsCorrectResults.executor&quot;: &quot;Run&quot;,
-    &quot;JUnit.KVStoreTest.search_afterRestoreFromSnapshot_returnsCorrectResults.executor&quot;: &quot;Run&quot;,
-    &quot;JUnit.KVStoreTest.search_afterRestoreFromWALWithDeletes_returnsCorrectResults.executor&quot;: &quot;Run&quot;,
-    &quot;JUnit.KVStoreTest.search_afterRestoreFromWAL_returnsCorrectResults.executor&quot;: &quot;Run&quot;,
-    &quot;JUnit.KVStoreTest.search_afterRestoreWithDeletes_returnsCorrectResults.executor&quot;: &quot;Run&quot;,
-    &quot;JUnit.KVStoreTest.search_afterRestoreWithEmptyKey_handlesCorrectly.executor&quot;: &quot;Run&quot;,
-    &quot;JUnit.KVStoreTest.search_afterRestoreWithKeyDeletedInWAL_keyNotFound.executor&quot;: &quot;Run&quot;,
-    &quot;JUnit.KVStoreTest.search_afterRestoreWithOverlappingKeys_returnsCorrectResults.executor&quot;: &quot;Run&quot;,
-    &quot;JUnit.KVStoreTest.search_afterRestoreWithReaddedKey_keyFound.executor&quot;: &quot;Run&quot;,
-    &quot;JUnit.KVStoreTest.search_emptySnapshot_returnsEmptyList.executor&quot;: &quot;Run&quot;,
-    &quot;JUnit.KVStoreTest.search_largeDatasetAfterRestore_returnsCorrectResults.executor&quot;: &quot;Run&quot;,
-    &quot;JUnit.LeaderElectionNewTest.executor&quot;: &quot;Run&quot;,
-    &quot;JUnit.LeaderElectionNewTest.testBootstrapConcludes_withFreshNodes.executor&quot;: &quot;Run&quot;,
-    &quot;JUnit.LeaderElectionTest.brokerConnectionFailure_incrementsVoteCount_duringElection.executor&quot;: &quot;Run&quot;,
-    &quot;JUnit.LeaderElectionTest.brokerWithHigherLogTerm_initiatesOwnElection_onStaleVoteRequest.executor&quot;: &quot;Run&quot;,
-    &quot;JUnit.LeaderElectionTest.completeElectionCycle_fromInitiationToCompletion_with3Nodes.executor&quot;: &quot;Run&quot;,
-    &quot;JUnit.LeaderElectionTest.electionCompletes_withMultipleBrokerConnectionFailures.executor&quot;: &quot;Run&quot;,
-    &quot;JUnit.LeaderElectionTest.electionSucceeds_despiteInitialVoteDenial.executor&quot;: &quot;Run&quot;,
-    &quot;JUnit.LeaderElectionTest.executor&quot;: &quot;Run&quot;,
-    &quot;JUnit.LeaderElectionTest.multipleElections_withIncreasingTerms.executor&quot;: &quot;Run&quot;,
-    &quot;JUnit.LeaderElectionTest.nodeReceivingVoteRequest_withGreaterTermLowerLogId_initiatesElectionWithoutDuplicate.executor&quot;: &quot;Run&quot;,
-    &quot;JUnit.LeaderElectionTest.testBootstrapConcludes_withFreshNodes.executor&quot;: &quot;Run&quot;,
-    &quot;JUnit.LeaderElectionTest.voteResponseWithMismatchedTerm_isIgnored_duringElection.executor&quot;: &quot;Run&quot;,
-    &quot;JUnit.RaftCommandHandlerNewTest.brokerState_returnsRedirectToController.executor&quot;: &quot;Run&quot;,
-    &quot;JUnit.RaftCommandHandlerNewTest.deleteCommand_candidateState_returnsInElectionError.executor&quot;: &quot;Run&quot;,
-    &quot;JUnit.RaftCommandHandlerNewTest.deleteCommand_minimumMajority_completesAtThreshold.executor&quot;: &quot;Run&quot;,
-    &quot;JUnit.RaftCommandHandlerNewTest.executor&quot;: &quot;Run&quot;,
-    &quot;JUnit.RaftCommandHandlerNewTest.handleCommand_fastNodes_majorityReached.executor&quot;: &quot;Run&quot;,
-    &quot;JUnit.RaftCommandHandlerNewTest.handleCommand_slowNodes_majorityReachedAfterDelay.executor&quot;: &quot;Run&quot;,
-    &quot;JUnit.RaftCommandHandlerTest.executor&quot;: &quot;Run&quot;,
-    &quot;JUnit.RaftCommandHandlerTest.handleCommand_fastNodes_majorityReached.executor&quot;: &quot;Run&quot;,
-    &quot;JUnit.RaftCommandHandlerTest.handleCommand_largeValue_processesCorrectly.executor&quot;: &quot;Run&quot;,
-    &quot;JUnit.RaftControllerTest.executor&quot;: &quot;Run&quot;,
-    &quot;JUnit.RaftControllerTest.findingNextLog_returnsCorrectNextLog.executor&quot;: &quot;Run&quot;,
-    &quot;JUnit.RaftControllerTest.followerUpToDate_sameLogIdAndTerm_returnsMostRecentLog.executor&quot;: &quot;Run&quot;,
-    &quot;JUnit.RaftControllerTest.freshFollower_bothNodesEmpty_returnsEmptyCommand.executor&quot;: &quot;Run&quot;,
-    &quot;JUnit.RaftControllerTest.freshFollower_noSnapshot_returnsFirstLog.executor&quot;: &quot;Run&quot;,
-    &quot;JUnit.RaftControllerTest.freshFollower_withSnapshot_returnsSnapshot.executor&quot;: &quot;Run&quot;,
-    &quot;JUnit.RaftControllerTest.largeSnapshot.executor&quot;: &quot;Run&quot;,
-    &quot;JUnit.RaftControllerTest.requestLogIdBeforeFirstLog_withSnapshot_returnsSnapshot.executor&quot;: &quot;Run&quot;,
-    &quot;JUnit.RaftControllerTest.sameLogIdDifferentTerm_returnsError.executor&quot;: &quot;Run&quot;,
-    &quot;JUnit.RestorerTest and 1 more.executor&quot;: &quot;Run&quot;,
-    &quot;JUnit.TrieTest$AddMethodTests.executor&quot;: &quot;Run&quot;,
-    &quot;JUnit.TrieTest$AddMethodTests.shouldHandleCaseSensitivity.executor&quot;: &quot;Run&quot;,
-    &quot;JUnit.TrieTest$ConstructorTests.executor&quot;: &quot;Run&quot;,
-    &quot;JUnit.TrieTest$EdgeCaseTests.executor&quot;: &quot;Run&quot;,
-    &quot;JUnit.TrieTest$GetCharacterMethodTests.executor&quot;: &quot;Run&quot;,
-    &quot;JUnit.TrieTest$IntegrationTests.executor&quot;: &quot;Run&quot;,
-    &quot;JUnit.TrieTest$RemoveMethodTests.executor&quot;: &quot;Run&quot;,
-    &quot;JUnit.TrieTest$SearchMethodTests.executor&quot;: &quot;Run&quot;,
-    &quot;JUnit.TrieTest.executor&quot;: &quot;Run&quot;,
-    &quot;JUnit.raft in server.executor&quot;: &quot;Run&quot;,
-    &quot;JUnit.server in server.executor&quot;: &quot;Run&quot;,
-    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
-    &quot;RunOnceActivity.TerminalTabsStorage.copyFrom.TerminalArrangementManager.252&quot;: &quot;true&quot;,
-    &quot;RunOnceActivity.git.unshallow&quot;: &quot;true&quot;,
-    &quot;RunOnceActivity.typescript.service.memoryLimit.init&quot;: &quot;true&quot;,
-    &quot;git-widget-placeholder&quot;: &quot;feature/node-discovery&quot;,
-    &quot;kotlin-language-version-configured&quot;: &quot;true&quot;,
-    &quot;last_opened_file_path&quot;: &quot;C:/Users/ADMIN/MyProjects/kvstore&quot;,
-    &quot;node.js.detected.package.eslint&quot;: &quot;true&quot;,
-    &quot;node.js.selected.package.eslint&quot;: &quot;(autodetect)&quot;,
-    &quot;nodejs_package_manager_path&quot;: &quot;npm&quot;,
-    &quot;settings.editor.selected.configurable&quot;: &quot;preferences.lookFeel&quot;,
-    &quot;vue.rearranger.settings.migration&quot;: &quot;true&quot;
+  <component name="PropertiesComponent"><![CDATA[{
+  "keyToString": {
+    "JUnit.DiscoveryServiceTest$EdgeCaseTests.executor": "Run",
+    "JUnit.DiscoveryServiceTest$GetMemberTests.getMember_shouldReturnDeserializedNodeConfig.executor": "Run",
+    "JUnit.DiscoveryServiceTest$GetMembersTests.getMembers_shouldHandleIOException.executor": "Run",
+    "JUnit.DiscoveryServiceTest$IntegrationTests.fullWorkflow_shouldWorkCorrectly.executor": "Run",
+    "JUnit.DiscoveryServiceTest.executor": "Run",
+    "JUnit.KVMapSnapshotterTest.executor": "Run",
+    "JUnit.KVMapTest and 2 more.executor": "Run",
+    "JUnit.KVStoreTest.executor": "Run",
+    "JUnit.KVStoreTest.search_afterRestoreFromSnapshotAndWAL_returnsCorrectResults.executor": "Run",
+    "JUnit.KVStoreTest.search_afterRestoreFromSnapshot_returnsCorrectResults.executor": "Run",
+    "JUnit.KVStoreTest.search_afterRestoreFromWALWithDeletes_returnsCorrectResults.executor": "Run",
+    "JUnit.KVStoreTest.search_afterRestoreFromWAL_returnsCorrectResults.executor": "Run",
+    "JUnit.KVStoreTest.search_afterRestoreWithDeletes_returnsCorrectResults.executor": "Run",
+    "JUnit.KVStoreTest.search_afterRestoreWithEmptyKey_handlesCorrectly.executor": "Run",
+    "JUnit.KVStoreTest.search_afterRestoreWithKeyDeletedInWAL_keyNotFound.executor": "Run",
+    "JUnit.KVStoreTest.search_afterRestoreWithOverlappingKeys_returnsCorrectResults.executor": "Run",
+    "JUnit.KVStoreTest.search_afterRestoreWithReaddedKey_keyFound.executor": "Run",
+    "JUnit.KVStoreTest.search_emptySnapshot_returnsEmptyList.executor": "Run",
+    "JUnit.KVStoreTest.search_largeDatasetAfterRestore_returnsCorrectResults.executor": "Run",
+    "JUnit.LeaderElectionNewTest.executor": "Run",
+    "JUnit.LeaderElectionNewTest.testBootstrapConcludes_withFreshNodes.executor": "Run",
+    "JUnit.LeaderElectionTest.brokerConnectionFailure_incrementsVoteCount_duringElection.executor": "Run",
+    "JUnit.LeaderElectionTest.brokerWithHigherLogTerm_initiatesOwnElection_onStaleVoteRequest.executor": "Run",
+    "JUnit.LeaderElectionTest.completeElectionCycle_fromInitiationToCompletion_with3Nodes.executor": "Run",
+    "JUnit.LeaderElectionTest.electionCompletes_withMultipleBrokerConnectionFailures.executor": "Run",
+    "JUnit.LeaderElectionTest.electionSucceeds_despiteInitialVoteDenial.executor": "Run",
+    "JUnit.LeaderElectionTest.executor": "Run",
+    "JUnit.LeaderElectionTest.multipleElections_withIncreasingTerms.executor": "Run",
+    "JUnit.LeaderElectionTest.nodeReceivingVoteRequest_withGreaterTermLowerLogId_initiatesElectionWithoutDuplicate.executor": "Run",
+    "JUnit.LeaderElectionTest.testBootstrapConcludes_withFreshNodes.executor": "Run",
+    "JUnit.LeaderElectionTest.voteResponseWithMismatchedTerm_isIgnored_duringElection.executor": "Run",
+    "JUnit.RaftCommandHandlerNewTest.brokerState_returnsRedirectToController.executor": "Run",
+    "JUnit.RaftCommandHandlerNewTest.deleteCommand_candidateState_returnsInElectionError.executor": "Run",
+    "JUnit.RaftCommandHandlerNewTest.deleteCommand_minimumMajority_completesAtThreshold.executor": "Run",
+    "JUnit.RaftCommandHandlerNewTest.executor": "Run",
+    "JUnit.RaftCommandHandlerNewTest.handleCommand_fastNodes_majorityReached.executor": "Run",
+    "JUnit.RaftCommandHandlerNewTest.handleCommand_slowNodes_majorityReachedAfterDelay.executor": "Run",
+    "JUnit.RaftCommandHandlerTest.executor": "Run",
+    "JUnit.RaftCommandHandlerTest.handleCommand_fastNodes_majorityReached.executor": "Run",
+    "JUnit.RaftCommandHandlerTest.handleCommand_largeValue_processesCorrectly.executor": "Run",
+    "JUnit.RaftControllerTest.executor": "Run",
+    "JUnit.RaftControllerTest.findingNextLog_returnsCorrectNextLog.executor": "Run",
+    "JUnit.RaftControllerTest.followerUpToDate_sameLogIdAndTerm_returnsMostRecentLog.executor": "Run",
+    "JUnit.RaftControllerTest.freshFollower_bothNodesEmpty_returnsEmptyCommand.executor": "Run",
+    "JUnit.RaftControllerTest.freshFollower_noSnapshot_returnsFirstLog.executor": "Run",
+    "JUnit.RaftControllerTest.freshFollower_withSnapshot_returnsSnapshot.executor": "Run",
+    "JUnit.RaftControllerTest.largeSnapshot.executor": "Run",
+    "JUnit.RaftControllerTest.requestLogIdBeforeFirstLog_withSnapshot_returnsSnapshot.executor": "Run",
+    "JUnit.RaftControllerTest.sameLogIdDifferentTerm_returnsError.executor": "Run",
+    "JUnit.RestorerTest and 1 more.executor": "Run",
+    "JUnit.TrieTest$AddMethodTests.executor": "Run",
+    "JUnit.TrieTest$AddMethodTests.shouldHandleCaseSensitivity.executor": "Run",
+    "JUnit.TrieTest$ConstructorTests.executor": "Run",
+    "JUnit.TrieTest$EdgeCaseTests.executor": "Run",
+    "JUnit.TrieTest$GetCharacterMethodTests.executor": "Run",
+    "JUnit.TrieTest$IntegrationTests.executor": "Run",
+    "JUnit.TrieTest$RemoveMethodTests.executor": "Run",
+    "JUnit.TrieTest$SearchMethodTests.executor": "Run",
+    "JUnit.TrieTest.executor": "Run",
+    "JUnit.raft in server.executor": "Run",
+    "JUnit.server in server.executor": "Run",
+    "RunOnceActivity.ShowReadmeOnStart": "true",
+    "RunOnceActivity.TerminalTabsStorage.copyFrom.TerminalArrangementManager.252": "true",
+    "RunOnceActivity.git.unshallow": "true",
+    "RunOnceActivity.typescript.service.memoryLimit.init": "true",
+    "git-widget-placeholder": "feature/node-discovery",
+    "kotlin-language-version-configured": "true",
+    "last_opened_file_path": "C:/Users/ADMIN/MyProjects/kvstore",
+    "node.js.detected.package.eslint": "true",
+    "node.js.selected.package.eslint": "(autodetect)",
+    "nodejs_package_manager_path": "npm",
+    "settings.editor.selected.configurable": "preferences.lookFeel",
+    "vue.rearranger.settings.migration": "true"
   }
-}</component>
+}]]></component>
   <component name="RecentsManager">
     <key name="CopyFile.RECENT_KEYS">
       <recent name="C:\Users\ADMIN\MyProjects\kvstore" />
@@ -147,8 +149,8 @@
       <recent name="com.zenz.kvstore.server.raft" />
     </key>
   </component>
-  <component name="RunManager" selected="JUnit.RaftCommandHandlerTest">
-    <configuration name="LeaderElectionTest" type="JUnit" factoryName="JUnit" temporary="true" nameIsGenerated="true">
+  <component name="RunManager" selected="JUnit.DiscoveryServiceTest">
+    <configuration name="DiscoveryServiceTest$IntegrationTests.fullWorkflow_shouldWorkCorrectly" type="JUnit" factoryName="JUnit" temporary="true" nameIsGenerated="true">
       <module name="server" />
       <extension name="coverage">
         <pattern>
@@ -156,14 +158,15 @@
           <option name="ENABLED" value="true" />
         </pattern>
       </extension>
-      <option name="PACKAGE_NAME" value="com.zenz.kvstore.server.raft" />
-      <option name="MAIN_CLASS_NAME" value="com.zenz.kvstore.server.raft.LeaderElectionTest" />
-      <option name="TEST_OBJECT" value="class" />
+      <option name="PACKAGE_NAME" value="com.zenz.kvstore.server.raft.DiscoveryServiceTest" />
+      <option name="MAIN_CLASS_NAME" value="com.zenz.kvstore.server.raft.DiscoveryServiceTest$IntegrationTests" />
+      <option name="METHOD_NAME" value="fullWorkflow_shouldWorkCorrectly" />
+      <option name="TEST_OBJECT" value="method" />
       <method v="2">
         <option name="Make" enabled="true" />
       </method>
     </configuration>
-    <configuration name="LeaderElectionTest.completeElectionCycle_fromInitiationToCompletion_with3Nodes" type="JUnit" factoryName="JUnit" temporary="true" nameIsGenerated="true">
+    <configuration name="DiscoveryServiceTest" type="JUnit" factoryName="JUnit" temporary="true" nameIsGenerated="true">
       <module name="server" />
       <extension name="coverage">
         <pattern>
@@ -172,9 +175,8 @@
         </pattern>
       </extension>
       <option name="PACKAGE_NAME" value="com.zenz.kvstore.server.raft" />
-      <option name="MAIN_CLASS_NAME" value="com.zenz.kvstore.server.raft.LeaderElectionTest" />
-      <option name="METHOD_NAME" value="completeElectionCycle_fromInitiationToCompletion_with3Nodes" />
-      <option name="TEST_OBJECT" value="method" />
+      <option name="MAIN_CLASS_NAME" value="com.zenz.kvstore.server.raft.DiscoveryServiceTest" />
+      <option name="TEST_OBJECT" value="class" />
       <method v="2">
         <option name="Make" enabled="true" />
       </method>
@@ -195,22 +197,6 @@
         <option name="Make" enabled="true" />
       </method>
     </configuration>
-    <configuration name="LeaderElectionTest.electionSucceeds_despiteInitialVoteDenial" type="JUnit" factoryName="JUnit" temporary="true" nameIsGenerated="true">
-      <module name="server" />
-      <extension name="coverage">
-        <pattern>
-          <option name="PATTERN" value="com.zenz.kvstore.server.raft.*" />
-          <option name="ENABLED" value="true" />
-        </pattern>
-      </extension>
-      <option name="PACKAGE_NAME" value="com.zenz.kvstore.server.raft" />
-      <option name="MAIN_CLASS_NAME" value="com.zenz.kvstore.server.raft.LeaderElectionTest" />
-      <option name="METHOD_NAME" value="electionSucceeds_despiteInitialVoteDenial" />
-      <option name="TEST_OBJECT" value="method" />
-      <method v="2">
-        <option name="Make" enabled="true" />
-      </method>
-    </configuration>
     <configuration name="RaftCommandHandlerTest" type="JUnit" factoryName="JUnit" temporary="true" nameIsGenerated="true">
       <module name="server" />
       <extension name="coverage">
@@ -226,13 +212,28 @@
         <option name="Make" enabled="true" />
       </method>
     </configuration>
+    <configuration name="RaftControllerTest" type="JUnit" factoryName="JUnit" temporary="true" nameIsGenerated="true">
+      <module name="server" />
+      <extension name="coverage">
+        <pattern>
+          <option name="PATTERN" value="com.zenz.kvstore.server.raft.*" />
+          <option name="ENABLED" value="true" />
+        </pattern>
+      </extension>
+      <option name="PACKAGE_NAME" value="com.zenz.kvstore.server.raft" />
+      <option name="MAIN_CLASS_NAME" value="com.zenz.kvstore.server.raft.RaftControllerTest" />
+      <option name="TEST_OBJECT" value="class" />
+      <method v="2">
+        <option name="Make" enabled="true" />
+      </method>
+    </configuration>
     <recent_temporary>
       <list>
+        <item itemvalue="JUnit.DiscoveryServiceTest" />
+        <item itemvalue="JUnit.DiscoveryServiceTest$IntegrationTests.fullWorkflow_shouldWorkCorrectly" />
+        <item itemvalue="JUnit.RaftControllerTest" />
         <item itemvalue="JUnit.RaftCommandHandlerTest" />
         <item itemvalue="JUnit.LeaderElectionTest.electionCompletes_withMultipleBrokerConnectionFailures" />
-        <item itemvalue="JUnit.LeaderElectionTest" />
-        <item itemvalue="JUnit.LeaderElectionTest.electionSucceeds_despiteInitialVoteDenial" />
-        <item itemvalue="JUnit.LeaderElectionTest.completeElectionCycle_fromInitiationToCompletion_with3Nodes" />
       </list>
     </recent_temporary>
   </component>
@@ -291,7 +292,7 @@
       <workItem from="1775397572068" duration="12654000" />
       <workItem from="1775460581804" duration="22958000" />
       <workItem from="1775496106224" duration="1301000" />
-      <workItem from="1775545202924" duration="11111000" />
+      <workItem from="1775545202924" duration="14163000" />
     </task>
     <task id="LOCAL-00002" summary="Handling broker disconnect during election">
       <option name="closed" value="true" />
@@ -357,11 +358,46 @@
       <option name="project" value="LOCAL" />
       <updated>1775493052724</updated>
     </task>
-    <option name="localTasksCounter" value="10" />
+    <task id="LOCAL-00010" summary="Removed unused properties in RaftCommandHandlerTest">
+      <option name="closed" value="true" />
+      <created>1775557195619</created>
+      <option name="number" value="00010" />
+      <option name="presentableId" value="LOCAL-00010" />
+      <option name="project" value="LOCAL" />
+      <updated>1775557195619</updated>
+    </task>
+    <task id="LOCAL-00011" summary="saving - Improved code quality in RaftControllerTest">
+      <option name="closed" value="true" />
+      <created>1775558277754</created>
+      <option name="number" value="00011" />
+      <option name="presentableId" value="LOCAL-00011" />
+      <option name="project" value="LOCAL" />
+      <updated>1775558277754</updated>
+    </task>
+    <task id="LOCAL-00012" summary="Improved code quality in RaftControllerTest ; Fixed compilation error in DiscoveryServiceTest">
+      <option name="closed" value="true" />
+      <created>1775559198329</created>
+      <option name="number" value="00012" />
+      <option name="presentableId" value="LOCAL-00012" />
+      <option name="project" value="LOCAL" />
+      <updated>1775559198329</updated>
+    </task>
+    <option name="localTasksCounter" value="13" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
     <option name="version" value="3" />
+  </component>
+  <component name="Vcs.Log.Tabs.Properties">
+    <option name="TAB_STATES">
+      <map>
+        <entry key="MAIN">
+          <value>
+            <State />
+          </value>
+        </entry>
+      </map>
+    </option>
   </component>
   <component name="VcsManagerConfiguration">
     <MESSAGE value="saving - Handling broker disconnect during election" />
@@ -373,6 +409,9 @@
     <MESSAGE value="Created BrokerClient" />
     <MESSAGE value="Implemeted" />
     <MESSAGE value="saving - Implemented client utils in raft test package" />
-    <option name="LAST_COMMIT_MESSAGE" value="saving - Implemented client utils in raft test package" />
+    <MESSAGE value="Removed unused properties in RaftCommandHandlerTest" />
+    <MESSAGE value="saving - Improved code quality in RaftControllerTest" />
+    <MESSAGE value="Improved code quality in RaftControllerTest ; Fixed compilation error in DiscoveryServiceTest" />
+    <option name="LAST_COMMIT_MESSAGE" value="Improved code quality in RaftControllerTest ; Fixed compilation error in DiscoveryServiceTest" />
   </component>
 </project>

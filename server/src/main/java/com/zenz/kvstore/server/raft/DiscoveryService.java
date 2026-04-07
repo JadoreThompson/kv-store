@@ -1,8 +1,8 @@
 package com.zenz.kvstore.server.raft;
 
 import com.zenz.kvstore.client.KVStoreClient;
-import com.zenz.kvstore.common.responses.GetResponse;
-import com.zenz.kvstore.common.responses.SearchResponse;
+import com.zenz.kvstore.common.response.GetResponse;
+import com.zenz.kvstore.common.response.SearchResponse;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
