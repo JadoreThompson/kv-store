@@ -13,7 +13,7 @@ import com.zenz.kvstore.common.response.GetResponse;
 import com.zenz.kvstore.common.response.PutResponse;
 import com.zenz.kvstore.server.command.handler.CommandHandler;
 import com.zenz.kvstore.server.logging.WALogger;
-import com.zenz.kvstore.server.logging.handlers.LogHandler;
+import com.zenz.kvstore.server.logging.handler.LogHandler;
 import com.zenz.kvstore.server.restorer.Restorer;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
@@ -146,7 +146,7 @@ class KVServerTest {
         sendCommand(client, new PutCommand("testkey", "testvalue".getBytes(StandardCharsets.UTF_8)));
         BaseResponse response = receiveResponse(client);
 
-        assertTrue(response instanceof PutResponse, "Response should be PutResponse");
+        assertInstanceOf(PutResponse.class, response, "Response should be PutResponse");
         assertEquals(ResponseType.PUT_RESPONSE, response.type());
         client.close();
     }
@@ -162,7 +162,7 @@ class KVServerTest {
         sendCommand(client, new GetCommand("mykey"));
         BaseResponse response = receiveResponse(client);
 
-        assertTrue(response instanceof GetResponse, "Response should be GetResponse");
+        assertInstanceOf(GetResponse.class, response, "Response should be GetResponse");
         GetResponse getResponse = (GetResponse) response;
         assertEquals("myvalue", new String(getResponse.value(), StandardCharsets.UTF_8));
         client.close();
@@ -178,7 +178,7 @@ class KVServerTest {
         sendCommand(client, new GetCommand("greeting"));
         BaseResponse response = receiveResponse(client);
 
-        assertTrue(response instanceof GetResponse, "Response should be GetResponse");
+        assertInstanceOf(GetResponse.class, response, "Response should be GetResponse");
         GetResponse getResponse = (GetResponse) response;
         assertEquals("hello world", new String(getResponse.value(), StandardCharsets.UTF_8));
         client.close();
@@ -196,7 +196,7 @@ class KVServerTest {
         sendCommand(client, new GetCommand("existingkey"));
         BaseResponse response = receiveResponse(client);
 
-        assertTrue(response instanceof GetResponse, "Response should be GetResponse");
+        assertInstanceOf(GetResponse.class, response, "Response should be GetResponse");
         GetResponse getResponse = (GetResponse) response;
         assertEquals("existingvalue", new String(getResponse.value(), StandardCharsets.UTF_8));
         client.close();
@@ -209,7 +209,7 @@ class KVServerTest {
         sendCommand(client, new GetCommand("nonexistentkey"));
         BaseResponse response = receiveResponse(client);
 
-        assertTrue(response instanceof GetResponse, "Response should be GetResponse");
+        assertInstanceOf(GetResponse.class, response, "Response should be GetResponse");
         GetResponse getResponse = (GetResponse) response;
         assertTrue(getResponse.isNull(), "Response should indicate null value");
         assertNull(getResponse.value(), "Value should be null for missing key");
@@ -223,7 +223,7 @@ class KVServerTest {
         // PUT
         sendCommand(client, new PutCommand("key1", "value1".getBytes(StandardCharsets.UTF_8)));
         BaseResponse putResponse1 = receiveResponse(client);
-        assertTrue(putResponse1 instanceof PutResponse);
+        assertInstanceOf(PutResponse.class, putResponse1);
 
         // GET
         sendCommand(client, new GetCommand("key1"));
@@ -233,7 +233,7 @@ class KVServerTest {
         // PUT overwrite
         sendCommand(client, new PutCommand("key1", "newvalue".getBytes(StandardCharsets.UTF_8)));
         BaseResponse putResponse2 = receiveResponse(client);
-        assertTrue(putResponse2 instanceof PutResponse);
+        assertInstanceOf(PutResponse.class, putResponse2);
 
         // GET updated
         sendCommand(client, new GetCommand("key1"));
@@ -249,13 +249,13 @@ class KVServerTest {
 
         // Store multiple keys
         sendCommand(client, new PutCommand("keyA", "valueA".getBytes(StandardCharsets.UTF_8)));
-        assertTrue(receiveResponse(client) instanceof PutResponse);
+        assertInstanceOf(PutResponse.class, receiveResponse(client));
 
         sendCommand(client, new PutCommand("keyB", "valueB".getBytes(StandardCharsets.UTF_8)));
-        assertTrue(receiveResponse(client) instanceof PutResponse);
+        assertInstanceOf(PutResponse.class, receiveResponse(client));
 
         sendCommand(client, new PutCommand("keyC", "valueC".getBytes(StandardCharsets.UTF_8)));
-        assertTrue(receiveResponse(client) instanceof PutResponse);
+        assertInstanceOf(PutResponse.class, receiveResponse(client));
 
         // Retrieve all
         sendCommand(client, new GetCommand("keyA"));
@@ -308,7 +308,7 @@ class KVServerTest {
         // Verify response
         result.rewind();
         BaseResponse response = BaseResponse.deserialize(result);
-        assertTrue(response instanceof PutResponse, "Response should be PutResponse");
+        assertInstanceOf(PutResponse.class, response, "Response should be PutResponse");
 
         // Verify value was stored
         KVMap.Node node = testStore.getMap().get("handlerKey");
@@ -344,7 +344,7 @@ class KVServerTest {
         // Verify response
         result.rewind();
         BaseResponse response = BaseResponse.deserialize(result);
-        assertTrue(response instanceof GetResponse, "Response should be GetResponse");
+        assertInstanceOf(GetResponse.class, response, "Response should be GetResponse");
         GetResponse getResponse = (GetResponse) response;
         assertEquals("getValue", new String(getResponse.value(), StandardCharsets.UTF_8));
 
@@ -375,7 +375,7 @@ class KVServerTest {
         result.rewind();
         BaseResponse response = BaseResponse.deserialize(result);
 
-        assertTrue(response instanceof GetResponse, "Response should be GetResponse");
+        assertInstanceOf(GetResponse.class, response, "Response should be GetResponse");
         GetResponse getResponse = (GetResponse) response;
         assertTrue(getResponse.isNull(), "Response should indicate null value");
         assertNull(getResponse.value(), "Value should be null for missing key");
@@ -410,7 +410,7 @@ class KVServerTest {
         // Verify response
         result.rewind();
         BaseResponse response = BaseResponse.deserialize(result);
-        assertTrue(response instanceof PutResponse, "Response should be PutResponse");
+        assertInstanceOf(PutResponse.class, response, "Response should be PutResponse");
 
         // Verify value was overwritten
         KVMap.Node node = testStore.getMap().get("overwriteKey");
@@ -442,7 +442,7 @@ class KVServerTest {
         // Verify response
         result.rewind();
         BaseResponse response = BaseResponse.deserialize(result);
-        assertTrue(response instanceof PutResponse, "Response should be PutResponse");
+        assertInstanceOf(PutResponse.class, response, "Response should be PutResponse");
 
         // Verify value was stored
         KVMap.Node node = testStore.getMap().get("emptyKey");
@@ -476,7 +476,7 @@ class KVServerTest {
         // Verify response
         result.rewind();
         BaseResponse response = BaseResponse.deserialize(result);
-        assertTrue(response instanceof PutResponse, "Response should be PutResponse");
+        assertInstanceOf(PutResponse.class, response, "Response should be PutResponse");
 
         // Verify value was stored correctly
         KVMap.Node node = testStore.getMap().get("binaryKey");
@@ -498,7 +498,7 @@ class KVServerTest {
 
         Command deserialized = Command.deserialize(serialized);
 
-        assertTrue(deserialized instanceof PutCommand, "Should deserialize to PutCommand");
+        assertInstanceOf(PutCommand.class, deserialized, "Should deserialize to PutCommand");
         PutCommand putCommand = (PutCommand) deserialized;
         assertEquals(key, putCommand.key());
         assertArrayEquals(value, putCommand.value());
@@ -513,7 +513,7 @@ class KVServerTest {
 
         Command deserialized = Command.deserialize(serialized);
 
-        assertTrue(deserialized instanceof GetCommand, "Should deserialize to GetCommand");
+        assertInstanceOf(GetCommand.class, deserialized, "Should deserialize to GetCommand");
         GetCommand getCommand = (GetCommand) deserialized;
         assertEquals(key, getCommand.key());
     }
@@ -561,7 +561,7 @@ class KVServerTest {
         ByteBuffer buffer = ByteBuffer.wrap(serialized);
         BaseResponse deserialized = BaseResponse.deserialize(buffer);
 
-        assertTrue(deserialized instanceof PutResponse, "Should deserialize to PutResponse");
+        assertInstanceOf(PutResponse.class, deserialized, "Should deserialize to PutResponse");
         assertEquals(ResponseType.PUT_RESPONSE, deserialized.type());
     }
 
@@ -574,7 +574,7 @@ class KVServerTest {
         ByteBuffer buffer = ByteBuffer.wrap(serialized);
         BaseResponse deserialized = BaseResponse.deserialize(buffer);
 
-        assertTrue(deserialized instanceof GetResponse, "Should deserialize to GetResponse");
+        assertInstanceOf(GetResponse.class, deserialized, "Should deserialize to GetResponse");
         GetResponse getResponse = (GetResponse) deserialized;
         assertArrayEquals(value, getResponse.value());
     }
@@ -587,7 +587,7 @@ class KVServerTest {
         ByteBuffer buffer = ByteBuffer.wrap(serialized);
         BaseResponse deserialized = BaseResponse.deserialize(buffer);
 
-        assertTrue(deserialized instanceof GetResponse, "Should deserialize to GetResponse");
+        assertInstanceOf(GetResponse.class, deserialized, "Should deserialize to GetResponse");
         GetResponse getResponse = (GetResponse) deserialized;
         assertTrue(getResponse.isNull(), "Should indicate null value");
         assertNull(getResponse.value(), "Value should be null");
@@ -601,7 +601,7 @@ class KVServerTest {
         ByteBuffer buffer = ByteBuffer.wrap(serialized);
         BaseResponse deserialized = BaseResponse.deserialize(buffer);
 
-        assertTrue(deserialized instanceof ErrorResponse, "Should deserialize to ErrorResponse");
+        assertInstanceOf(ErrorResponse.class, deserialized, "Should deserialize to ErrorResponse");
         ErrorResponse errorResponse = (ErrorResponse) deserialized;
         assertEquals(ErrorType.SERVER_ERROR, errorResponse.errorType());
         assertEquals("Test error message", errorResponse.message());
