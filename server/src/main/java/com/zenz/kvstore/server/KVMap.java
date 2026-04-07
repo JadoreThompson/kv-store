@@ -271,8 +271,8 @@ public class KVMap {
                 tail = node;
             }
 
-            size++;
-            array.size++;
+            ++size;
+            ++array.size;
         }
 
         /**
@@ -310,8 +310,8 @@ public class KVMap {
             node.prev = null;
             node.next = null;
 
-            size++;
-            array.size--;
+            --size;
+            --array.size;
         }
 
         public int size() {
