@@ -496,7 +496,7 @@ class KVServerTest {
         PutCommand original = new PutCommand(key, value);
         byte[] serialized = original.serialize();
 
-        Command deserialized = Command.deserialize(serialized);
+        Command deserialized = Command.deserialize(ByteBuffer.wrap(serialized));
 
         assertInstanceOf(PutCommand.class, deserialized, "Should deserialize to PutCommand");
         PutCommand putCommand = (PutCommand) deserialized;
@@ -511,7 +511,7 @@ class KVServerTest {
         GetCommand original = new GetCommand(key);
         byte[] serialized = original.serialize();
 
-        Command deserialized = Command.deserialize(serialized);
+        Command deserialized = Command.deserialize(ByteBuffer.wrap(serialized));
 
         assertInstanceOf(GetCommand.class, deserialized, "Should deserialize to GetCommand");
         GetCommand getCommand = (GetCommand) deserialized;
@@ -954,7 +954,7 @@ class KVServerTest {
         DeleteCommand original = new DeleteCommand(key);
         byte[] serialized = original.serialize();
 
-        Command deserialized = Command.deserialize(serialized);
+        Command deserialized = Command.deserialize(ByteBuffer.wrap(serialized));
 
         assertTrue(deserialized instanceof DeleteCommand, "Should deserialize to DeleteCommand");
         DeleteCommand deleteCommand = (DeleteCommand) deserialized;
@@ -974,7 +974,7 @@ class KVServerTest {
         DeleteCommand original = new DeleteCommand(key);
         byte[] serialized = original.serialize();
 
-        Command deserialized = Command.deserialize(serialized);
+        Command deserialized = Command.deserialize(ByteBuffer.wrap(serialized));
 
         assertTrue(deserialized instanceof DeleteCommand);
         DeleteCommand deleteCommand = (DeleteCommand) deserialized;
@@ -988,7 +988,7 @@ class KVServerTest {
         DeleteCommand original = new DeleteCommand(key);
         byte[] serialized = original.serialize();
 
-        Command deserialized = Command.deserialize(serialized);
+        Command deserialized = Command.deserialize(ByteBuffer.wrap(serialized));
 
         assertTrue(deserialized instanceof DeleteCommand);
         DeleteCommand deleteCommand = (DeleteCommand) deserialized;
@@ -1002,7 +1002,7 @@ class KVServerTest {
         DeleteCommand original = new DeleteCommand(key);
         byte[] serialized = original.serialize();
 
-        Command deserialized = Command.deserialize(serialized);
+        Command deserialized = Command.deserialize(ByteBuffer.wrap(serialized));
 
         assertTrue(deserialized instanceof DeleteCommand);
         DeleteCommand deleteCommand = (DeleteCommand) deserialized;

@@ -20,6 +20,7 @@ import java.util.*;
  * GET mykey
  */
 public class KVServer {
+
     private final String host;
     private final int port;
     private final BaseCommandHandler commandHandler;
@@ -109,7 +110,6 @@ public class KVServer {
         client.socket().setTcpNoDelay(true);
         client.socket().setKeepAlive(true);
 
-        // Register for READ events with session attachment
         SelectionKey clientKey = client.register(selector, SelectionKey.OP_READ);
         clientKey.attach(new ClientSession(client));
     }
@@ -131,39 +131,37 @@ public class KVServer {
         }
 
         // Process the data
+        final int prevPosition = buffer.position();
         buffer.flip();
         boolean processed = processData(session, buffer);
-        buffer.compact();
+        buffer.flip();
 
-        if (!processed) {
-            cleanup(key);
+        if (processed) {
+            buffer.clear();
+        } else {
+            buffer.position(prevPosition);
         }
+
     }
 
-    /**
-     * Process received data - parse commands and execute operations
-     */
     private boolean processData(ClientSession session, ByteBuffer buffer) {
-        byte[] bytes = new byte[buffer.remaining()];
-        buffer.get(bytes);
-        String message = new String(bytes, StandardCharsets.UTF_8).trim();
-        SocketChannel channel = session.getChannel();
+        Command command;
 
-        if (message.isEmpty()) {
-            return true;
+        try {
+            command = Command.deserialize(buffer);
+        } catch (IllegalArgumentException e) {
+            System.err.println("Error deserializing command: " + e.getMessage());
+            return false;
         }
 
-        // Handle multiple commands separated by newlines
         try {
-            ArrayList<Command> commands = Command.deserializeList(bytes);
-            for (Command command : commands) {
-                ByteBuffer responseBuffer = commandHandler.handleCommand(channel, command);
-                if (responseBuffer != null) {
-                    queueWrite(session.getChannel(), responseBuffer);
-                }
+            ByteBuffer responseBuffer = commandHandler.handleCommand(command);
+            if (responseBuffer != null) {
+                queueWrite(session.getChannel(), responseBuffer);
             }
         } catch (Exception e) {
-            queueWrite(session.getChannel(), ByteBuffer.wrap(("ERROR " + e.getMessage()).getBytes(StandardCharsets.UTF_8)));
+            queueWrite(
+                    session.getChannel(), ByteBuffer.wrap(("ERROR " + e.getMessage()).getBytes(StandardCharsets.UTF_8)));
         }
 
         return true;
