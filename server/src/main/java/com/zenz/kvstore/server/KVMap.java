@@ -319,10 +319,6 @@ public class KVMap {
         }
 
         public Iterator<Node> iterator() {
-            Node cur = head;
-            while (cur != null) {
-                cur = cur.next;
-            }
             return new NodeIterator(head, this);
         }
     }
