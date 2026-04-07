@@ -27,33 +27,33 @@ public class KVStore {
     private boolean isRaftMode;
 
     public KVStore(Builder builder) throws IOException {
-        snapshotter = builder.snapshotter;
-        snapshotEnabled = builder.snapshotEnabled;
-        logHandler = builder.logHandler;
-        logsPerSnapshot = builder.logsPerSnapshot;
-        map = (builder.map == null) ? new KVMap() : builder.map;
-        isRaftMode = builder.isRaftMode;
+        this.snapshotter = builder.snapshotter;
+        this.snapshotEnabled = builder.snapshotEnabled;
+        this.logHandler = builder.logHandler;
+        this.logsPerSnapshot = builder.logsPerSnapshot;
+        this.map = (builder.map == null) ? new KVMap() : builder.map;
+        this.isRaftMode = builder.isRaftMode;
     }
 
     public void put(String key, byte[] value) throws IOException {
-        logHandler.log(new PutCommand(key, value));
-        logCount++;
+        this.logHandler.log(new PutCommand(key, value));
+        this.logCount++;
 
         snapshot();
-        map.put(key, value);
+        this.map.put(key, value);
         this.trie.add(key);
     }
 
     public KVMap.Node get(String key) {
-        return map.get(key);
+        return this.map.get(key);
     }
 
     public boolean delete(String key) throws IOException {
-        logCount++;
-        logHandler.log(new DeleteCommand(key));
+        this.logCount++;
+        this.logHandler.log(new DeleteCommand(key));
         snapshot();
 
-        if (map.remove(key)) {
+        if (this.map.remove(key)) {
             this.trie.remove(key);
             return true;
         }
@@ -77,44 +77,44 @@ public class KVStore {
     }
 
     private void snapshot() throws IOException {
-        if (logCount >= logsPerSnapshot) {
-            logCount = 0;
+        if (this.logCount >= this.logsPerSnapshot) {
+            this.logCount = 0;
 
-            if (snapshotEnabled) {
+            if (this.snapshotEnabled) {
                 // Create snapshot and move to main
-                Path snapshotDir = snapshotter.getDir();
+                Path snapshotDir = this.snapshotter.getDir();
                 Path fpath;
-                if (isRaftMode) {
+                if (this.isRaftMode) {
                     fpath = snapshotDir.resolve(
-                            logHandler.getLogId() +
-                                    "_" + ((RaftLogHandler) logHandler).getTerm() +
+                            this.logHandler.getLogId() +
+                                    "_" + ((RaftLogHandler) this.logHandler).getTerm() +
                                     ".snapshot"
                     );
                 } else {
-                    fpath = snapshotDir.resolve(logHandler.getLogId() + ".snapshot");
+                    fpath = snapshotDir.resolve(this.logHandler.getLogId() + ".snapshot");
                 }
-                snapshotter.snapshot(map, fpath);
+                this.snapshotter.snapshot(this.map, fpath);
                 for (File file : snapshotDir.toFile().listFiles()) {
                     Path fp = file.toPath();
                     if (!fp.equals(fpath)) Files.delete(fp);
                 }
 
                 // Creating new log file
-                WALogger logger = logHandler.getLogger();
+                WALogger logger = this.logHandler.getLogger();
                 Path path = logger.getPath();
                 Files.deleteIfExists(path);
                 Files.createFile(path);
-                logHandler.setLogger(new WALogger(path));
+                this.logHandler.setLogger(new WALogger(path));
             }
         }
     }
 
     public boolean isSnapshotEnabled() {
-        return snapshotEnabled;
+        return this.snapshotEnabled;
     }
 
     public void setSnapshotEnabled(boolean enabled) {
-        snapshotEnabled = enabled;
+        this.snapshotEnabled = enabled;
     }
 
     public void setSnapshotter(KVMapSnapshotter snapshotter) {
@@ -122,7 +122,7 @@ public class KVStore {
     }
 
     public KVMapSnapshotter getSnapshotter() {
-        return snapshotter;
+        return this.snapshotter;
     }
 
     public void setLogsPerSnapshot(int logsPerSnapshot) {
@@ -130,15 +130,15 @@ public class KVStore {
     }
 
     public KVMap getMap() {
-        return map;
+        return this.map;
     }
 
     public BaseLogHandler getLogHandler() {
-        return logHandler;
+        return this.logHandler;
     }
 
     public boolean isRaftMode() {
-        return isRaftMode;
+        return this.isRaftMode;
     }
 
     public static class Builder {
@@ -153,7 +153,7 @@ public class KVStore {
         }
 
         public KVMapSnapshotter getSnapshotter() {
-            return snapshotter;
+            return this.snapshotter;
         }
 
         public Builder setSnapshotter(KVMapSnapshotter snapshotter) {
@@ -162,7 +162,7 @@ public class KVStore {
         }
 
         public boolean getSnapshotEnabled() {
-            return snapshotEnabled;
+            return this.snapshotEnabled;
         }
 
         public Builder setSnapshotEnabled(boolean snapshotEnabled) {
@@ -171,7 +171,7 @@ public class KVStore {
         }
 
         public BaseLogHandler getLogHandler() {
-            return logHandler;
+            return this.logHandler;
         }
 
         public Builder setLogHandler(BaseLogHandler logHandler) {
@@ -180,7 +180,7 @@ public class KVStore {
         }
 
         public int getLogsPerSnapshot() {
-            return logsPerSnapshot;
+            return this.logsPerSnapshot;
         }
 
         public Builder setLogsPerSnapshot(int logsPerSnapshot) {
@@ -189,7 +189,7 @@ public class KVStore {
         }
 
         public KVMap getMap() {
-            return map;
+            return this.map;
         }
 
         public Builder setMap(KVMap map) {
@@ -198,7 +198,7 @@ public class KVStore {
         }
 
         public boolean isRaftMode() {
-            return isRaftMode;
+            return this.isRaftMode;
         }
 
         public Builder setRaftMode(boolean isRaftMode) {
@@ -207,4 +207,3 @@ public class KVStore {
         }
     }
 }
-

@@ -4,7 +4,7 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="f2a63f83-7187-4a54-8703-b4d1ce6944cf" name="Changes" comment="Fixed: Potential memory allocation error during resizing in KVMap.isRehashing" />
+    <list default="true" id="f2a63f83-7187-4a54-8703-b4d1ce6944cf" name="Changes" comment="Improved code consistency in KVMap" />
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -288,7 +288,7 @@
       <workItem from="1775460581804" duration="22958000" />
       <workItem from="1775496106224" duration="1301000" />
       <workItem from="1775545202924" duration="16576000" />
-      <workItem from="1775571896402" duration="4180000" />
+      <workItem from="1775571896402" duration="4585000" />
     </task>
     <task id="LOCAL-00002" summary="Handling broker disconnect during election">
       <option name="closed" value="true" />
@@ -434,7 +434,15 @@
       <option name="project" value="LOCAL" />
       <updated>1775576185568</updated>
     </task>
-    <option name="localTasksCounter" value="20" />
+    <task id="LOCAL-00020" summary="Improved code consistency in KVMap">
+      <option name="closed" value="true" />
+      <created>1775576642210</created>
+      <option name="number" value="00020" />
+      <option name="presentableId" value="LOCAL-00020" />
+      <option name="project" value="LOCAL" />
+      <updated>1775576642210</updated>
+    </task>
+    <option name="localTasksCounter" value="21" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -471,6 +479,7 @@
     <MESSAGE value="Fixed: NodeList.iterator pointless loop" />
     <MESSAGE value="Fixed: NPE in RaftCommandHandler.handleCommand when handling GET command" />
     <MESSAGE value="Fixed: Potential memory allocation error during resizing in KVMap.isRehashing" />
-    <option name="LAST_COMMIT_MESSAGE" value="Fixed: Potential memory allocation error during resizing in KVMap.isRehashing" />
+    <MESSAGE value="Improved code consistency in KVMap" />
+    <option name="LAST_COMMIT_MESSAGE" value="Improved code consistency in KVMap" />
   </component>
 </project>
