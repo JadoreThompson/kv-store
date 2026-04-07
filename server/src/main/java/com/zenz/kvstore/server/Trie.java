@@ -30,7 +30,7 @@ public class Trie {
         }
 
         if (this.children == null) {
-            this.children = new HashMap<Character, Trie>();
+            this.children = new HashMap<>();
         }
 
         final char character = word.charAt(index);
@@ -101,7 +101,7 @@ public class Trie {
             return null;
         }
 
-        return extractWords(trie, new ArrayList<String>(), prefix);
+        return extractWords(trie, new ArrayList<>(), prefix);
     }
 
     private List<String> extractWords(final Trie trie, final List<String> words, final String prefix) {

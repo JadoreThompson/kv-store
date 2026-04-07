@@ -1,6 +1,7 @@
 package com.zenz.kvstore.server.raft;
 
 public enum NodeRole {
+
     BROKER(1),
     CANDIDATE(2),
     CONTROLLER(3);

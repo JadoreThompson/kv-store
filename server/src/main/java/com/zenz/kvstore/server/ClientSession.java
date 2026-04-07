@@ -4,6 +4,7 @@ import java.nio.ByteBuffer;
 import java.nio.channels.SocketChannel;
 
 public class ClientSession {
+
     public static final int BUFFER_SIZE = 8192;
     private final SocketChannel channel;
     private ByteBuffer readBuffer;

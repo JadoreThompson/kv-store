@@ -3,7 +3,7 @@ package com.zenz.kvstore.server.raft;
 import com.zenz.kvstore.server.KVMapSnapshotter;
 import com.zenz.kvstore.server.KVStore;
 import com.zenz.kvstore.server.logging.WALogger;
-import com.zenz.kvstore.server.logging.handlers.RaftLogHandler;
+import com.zenz.kvstore.server.logging.handler.RaftLogHandler;
 import com.zenz.kvstore.server.raft.message.RequestVoteResponse;
 import org.junit.jupiter.api.*;
 
@@ -165,6 +165,7 @@ class LeaderElectionTest {
                         nodeConfig,
                         nodeConfigs.stream().filter(config -> config != nodeConfig).toList());
                 managers.add(managerContext.manager);
+                managerContext.manager.setLoggingEnabled(false);
                 executorService.submit(() -> startManager(managerContext.manager));
             }
 
@@ -311,13 +312,13 @@ class LeaderElectionTest {
             manager0.startElection();
 
             // Verify initial election state with 2 running broker clients, majority should be 2
-            Manager.Election meta = manager0.getElection();
-            assertNotNull(meta, "Election metadata should exist after initiation");
-            assertEquals(1, meta.getVoteCount(), "Should start with self-vote");
-            assertEquals(2, meta.getMajority(), "Majority should be 2 (2 running brokers / 2 + 1)");
+            Manager.Election election = manager0.getElection();
+            assertNotNull(election, "Election should exist after initiation");
+            assertEquals(1, election.getVoteCount(), "Should start with self-vote");
+            assertEquals(2, election.getMajority(), "Majority should be 2 (2 running brokers / 2 + 1)");
 
             // Simulate denied vote (broker already voted for someone else)
-            RequestVoteResponse deniedVote = new RequestVoteResponse(false, meta.getTerm());
+            RequestVoteResponse deniedVote = new RequestVoteResponse(false, election.getTerm());
             manager0.handleVoteResponse(deniedVote);
 
             // Vote count unchanged, election still in progress
@@ -327,7 +328,7 @@ class LeaderElectionTest {
                     "Should remain CANDIDATE after denied vote");
 
             // This should reach majority (2 votes out of 2 needed)
-            RequestVoteResponse grantedVote = new RequestVoteResponse(true, meta.getTerm());
+            RequestVoteResponse grantedVote = new RequestVoteResponse(true, election.getTerm());
             manager0.handleVoteResponse(grantedVote);
 
             assertEquals(
@@ -383,15 +384,15 @@ class LeaderElectionTest {
             manager0.startElection();
 
             // Verify initial election state
-            Manager.Election meta = manager0.getElection();
-            assertNotNull(meta, "Election metadata should exist after initiation");
-            assertEquals(term + 1, meta.getTerm(), "Term should be term+1");
-            assertEquals(1, meta.getVoteCount(), "Should start with self-vote");
-            assertEquals(2, meta.getMajority(), "Majority should be 2 with 2 running broker clients");
+            Manager.Election election = manager0.getElection();
+            assertNotNull(election, "Election should exist after initiation");
+            assertEquals(term + 1, election.getTerm(), "Term should be term+1");
+            assertEquals(1, election.getVoteCount(), "Should start with self-vote");
+            assertEquals(2, election.getMajority(), "Majority should be 2 with 2 running broker clients");
 
             // Simulate broker connection failure by directly calling handleVoteResponse
             // This simulates what happens in RaftBrokerClient.handleRead() when bytesRead == -1
-            RequestVoteResponse simulatedFailureVote = new RequestVoteResponse(true, meta.getTerm());
+            RequestVoteResponse simulatedFailureVote = new RequestVoteResponse(true, election.getTerm());
             manager0.handleVoteResponse(simulatedFailureVote);
 
             // Vote count should now be 2 (self-vote + failed broker treated as granted)
@@ -450,24 +451,24 @@ class LeaderElectionTest {
             // Verify initial election state
             // With 5 brokers, we have 4 broker clients + self = 5 total
             // Majority = 5 / 2 + 1 = 3
-            Manager.Election meta = manager0.getElection();
-            assertNotNull(meta, "Election metadata should exist after initiation");
-            assertEquals(startTerm + 1, meta.getTerm(), "Term should be 1 (0 + 1)");
-            assertEquals(1, meta.getVoteCount(), "Should start with self-vote");
+            Manager.Election election = manager0.getElection();
+            assertNotNull(election, "Election should exist after initiation");
+            assertEquals(startTerm + 1, election.getTerm(), "Term should be 1 (0 + 1)");
+            assertEquals(1, election.getVoteCount(), "Should start with self-vote");
             assertEquals(
                     3,
-                    meta.getMajority(),
+                    election.getMajority(),
                     "Majority should be 3 with 4 running broker clients + self");
 
             // Simulate first broker connection failure
-            RequestVoteResponse failureVote1 = new RequestVoteResponse(true, meta.getTerm());
+            RequestVoteResponse failureVote1 = new RequestVoteResponse(true, election.getTerm());
             manager0.handleVoteResponse(failureVote1);
 
             assertEquals(2, manager0.getElection().getVoteCount(),
                     "Vote count should be 2 after first failure");
 
             // Simulate second broker connection failure
-            RequestVoteResponse failureVote2 = new RequestVoteResponse(true, meta.getTerm());
+            RequestVoteResponse failureVote2 = new RequestVoteResponse(true, election.getTerm());
             manager0.handleVoteResponse(failureVote2);
 
             assertEquals(3, manager0.getElection().getVoteCount(),

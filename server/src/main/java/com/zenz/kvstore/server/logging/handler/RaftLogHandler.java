@@ -1,4 +1,4 @@
-package com.zenz.kvstore.server.logging.handlers;
+package com.zenz.kvstore.server.logging.handler;
 
 import com.zenz.kvstore.common.commands.Command;
 import com.zenz.kvstore.server.logging.WALogger;
@@ -43,7 +43,7 @@ public class RaftLogHandler implements BaseLogHandler {
             int commandLength = buffer.getInt();
             byte[] commandBytes = new byte[commandLength];
             buffer.get(commandBytes);
-            Command command = Command.deserialize(commandBytes);
+            Command command = Command.deserialize(ByteBuffer.wrap(commandBytes));
 
             Log logCommand = new Log(id, term, command);
             logs.add(logCommand);
@@ -117,7 +117,7 @@ public class RaftLogHandler implements BaseLogHandler {
             int commandLength = buffer.getInt();
             byte[] commandBytes = new byte[commandLength];
             buffer.get(commandBytes);
-            Command command = Command.deserialize(commandBytes);
+            Command command = Command.deserialize(ByteBuffer.wrap(commandBytes));
 
             return new Log(id, term, command);
         }

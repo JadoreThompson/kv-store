@@ -2,7 +2,7 @@ package com.zenz.kvstore.server.raft;
 
 import com.zenz.kvstore.common.utils.Utils;
 import com.zenz.kvstore.server.KVStore;
-import com.zenz.kvstore.server.logging.handlers.RaftLogHandler;
+import com.zenz.kvstore.server.logging.handler.RaftLogHandler;
 import com.zenz.kvstore.server.raft.message.*;
 
 import java.io.BufferedInputStream;
@@ -299,7 +299,8 @@ public class Manager {
         synchronized (this.brokerClients) {
             this.brokerClients.remove(brokerClient);
         }
-        this.nodeConfigs.removeIf(config -> config.serverAddress().equals(brokerClient.getRemoteAddress()));
+        this.nodeConfigs.removeIf(
+                config -> config != null && config.serverAddress().equals(brokerClient.getRemoteAddress()));
     }
 
     public void handleRegisterMessage(RegisterMessage registerMessage) {

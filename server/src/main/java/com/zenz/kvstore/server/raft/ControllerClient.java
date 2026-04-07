@@ -6,7 +6,7 @@ import com.zenz.kvstore.common.enums.CommandType;
 import com.zenz.kvstore.server.KVMapSnapshotter;
 import com.zenz.kvstore.server.KVStore;
 import com.zenz.kvstore.server.logging.WALogger;
-import com.zenz.kvstore.server.logging.handlers.RaftLogHandler;
+import com.zenz.kvstore.server.logging.handler.RaftLogHandler;
 import com.zenz.kvstore.server.raft.message.*;
 
 import java.io.File;
@@ -23,6 +23,7 @@ import java.nio.file.StandardOpenOption;
 import java.util.*;
 
 public class ControllerClient {
+
     private final InetSocketAddress remoteAddress;
     private final Manager manager;
     private boolean shouldSendHeartbeat;
@@ -39,13 +40,19 @@ public class ControllerClient {
     private boolean isRunning;
 
     // Debug
-    private final String DEBUG_PREFIX = "";
+    private final String DEBUG_PREFIX;
 
     public ControllerClient(InetSocketAddress remoteAddress, Manager manager) {
         this.remoteAddress = remoteAddress;
         this.manager = manager;
         this.kvStore = manager.getKVStore();
         this.logHandler = (RaftLogHandler) this.kvStore.getLogHandler();
+        this.DEBUG_PREFIX =
+                String.format(
+                        "[%s][BrokerClient %s:%s]",
+                        this.manager.getNodeConfig().name(),
+                        remoteAddress.getHostString(),
+                        remoteAddress.getPort());
     }
 
     public void start() throws IOException {

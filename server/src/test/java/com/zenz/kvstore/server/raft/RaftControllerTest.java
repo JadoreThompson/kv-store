@@ -4,7 +4,7 @@ import com.zenz.kvstore.common.commands.PutCommand;
 import com.zenz.kvstore.server.KVMapSnapshotter;
 import com.zenz.kvstore.server.KVStore;
 import com.zenz.kvstore.server.logging.WALogger;
-import com.zenz.kvstore.server.logging.handlers.RaftLogHandler;
+import com.zenz.kvstore.server.logging.handler.RaftLogHandler;
 import com.zenz.kvstore.server.raft.message.*;
 import org.junit.jupiter.api.*;
 
@@ -14,7 +14,6 @@ import java.nio.channels.SocketChannel;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.ArrayList;
 import java.util.Collections;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -24,8 +23,6 @@ class RaftControllerTest {
     private static final int TEST_PORT = 6969;
 
     private Manager managerNew;
-
-    private ArrayList<RaftNodeConfig> nodes;
 
     private NodeConfig nodeConfig;
 
@@ -55,10 +52,6 @@ class RaftControllerTest {
                 .setLogHandler(this.logHandler)
                 .setSnapshotter(this.snapshotter)
         );
-
-        this.nodes = new ArrayList<>();
-        this.nodes.add(new RaftNodeConfig(
-                0, new InetSocketAddress("localhost", TEST_PORT), null, NodeRole.CONTROLLER));
         this.nodeConfig = new NodeConfig(
                 "test-node", new InetSocketAddress("localhost", TEST_PORT), null);
         Thread.sleep(500);

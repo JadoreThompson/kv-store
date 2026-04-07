@@ -1,4 +1,4 @@
-package com.zenz.kvstore.server.logging.handlers;
+package com.zenz.kvstore.server.logging.handler;
 
 import com.zenz.kvstore.common.commands.Command;
 import com.zenz.kvstore.server.logging.WALogger;
@@ -40,7 +40,7 @@ public class LogHandler implements BaseLogHandler {
             int commandLength = buffer.getInt();
             byte[] commandBytes = new byte[commandLength];
             buffer.get(commandBytes);
-            Command command = Command.deserialize(commandBytes);
+            Command command = Command.deserialize(ByteBuffer.wrap(commandBytes));
             Log logCommand = new Log(id, command);
             logs.add(logCommand);
             buffer.get(); // Skipping new line char
@@ -95,7 +95,7 @@ public class LogHandler implements BaseLogHandler {
             int commandLength = buffer.getInt();
             byte[] commandBytes = new byte[commandLength];
             buffer.get(commandBytes);
-            Command command = Command.deserialize(commandBytes);
+            Command command = Command.deserialize(ByteBuffer.wrap(commandBytes));
 
             return new Log(id, command);
         }

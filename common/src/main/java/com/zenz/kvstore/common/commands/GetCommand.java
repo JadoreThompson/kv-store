@@ -22,9 +22,7 @@ public record GetCommand(String key) implements Command {
         return buffer.array();
     }
 
-    static GetCommand deserialize(byte[] bytes) {
-        ByteBuffer buffer = ByteBuffer.wrap(bytes);
-
+    static GetCommand deserialize(ByteBuffer buffer) {
         int typeValue = buffer.getInt();
         CommandType type = CommandType.fromValue(typeValue);
         if (!type.equals(CommandType.GET))

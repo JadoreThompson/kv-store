@@ -7,14 +7,14 @@ import com.zenz.kvstore.server.KVServer;
 import com.zenz.kvstore.server.KVStore;
 import com.zenz.kvstore.server.command.handler.CommandHandler;
 import com.zenz.kvstore.server.logging.WALogger;
-import com.zenz.kvstore.server.logging.handlers.LogHandler;
+import com.zenz.kvstore.server.logging.handler.LogHandler;
 import com.zenz.kvstore.server.restorer.Restorer;
 import picocli.CommandLine.Command;
 import picocli.CommandLine.Parameters;
 
 import java.util.concurrent.Callable;
 
-@Command(name="single", description = "Running an isolated node")
+@Command(name = "single", description = "Running an isolated node")
 public class SingleCli implements Callable<Integer> {
     @Parameters(index = "0", description = "Host")
     private String host;

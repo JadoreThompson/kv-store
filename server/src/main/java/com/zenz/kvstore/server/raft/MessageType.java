@@ -1,6 +1,7 @@
 package com.zenz.kvstore.server.raft;
 
 public enum MessageType {
+
     APPEND_ENTRY(1),
     INSTALL_SNAPSHOT(2),
     REQUEST_ENTRY(3),

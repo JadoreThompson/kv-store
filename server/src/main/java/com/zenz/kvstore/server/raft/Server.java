@@ -3,7 +3,7 @@ package com.zenz.kvstore.server.raft;
 import com.zenz.kvstore.common.commands.Command;
 import com.zenz.kvstore.server.ClientSession;
 import com.zenz.kvstore.server.KVMapSnapshotter;
-import com.zenz.kvstore.server.logging.handlers.RaftLogHandler;
+import com.zenz.kvstore.server.logging.handler.RaftLogHandler;
 import com.zenz.kvstore.server.raft.message.*;
 
 import java.io.File;
@@ -18,6 +18,7 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
 public class Server {
+
     private Selector selector;
     private ServerSocketChannel serverChannel;
     private boolean isRunning;
@@ -49,20 +50,20 @@ public class Server {
 
     public void start() throws Exception {
         final String debugPrefix = this.DEBUG_PREFIX + "[start] ";
-        if (isRunning) return;
+        if (this.isRunning) return;
 
-        isRunning = true;
+        this.isRunning = true;
 
-        selector = Selector.open();
-        serverChannel = ServerSocketChannel.open();
-        serverChannel.configureBlocking(false);
-        serverChannel.socket().bind(address);
-        serverChannel.register(selector, SelectionKey.OP_ACCEPT);
+        this.selector = Selector.open();
+        this.serverChannel = ServerSocketChannel.open();
+        this.serverChannel.configureBlocking(false);
+        this.serverChannel.socket().bind(this.address);
+        this.serverChannel.register(this.selector, SelectionKey.OP_ACCEPT);
 
-        while (isRunning) {
-            int readyCount = selector.select(100);
+        while (this.isRunning) {
+            int readyCount = this.selector.select(100);
 
-            NodeRole curRole = manager.getRole();
+            NodeRole curRole = this.manager.getRole();
             NodeRole prevRole = this.prevRole;
             this.prevRole = curRole;
 
@@ -77,7 +78,7 @@ public class Server {
                 continue;
             }
 
-            Iterator<SelectionKey> keys = selector.selectedKeys().iterator();
+            Iterator<SelectionKey> keys = this.selector.selectedKeys().iterator();
 
             while (keys.hasNext()) {
                 SelectionKey key = keys.next();
@@ -102,28 +103,28 @@ public class Server {
     }
 
     public void stop() throws IOException {
-        if (!isRunning) {
+        if (!this.isRunning) {
             return;
         }
 
-        isRunning = false;
+        this.isRunning = false;
 
-        if (selector != null) {
-            selector.wakeup();
+        if (this.selector != null) {
+            this.selector.wakeup();
         }
 
-        if (selector != null) {
-            for (SelectionKey key : selector.keys()) {
+        if (this.selector != null) {
+            for (SelectionKey key : this.selector.keys()) {
                 cleanup(key);
             }
-            selector.close();
+            this.selector.close();
         }
 
-        if (serverChannel != null) {
-            serverChannel.close();
+        if (this.serverChannel != null) {
+            this.serverChannel.close();
         }
 
-        pendingWrites.clear();
+        this.pendingWrites.clear();
     }
 
     public void cleanup(SelectionKey key) throws IOException {
@@ -547,14 +548,14 @@ public class Server {
     }
 
     public boolean isRunning() {
-        return isRunning;
+        return this.isRunning;
     }
 
     private interface MessageHandler {
         ByteBuffer run() throws IOException;
     }
 
-    private class RaftClientSession extends ClientSession {
+    private static class RaftClientSession extends ClientSession {
         private long logId = -1;
         private long term = -1;
 
@@ -579,34 +580,16 @@ public class Server {
         }
     }
 
-    // TODO: Check usage
-    private class CommandTask {
+    private static class CommandTask {
         public final Command command;
         public final CompletableFuture<Boolean> fut;
         public long logId = -1;
         public int majority;
         public int count;
 
-        public CommandTask(
-                Command command,
-                CompletableFuture<Boolean> fut
-        ) {
+        public CommandTask(Command command, CompletableFuture<Boolean> fut) {
             this.command = command;
             this.fut = fut;
-        }
-
-        public CommandTask(
-                Command command,
-                CompletableFuture<Boolean> fut,
-                long logId,
-                int majority,
-                int count
-        ) {
-            this.command = command;
-            this.fut = fut;
-            this.logId = logId;
-            this.majority = majority;
-            this.count = count;
         }
 
         @Override

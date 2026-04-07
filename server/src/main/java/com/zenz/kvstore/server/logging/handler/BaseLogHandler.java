@@ -1,4 +1,4 @@
-package com.zenz.kvstore.server.logging.handlers;
+package com.zenz.kvstore.server.logging.handler;
 
 import com.zenz.kvstore.common.commands.Command;
 import com.zenz.kvstore.server.logging.WALogger;

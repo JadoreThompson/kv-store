@@ -3,8 +3,8 @@ package com.zenz.kvstore.server;
 import com.zenz.kvstore.common.commands.DeleteCommand;
 import com.zenz.kvstore.common.commands.PutCommand;
 import com.zenz.kvstore.server.logging.WALogger;
-import com.zenz.kvstore.server.logging.handlers.BaseLogHandler;
-import com.zenz.kvstore.server.logging.handlers.RaftLogHandler;
+import com.zenz.kvstore.server.logging.handler.BaseLogHandler;
+import com.zenz.kvstore.server.logging.handler.RaftLogHandler;
 
 import java.io.File;
 import java.io.IOException;
@@ -14,10 +14,8 @@ import java.util.Collections;
 import java.util.List;
 
 public class KVStore {
-    // Default settings
     public static final int DEFAULT_LOGS_PER_SNAPSHOT = 100_000;
 
-    // Durability settings
     private KVMapSnapshotter snapshotter;
     private boolean snapshotEnabled;
     private BaseLogHandler logHandler;

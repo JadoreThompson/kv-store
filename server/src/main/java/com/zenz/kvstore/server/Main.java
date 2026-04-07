@@ -4,7 +4,7 @@ import com.zenz.kvstore.server.cli.RaftCli;
 import com.zenz.kvstore.server.cli.SingleCli;
 import com.zenz.kvstore.server.command.handler.CommandHandler;
 import com.zenz.kvstore.server.logging.WALogger;
-import com.zenz.kvstore.server.logging.handlers.LogHandler;
+import com.zenz.kvstore.server.logging.handler.LogHandler;
 import com.zenz.kvstore.server.restorer.Restorer;
 import picocli.CommandLine;
 
@@ -19,7 +19,7 @@ public class Main {
     private static final Path logsDir = Path.of("logs");
     private static final Path snapshotsDir = Path.of("snapshots");
 
-    public static void main(String[] args) throws Exception {
+    public static void main(String[] args) {
         if (args.length == 0) {
             printUsage();
             System.exit(1);
@@ -27,7 +27,6 @@ public class Main {
 
         int exitCode;
         switch (args[0]) {
-
             case "run":
 //                runSingleNode(args);
                 exitCode = new CommandLine(new SingleCli()).execute(args);

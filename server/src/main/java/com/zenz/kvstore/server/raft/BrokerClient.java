@@ -33,7 +33,12 @@ public class BrokerClient {
     public BrokerClient(InetSocketAddress remoteAddress, Manager manager) {
         this.remoteAddress = remoteAddress;
         this.manager = manager;
-        this.DEBUG_PREFIX = String.format("[%s][BrokerClient %s:%s]", this.manager.getNodeConfig().name(), remoteAddress.getHostString(), remoteAddress.getPort());
+        this.DEBUG_PREFIX =
+                String.format(
+                        "[%s][BrokerClient %s:%s]",
+                        this.manager.getNodeConfig().name(),
+                        remoteAddress.getHostString(),
+                        remoteAddress.getPort());
     }
 
     public void start() throws IOException {

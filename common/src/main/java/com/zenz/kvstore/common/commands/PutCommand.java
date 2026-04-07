@@ -24,9 +24,7 @@ public record PutCommand(String key, byte[] value) implements Command {
         return buffer.array();
     }
 
-    static PutCommand deserialize(byte[] bytes) {
-        ByteBuffer buffer = ByteBuffer.wrap(bytes);
-
+    static PutCommand deserialize(ByteBuffer buffer) {
         int typeValue = buffer.getInt();
         CommandType type = CommandType.fromValue(typeValue);
         if (!type.equals(CommandType.PUT))

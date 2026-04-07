@@ -22,9 +22,7 @@ public record DeleteCommand(CommandType type, String key) implements Command {
         return buffer.array();
     }
 
-    public static DeleteCommand deserialize(byte[] bytes) {
-        ByteBuffer buffer = ByteBuffer.wrap(bytes);
-
+    public static DeleteCommand deserialize(ByteBuffer buffer) {
         int typeValue = buffer.getInt();
         CommandType commandType = CommandType.fromValue(typeValue);
         if (!commandType.equals(CommandType.DELETE)) {

@@ -7,7 +7,7 @@ import com.zenz.kvstore.common.enums.CommandType;
 import com.zenz.kvstore.server.KVMapSnapshotter;
 import com.zenz.kvstore.server.KVStore;
 import com.zenz.kvstore.server.logging.WALogger;
-import com.zenz.kvstore.server.logging.handlers.LogHandler;
+import com.zenz.kvstore.server.logging.handler.LogHandler;
 
 import java.io.IOException;
 import java.nio.file.Files;

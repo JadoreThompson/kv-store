@@ -1,6 +1,7 @@
 package com.zenz.kvstore.common.enums;
 
 public enum CommandType {
+
     GET(1),
     PUT(2),
     DELETE(3),
@@ -8,7 +9,7 @@ public enum CommandType {
 
     private final int value;
 
-    private CommandType(int value) {
+    CommandType(int value) {
         this.value = value;
     }
 
@@ -21,12 +22,7 @@ public enum CommandType {
             if (type.value == value) return type;
         }
 
-        throw new IllegalArgumentException("Unknown command errorType: " + value);
-    }
-
-    @Override
-    public String toString() {
-        return name();
+        throw new IllegalArgumentException("Unknown CommandType value: " + value);
     }
 }
 

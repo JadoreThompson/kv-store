@@ -9,7 +9,7 @@ import com.zenz.kvstore.server.KVServer;
 import com.zenz.kvstore.server.KVStore;
 import com.zenz.kvstore.server.command.handler.CommandHandler;
 import com.zenz.kvstore.server.logging.WALogger;
-import com.zenz.kvstore.server.logging.handlers.LogHandler;
+import com.zenz.kvstore.server.logging.handler.LogHandler;
 import org.junit.jupiter.api.*;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;

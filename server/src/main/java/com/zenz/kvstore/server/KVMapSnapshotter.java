@@ -12,6 +12,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class KVMapSnapshotter {
+
     private static final Path DEFAULT_SNAPSHOT_DIR = Path.of("snapshots");
 
     private Path dir = DEFAULT_SNAPSHOT_DIR;
