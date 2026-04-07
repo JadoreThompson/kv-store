@@ -130,7 +130,8 @@ public class KVStoreClient {
     }
 
     private BaseResponse handleRedirectResponse(RedirectResponse response) throws IOException, InterruptedException {
-        InetSocketAddress address = response.address();
+        disconnect();
+        final InetSocketAddress address = response.address();
         host = address.getHostName();
         port = address.getPort();
         connect();
