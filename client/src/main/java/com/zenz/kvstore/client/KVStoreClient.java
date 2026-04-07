@@ -16,11 +16,12 @@ import java.nio.ByteBuffer;
  * A simple client implementation to interact with a KVServer instance.
  */
 public class KVStoreClient {
-    public String host = "localhost";
-    public int port = 6767;
-    public final int MAX_RETRY_ATTEMPTS = 5;
-    public final int RETRY_TIMEOUT_MS = 5000;
 
+    public static final int MAX_RETRY_ATTEMPTS = 5;
+    public static final int RETRY_TIMEOUT_MS = 5000;
+
+    private String host = "localhost";
+    private int port = 6767;
     private Socket socket;
     private BufferedInputStream in;
     private BufferedOutputStream out;
@@ -145,5 +146,13 @@ public class KVStoreClient {
         curRetryAttempts++;
         Thread.sleep(RETRY_TIMEOUT_MS);
         return send(ByteBuffer.wrap(prevCommand.serialize()), prevResponseClass);
+    }
+
+    public String getHost() {
+        return host;
+    }
+
+    public int getPort() {
+        return port;
     }
 }
