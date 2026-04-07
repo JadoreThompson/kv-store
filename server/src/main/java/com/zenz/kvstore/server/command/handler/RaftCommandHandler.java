@@ -39,7 +39,7 @@ public class RaftCommandHandler implements BaseCommandHandler {
                 if (commandType.equals(CommandType.GET)) {
                     GetCommand comm = (GetCommand) command;
                     KVMap.Node node = store.get(comm.key());
-                    return ByteBuffer.wrap(new GetResponse(node.value()).serialize());
+                    return ByteBuffer.wrap(new GetResponse(node == null ? null : node.value()).serialize());
                 }
 
                 CompletableFuture<Boolean> fut = new CompletableFuture<>();
