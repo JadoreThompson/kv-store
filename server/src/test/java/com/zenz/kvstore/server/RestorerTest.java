@@ -1,6 +1,6 @@
 package com.zenz.kvstore.server;
 
-import com.zenz.kvstore.common.commands.PutCommand;
+import com.zenz.kvstore.common.command.PutCommand;
 import com.zenz.kvstore.common.enums.CommandType;
 import com.zenz.kvstore.server.logging.WALogger;
 import com.zenz.kvstore.server.logging.handler.LogHandler;

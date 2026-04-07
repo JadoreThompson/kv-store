@@ -1,4 +1,4 @@
-package com.zenz.kvstore.common.commands;
+package com.zenz.kvstore.common.command;
 
 import com.zenz.kvstore.common.enums.CommandType;
 

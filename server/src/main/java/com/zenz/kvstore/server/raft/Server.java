@@ -1,6 +1,6 @@
 package com.zenz.kvstore.server.raft;
 
-import com.zenz.kvstore.common.commands.Command;
+import com.zenz.kvstore.common.command.Command;
 import com.zenz.kvstore.server.ClientSession;
 import com.zenz.kvstore.server.KVMapSnapshotter;
 import com.zenz.kvstore.server.logging.handler.RaftLogHandler;

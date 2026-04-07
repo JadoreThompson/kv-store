@@ -1,6 +1,6 @@
 package com.zenz.kvstore.client;
 
-import com.zenz.kvstore.common.commands.*;
+import com.zenz.kvstore.common.command.*;
 import com.zenz.kvstore.common.enums.ErrorType;
 import com.zenz.kvstore.common.enums.ResponseType;
 import com.zenz.kvstore.common.response.*;

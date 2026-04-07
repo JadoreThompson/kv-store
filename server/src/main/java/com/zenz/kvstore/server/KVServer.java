@@ -1,6 +1,6 @@
 package com.zenz.kvstore.server;
 
-import com.zenz.kvstore.common.commands.Command;
+import com.zenz.kvstore.common.command.Command;
 import com.zenz.kvstore.server.command.handler.BaseCommandHandler;
 
 import java.io.IOException;

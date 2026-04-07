@@ -1,7 +1,7 @@
 package com.zenz.kvstore.server.raft;
 
-import com.zenz.kvstore.common.commands.DeleteCommand;
-import com.zenz.kvstore.common.commands.PutCommand;
+import com.zenz.kvstore.common.command.DeleteCommand;
+import com.zenz.kvstore.common.command.PutCommand;
 import com.zenz.kvstore.common.enums.ErrorType;
 import com.zenz.kvstore.common.response.BaseResponse;
 import com.zenz.kvstore.common.response.ErrorResponse;

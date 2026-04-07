@@ -5,52 +5,30 @@ import com.zenz.kvstore.server.raft.MessageType;
 import java.nio.ByteBuffer;
 
 public interface Message {
+
+    MessageType type();
+
+    byte[] serialize();
+
     static Message deserialize(ByteBuffer buffer) {
         final int typeValue = buffer.getInt();
         final MessageType type = MessageType.fromValue(typeValue);
         buffer.rewind();
 
-        if (type.equals(MessageType.INSTALL_SNAPSHOT)) {
-            return InstallSnapshot.deserialize(buffer);
-        }
-        if (type.equals(MessageType.APPEND_ENTRY)) {
-            return AppendEntry.deserialize(buffer);
-        }
-        if (type.equals(MessageType.REQUEST_ENTRY)) {
-            return RequestEntry.deserialize(buffer);
-        }
-        if (type.equals(MessageType.REQUEST_VOTE)) {
-            return RequestVote.deserialize(buffer);
-        }
-        if (type.equals(MessageType.REQUEST_VOTE_RESPONSE)) {
-            return RequestVoteResponse.deserialize(buffer);
-        }
-        if (type.equals(MessageType.LEADER_ELECTED)) {
-            return LeaderElected.deserialize(buffer);
-        }
-        if (type.equals(MessageType.APPEND_ENTRY_RESPONSE)) {
-            return AppendEntryResponse.deserialize(buffer);
-        }
-        if (type.equals(MessageType.HEARTBEAT_REQUEST)) {
-            return HeartbeatRequest.deserialize(buffer);
-        }
-        if (type.equals(MessageType.HEARTBEAT_RESPONSE)) {
-            return HeartbeatResponse.deserialize(buffer);
-        }
-        if (type.equals(MessageType.REDIRECT)) {
-            return RedirectMessage.deserialize(buffer);
-        }
-        if (type.equals(MessageType.REGISTER)) {
-            return RegisterMessage.deserialize(buffer);
-        }
-        if (type.equals(MessageType.ERROR)) {
-            return ErrorMessage.deserialize(buffer);
-        }
-
-        throw new IllegalArgumentException("Unknown message errorType: " + type);
+        return switch (type) {
+            case INSTALL_SNAPSHOT -> InstallSnapshot.deserialize(buffer);
+            case APPEND_ENTRY -> AppendEntry.deserialize(buffer);
+            case REQUEST_ENTRY -> RequestEntry.deserialize(buffer);
+            case REQUEST_VOTE -> RequestVote.deserialize(buffer);
+            case REQUEST_VOTE_RESPONSE -> RequestVoteResponse.deserialize(buffer);
+            case LEADER_ELECTED -> LeaderElected.deserialize(buffer);
+            case APPEND_ENTRY_RESPONSE -> AppendEntryResponse.deserialize(buffer);
+            case HEARTBEAT_REQUEST -> HeartbeatRequest.deserialize(buffer);
+            case HEARTBEAT_RESPONSE -> HeartbeatResponse.deserialize(buffer);
+            case REDIRECT -> RedirectMessage.deserialize(buffer);
+            case REGISTER -> RegisterMessage.deserialize(buffer);
+            case ERROR -> ErrorMessage.deserialize(buffer);
+            default -> throw new IllegalArgumentException("Unknown message type: " + type);
+        };
     }
-
-    MessageType type();
-
-    byte[] serialize();
 }

@@ -4,7 +4,35 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="f2a63f83-7187-4a54-8703-b4d1ce6944cf" name="Changes" comment="Improved code consistency in KVMap" />
+    <list default="true" id="f2a63f83-7187-4a54-8703-b4d1ce6944cf" name="Changes" comment="Improved code consistency in KVStore">
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/client/src/main/java/com/zenz/kvstore/client/KVStoreClient.java" beforeDir="false" afterPath="$PROJECT_DIR$/client/src/main/java/com/zenz/kvstore/client/KVStoreClient.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/common/src/main/java/com/zenz/kvstore/common/commands/Command.java" beforeDir="false" afterPath="$PROJECT_DIR$/common/src/main/java/com/zenz/kvstore/common/command/Command.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/common/src/main/java/com/zenz/kvstore/common/commands/DeleteCommand.java" beforeDir="false" afterPath="$PROJECT_DIR$/common/src/main/java/com/zenz/kvstore/common/command/DeleteCommand.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/common/src/main/java/com/zenz/kvstore/common/commands/GetCommand.java" beforeDir="false" afterPath="$PROJECT_DIR$/common/src/main/java/com/zenz/kvstore/common/command/GetCommand.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/common/src/main/java/com/zenz/kvstore/common/commands/PutCommand.java" beforeDir="false" afterPath="$PROJECT_DIR$/common/src/main/java/com/zenz/kvstore/common/command/PutCommand.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/common/src/main/java/com/zenz/kvstore/common/commands/SearchCommand.java" beforeDir="false" afterPath="$PROJECT_DIR$/common/src/main/java/com/zenz/kvstore/common/command/SearchCommand.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/server/src/main/java/com/zenz/kvstore/server/KVMap.java" beforeDir="false" afterPath="$PROJECT_DIR$/server/src/main/java/com/zenz/kvstore/server/KVMap.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/server/src/main/java/com/zenz/kvstore/server/KVServer.java" beforeDir="false" afterPath="$PROJECT_DIR$/server/src/main/java/com/zenz/kvstore/server/KVServer.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/server/src/main/java/com/zenz/kvstore/server/KVStore.java" beforeDir="false" afterPath="$PROJECT_DIR$/server/src/main/java/com/zenz/kvstore/server/KVStore.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/server/src/main/java/com/zenz/kvstore/server/command/handler/BaseCommandHandler.java" beforeDir="false" afterPath="$PROJECT_DIR$/server/src/main/java/com/zenz/kvstore/server/command/handler/BaseCommandHandler.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/server/src/main/java/com/zenz/kvstore/server/command/handler/CommandHandler.java" beforeDir="false" afterPath="$PROJECT_DIR$/server/src/main/java/com/zenz/kvstore/server/command/handler/CommandHandler.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/server/src/main/java/com/zenz/kvstore/server/command/handler/RaftCommandHandler.java" beforeDir="false" afterPath="$PROJECT_DIR$/server/src/main/java/com/zenz/kvstore/server/command/handler/RaftCommandHandler.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/server/src/main/java/com/zenz/kvstore/server/logging/handler/BaseLog.java" beforeDir="false" afterPath="$PROJECT_DIR$/server/src/main/java/com/zenz/kvstore/server/logging/handler/BaseLog.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/server/src/main/java/com/zenz/kvstore/server/logging/handler/BaseLogHandler.java" beforeDir="false" afterPath="$PROJECT_DIR$/server/src/main/java/com/zenz/kvstore/server/logging/handler/BaseLogHandler.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/server/src/main/java/com/zenz/kvstore/server/logging/handler/LogHandler.java" beforeDir="false" afterPath="$PROJECT_DIR$/server/src/main/java/com/zenz/kvstore/server/logging/handler/LogHandler.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/server/src/main/java/com/zenz/kvstore/server/logging/handler/RaftLogHandler.java" beforeDir="false" afterPath="$PROJECT_DIR$/server/src/main/java/com/zenz/kvstore/server/logging/handler/RaftLogHandler.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/server/src/main/java/com/zenz/kvstore/server/raft/ControllerClient.java" beforeDir="false" afterPath="$PROJECT_DIR$/server/src/main/java/com/zenz/kvstore/server/raft/ControllerClient.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/server/src/main/java/com/zenz/kvstore/server/raft/Server.java" beforeDir="false" afterPath="$PROJECT_DIR$/server/src/main/java/com/zenz/kvstore/server/raft/Server.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/server/src/main/java/com/zenz/kvstore/server/raft/message/Message.java" beforeDir="false" afterPath="$PROJECT_DIR$/server/src/main/java/com/zenz/kvstore/server/raft/message/Message.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/server/src/main/java/com/zenz/kvstore/server/restorer/RaftRestorer.java" beforeDir="false" afterPath="$PROJECT_DIR$/server/src/main/java/com/zenz/kvstore/server/restorer/RaftRestorer.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/server/src/main/java/com/zenz/kvstore/server/restorer/Restorer.java" beforeDir="false" afterPath="$PROJECT_DIR$/server/src/main/java/com/zenz/kvstore/server/restorer/Restorer.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/server/src/test/java/com/zenz/kvstore/server/KVServerTest.java" beforeDir="false" afterPath="$PROJECT_DIR$/server/src/test/java/com/zenz/kvstore/server/KVServerTest.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/server/src/test/java/com/zenz/kvstore/server/KVStoreTest.java" beforeDir="false" afterPath="$PROJECT_DIR$/server/src/test/java/com/zenz/kvstore/server/KVStoreTest.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/server/src/test/java/com/zenz/kvstore/server/RestorerTest.java" beforeDir="false" afterPath="$PROJECT_DIR$/server/src/test/java/com/zenz/kvstore/server/RestorerTest.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/server/src/test/java/com/zenz/kvstore/server/raft/RaftCommandHandlerTest.java" beforeDir="false" afterPath="$PROJECT_DIR$/server/src/test/java/com/zenz/kvstore/server/raft/RaftCommandHandlerTest.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/server/src/test/java/com/zenz/kvstore/server/raft/RaftControllerTest.java" beforeDir="false" afterPath="$PROJECT_DIR$/server/src/test/java/com/zenz/kvstore/server/raft/RaftControllerTest.java" afterDir="false" />
+    </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -66,6 +94,7 @@
     "JUnit.DiscoveryServiceTest.executor": "Run",
     "JUnit.KVMapSnapshotterTest.executor": "Run",
     "JUnit.KVMapTest and 2 more.executor": "Run",
+    "JUnit.KVMapTest and 4 more.executor": "Run",
     "JUnit.KVServerTest.executor": "Run",
     "JUnit.KVServerTest.put_withSpacesInValue.executor": "Run",
     "JUnit.KVStoreTest.executor": "Run",
@@ -148,22 +177,7 @@
       <recent name="com.zenz.kvstore.server.raft" />
     </key>
   </component>
-  <component name="RunManager" selected="JUnit.KVMapTest and 2 more">
-    <configuration name="DiscoveryServiceTest" type="JUnit" factoryName="JUnit" temporary="true" nameIsGenerated="true">
-      <module name="server" />
-      <extension name="coverage">
-        <pattern>
-          <option name="PATTERN" value="com.zenz.kvstore.server.raft.*" />
-          <option name="ENABLED" value="true" />
-        </pattern>
-      </extension>
-      <option name="PACKAGE_NAME" value="com.zenz.kvstore.server.raft" />
-      <option name="MAIN_CLASS_NAME" value="com.zenz.kvstore.server.raft.DiscoveryServiceTest" />
-      <option name="TEST_OBJECT" value="class" />
-      <method v="2">
-        <option name="Make" enabled="true" />
-      </method>
-    </configuration>
+  <component name="RunManager" selected="JUnit.KVMapTest and 4 more">
     <configuration name="KVMapTest and 2 more" type="JUnit" factoryName="JUnit" temporary="true" nameIsGenerated="true">
       <module name="server" />
       <option name="TEST_OBJECT" value="pattern" />
@@ -171,6 +185,20 @@
         <pattern testClass="com.zenz.kvstore.server.KVMapTest" />
         <pattern testClass="com.zenz.kvstore.server.KVServerTest" />
         <pattern testClass="com.zenz.kvstore.server.KVStoreTest" />
+      </patterns>
+      <method v="2">
+        <option name="Make" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="KVMapTest and 4 more" type="JUnit" factoryName="JUnit" temporary="true" nameIsGenerated="true">
+      <module name="server" />
+      <option name="TEST_OBJECT" value="pattern" />
+      <patterns>
+        <pattern testClass="com.zenz.kvstore.server.KVMapTest" />
+        <pattern testClass="com.zenz.kvstore.server.KVServerTest" />
+        <pattern testClass="com.zenz.kvstore.server.KVStoreTest" />
+        <pattern testClass="com.zenz.kvstore.server.RestorerTest" />
+        <pattern testClass="com.zenz.kvstore.server.TrieTest" />
       </patterns>
       <method v="2">
         <option name="Make" enabled="true" />
@@ -224,11 +252,11 @@
     </configuration>
     <recent_temporary>
       <list>
+        <item itemvalue="JUnit.KVMapTest and 4 more" />
         <item itemvalue="JUnit.KVMapTest and 2 more" />
         <item itemvalue="JUnit.LeaderElectionTest" />
         <item itemvalue="JUnit.KVServerTest" />
         <item itemvalue="JUnit.KVServerTest.put_withSpacesInValue" />
-        <item itemvalue="JUnit.DiscoveryServiceTest" />
       </list>
     </recent_temporary>
   </component>
@@ -288,7 +316,7 @@
       <workItem from="1775460581804" duration="22958000" />
       <workItem from="1775496106224" duration="1301000" />
       <workItem from="1775545202924" duration="16576000" />
-      <workItem from="1775571896402" duration="4585000" />
+      <workItem from="1775571896402" duration="4905000" />
     </task>
     <task id="LOCAL-00002" summary="Handling broker disconnect during election">
       <option name="closed" value="true" />
@@ -442,7 +470,15 @@
       <option name="project" value="LOCAL" />
       <updated>1775576642210</updated>
     </task>
-    <option name="localTasksCounter" value="21" />
+    <task id="LOCAL-00021" summary="Improved code consistency in KVStore">
+      <option name="closed" value="true" />
+      <created>1775576798810</created>
+      <option name="number" value="00021" />
+      <option name="presentableId" value="LOCAL-00021" />
+      <option name="project" value="LOCAL" />
+      <updated>1775576798810</updated>
+    </task>
+    <option name="localTasksCounter" value="22" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -480,6 +516,7 @@
     <MESSAGE value="Fixed: NPE in RaftCommandHandler.handleCommand when handling GET command" />
     <MESSAGE value="Fixed: Potential memory allocation error during resizing in KVMap.isRehashing" />
     <MESSAGE value="Improved code consistency in KVMap" />
-    <option name="LAST_COMMIT_MESSAGE" value="Improved code consistency in KVMap" />
+    <MESSAGE value="Improved code consistency in KVStore" />
+    <option name="LAST_COMMIT_MESSAGE" value="Improved code consistency in KVStore" />
   </component>
 </project>

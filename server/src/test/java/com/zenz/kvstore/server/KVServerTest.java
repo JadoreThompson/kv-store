@@ -1,9 +1,9 @@
 package com.zenz.kvstore.server;
 
-import com.zenz.kvstore.common.commands.Command;
-import com.zenz.kvstore.common.commands.DeleteCommand;
-import com.zenz.kvstore.common.commands.GetCommand;
-import com.zenz.kvstore.common.commands.PutCommand;
+import com.zenz.kvstore.common.command.Command;
+import com.zenz.kvstore.common.command.DeleteCommand;
+import com.zenz.kvstore.common.command.GetCommand;
+import com.zenz.kvstore.common.command.PutCommand;
 import com.zenz.kvstore.common.enums.CommandType;
 import com.zenz.kvstore.common.enums.ErrorType;
 import com.zenz.kvstore.common.enums.ResponseType;

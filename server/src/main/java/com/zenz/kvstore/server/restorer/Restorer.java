@@ -1,8 +1,8 @@
 package com.zenz.kvstore.server.restorer;
 
-import com.zenz.kvstore.common.commands.Command;
-import com.zenz.kvstore.common.commands.DeleteCommand;
-import com.zenz.kvstore.common.commands.PutCommand;
+import com.zenz.kvstore.common.command.Command;
+import com.zenz.kvstore.common.command.DeleteCommand;
+import com.zenz.kvstore.common.command.PutCommand;
 import com.zenz.kvstore.common.enums.CommandType;
 import com.zenz.kvstore.server.KVMapSnapshotter;
 import com.zenz.kvstore.server.KVStore;

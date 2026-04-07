@@ -6,8 +6,8 @@ import java.util.Objects;
 
 public class KVMap {
 
-    public static float LOAD_FACTOR = 1.0f;
-    public static int REHASH_BUCKETS = 100;
+    public static final float LOAD_FACTOR = 1.0f;
+    public static final int REHASH_BUCKETS = 100;
 
     private final float loadFactor;
     private final int rehashBuckets;

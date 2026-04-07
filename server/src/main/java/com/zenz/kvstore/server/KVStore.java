@@ -1,7 +1,7 @@
 package com.zenz.kvstore.server;
 
-import com.zenz.kvstore.common.commands.DeleteCommand;
-import com.zenz.kvstore.common.commands.PutCommand;
+import com.zenz.kvstore.common.command.DeleteCommand;
+import com.zenz.kvstore.common.command.PutCommand;
 import com.zenz.kvstore.server.logging.WALogger;
 import com.zenz.kvstore.server.logging.handler.BaseLogHandler;
 import com.zenz.kvstore.server.logging.handler.RaftLogHandler;
