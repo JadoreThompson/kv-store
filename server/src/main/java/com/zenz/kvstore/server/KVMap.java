@@ -162,7 +162,7 @@ public class KVMap {
 
         final int capacity = ht1.length();
         if (ht1.size() >= (int) (capacity * loadFactor)) {
-            ht2 = new KVArray(capacity * capacity);
+            ht2 = new KVArray(capacity * 2);
             rehashIdx = 0;
             return true;
         }
