@@ -1,5 +1,7 @@
 package com.zenz.kvstore.server.logging;
 
+import lombok.Getter;
+
 import java.io.Closeable;
 import java.io.File;
 import java.io.IOException;
@@ -12,6 +14,7 @@ import java.nio.file.StandardOpenOption;
 public class WALogger implements Logger, Closeable {
 
     private final FileChannel channel;
+    @Getter
     private final Path path;
 
     public WALogger(Path fpath) throws IOException {
@@ -24,7 +27,8 @@ public class WALogger implements Logger, Closeable {
         channel = FileChannel.open(path, StandardOpenOption.APPEND);
     }
 
-    public void log(ByteBuffer buffer) throws IOException {
+    public void log(final LogEntry logEntry) throws IOException {
+        final ByteBuffer buffer = ByteBuffer.wrap(logEntry.serialize());
         channel.write(buffer);
         channel.write(ByteBuffer.wrap("\n".getBytes(StandardCharsets.UTF_8)));
         channel.force(true);
@@ -32,9 +36,5 @@ public class WALogger implements Logger, Closeable {
 
     public void close() throws IOException {
         channel.close();
-    }
-
-    public Path getPath() {
-        return path;
     }
 }

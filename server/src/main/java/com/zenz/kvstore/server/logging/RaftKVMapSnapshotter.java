@@ -42,7 +42,7 @@ public class RaftKVMapSnapshotter implements Snapshotter<RaftLogEntry> {
         final Snapshotter<RaftLogEntry> prevSnapshotter = logHandler.getSnapshotter();
         final Logger logger = new Logger() {
             @Override
-            public void log(ByteBuffer buffer) {
+            public void log(LogEntry logEntry) {
             }
         };
         final Snapshotter<RaftLogEntry> snapshotter = new Snapshotter<>() {

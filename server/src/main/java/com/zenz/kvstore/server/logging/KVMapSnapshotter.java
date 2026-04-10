@@ -42,7 +42,7 @@ public class KVMapSnapshotter implements Snapshotter<LogEntry> {
         final Snapshotter<LogEntry> prevSnapshotter = logHandler.getSnapshotter();
         final Logger logger = new Logger() {
             @Override
-            public void log(ByteBuffer buffer) {
+            public void log(LogEntry logEntry) {
             }
         };
         final Snapshotter<LogEntry> snapshotter = new Snapshotter<>() {
@@ -131,7 +131,10 @@ public class KVMapSnapshotter implements Snapshotter<LogEntry> {
             throw new RuntimeException(e);
         }
 
-        tempPath.toFile().renameTo(destPath.toFile());
+        final boolean success = tempPath.toFile().renameTo(destPath.toFile());
+        if (!success) {
+            throw new RuntimeException("Failed to rename snapshot from " + tempPath + " to " + destPath);
+        }
         return destPath;
     }
 

@@ -4,22 +4,12 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="f2a63f83-7187-4a54-8703-b4d1ce6944cf" name="Changes" comment="Refactored logging ; Created new snapshotter implementation">
-      <change afterPath="$PROJECT_DIR$/server/src/main/java/com/zenz/kvstore/server/logging/KVMapSnapshotter.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/client/target/classes/com/zenz/kvstore/client/KVStoreClient.class" beforeDir="false" afterPath="$PROJECT_DIR$/client/target/classes/com/zenz/kvstore/client/KVStoreClient.class" afterDir="false" />
+    <list default="true" id="f2a63f83-7187-4a54-8703-b4d1ce6944cf" name="Changes" comment="Created KVMapSnapshotter for non-raft mode">
       <change beforePath="$PROJECT_DIR$/server/src/main/java/com/zenz/kvstore/server/logging/BaseLogHandler.java" beforeDir="false" afterPath="$PROJECT_DIR$/server/src/main/java/com/zenz/kvstore/server/logging/BaseLogHandler.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/server/src/main/java/com/zenz/kvstore/server/logging/LogHandler.java" beforeDir="false" afterPath="$PROJECT_DIR$/server/src/main/java/com/zenz/kvstore/server/logging/LogHandler.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/server/src/main/java/com/zenz/kvstore/server/logging/RaftKVMapSnapshotter.java" beforeDir="false" afterPath="$PROJECT_DIR$/server/src/main/java/com/zenz/kvstore/server/logging/RaftKVMapSnapshotter.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/server/src/main/java/com/zenz/kvstore/server/logging/Logger.java" beforeDir="false" afterPath="$PROJECT_DIR$/server/src/main/java/com/zenz/kvstore/server/logging/Logger.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/server/src/main/java/com/zenz/kvstore/server/logging/RaftLogHandler.java" beforeDir="false" afterPath="$PROJECT_DIR$/server/src/main/java/com/zenz/kvstore/server/logging/RaftLogHandler.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/server/src/test/java/com/zenz/kvstore/server/KVMapSnapshotterTest.java" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/server/src/test/java/com/zenz/kvstore/server/RestorerTest.java" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/server/src/test/java/com/zenz/kvstore/server/raft/DiscoveryServiceTest.java" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/server/src/test/java/com/zenz/kvstore/server/raft/LeaderElectionTest.java" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/server/src/test/java/com/zenz/kvstore/server/raft/RaftCommandHandlerTest.java" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/server/src/test/java/com/zenz/kvstore/server/raft/RaftControllerTest.java" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/server/src/test/java/com/zenz/kvstore/server/raft/TestControllerServer.java" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/server/src/test/java/com/zenz/kvstore/server/raft/Utils.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/server/src/main/java/com/zenz/kvstore/server/logging/WALogger.java" beforeDir="false" afterPath="$PROJECT_DIR$/server/src/main/java/com/zenz/kvstore/server/logging/WALogger.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -300,7 +290,7 @@
       <workItem from="1775496106224" duration="1301000" />
       <workItem from="1775545202924" duration="16576000" />
       <workItem from="1775571896402" duration="4905000" />
-      <workItem from="1775854854226" duration="744000" />
+      <workItem from="1775854854226" duration="1156000" />
     </task>
     <task id="LOCAL-00002" summary="Handling broker disconnect during election">
       <option name="closed" value="true" />
@@ -478,7 +468,15 @@
       <option name="project" value="LOCAL" />
       <updated>1775840883937</updated>
     </task>
-    <option name="localTasksCounter" value="24" />
+    <task id="LOCAL-00024" summary="Created KVMapSnapshotter for non-raft mode">
+      <option name="closed" value="true" />
+      <created>1775855651878</created>
+      <option name="number" value="00024" />
+      <option name="presentableId" value="LOCAL-00024" />
+      <option name="project" value="LOCAL" />
+      <updated>1775855651878</updated>
+    </task>
+    <option name="localTasksCounter" value="25" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -519,6 +517,7 @@
     <MESSAGE value="Improved code consistency in KVStore" />
     <MESSAGE value="Removed KVStore.Builder, snapshot, redundant getters and setters" />
     <MESSAGE value="Refactored logging ; Created new snapshotter implementation" />
-    <option name="LAST_COMMIT_MESSAGE" value="Refactored logging ; Created new snapshotter implementation" />
+    <MESSAGE value="Created KVMapSnapshotter for non-raft mode" />
+    <option name="LAST_COMMIT_MESSAGE" value="Created KVMapSnapshotter for non-raft mode" />
   </component>
 </project>
