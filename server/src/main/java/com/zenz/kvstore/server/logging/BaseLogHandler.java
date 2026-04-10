@@ -23,7 +23,9 @@ public interface BaseLogHandler<L extends LogEntry> {
 
     void setLogger(Logger logger);
 
-    Snapshotter getSnapshotter();
+    Snapshotter<L> getSnapshotter();
 
-    void setSnapshotter(Snapshotter snapshotter);
+    void setSnapshotter(Snapshotter<L> snapshotter);
+
+    void setLogId(long logId);
 }

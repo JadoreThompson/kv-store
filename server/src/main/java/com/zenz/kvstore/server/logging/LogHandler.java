@@ -17,12 +17,12 @@ public class LogHandler implements BaseLogHandler<LogEntry> {
     private Logger logger;
     private long logId;
     @Setter
-    private Snapshotter snapshotter;
+    private Snapshotter<LogEntry> snapshotter;
     @Setter
     private boolean enabled;
     private List<LogEntry> entries = new ArrayList<>();
 
-    public LogHandler(final Logger logger, final Snapshotter snapshotter) {
+    public LogHandler(final Logger logger, final Snapshotter<LogEntry> snapshotter) {
         this.logger = logger;
         this.snapshotter = snapshotter;
     }
@@ -63,7 +63,12 @@ public class LogHandler implements BaseLogHandler<LogEntry> {
     }
 
     @Override
-    public Snapshotter getSnapshotter() {
+    public Snapshotter<LogEntry> getSnapshotter() {
         return snapshotter;
+    }
+
+    @Override
+    public void setLogId(long logId) {
+        this.logId = logId;
     }
 }

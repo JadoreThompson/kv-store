@@ -23,12 +23,12 @@ public class RaftLogHandler implements BaseLogHandler<RaftLogEntry> {
     @Getter
     @Setter
     private long term;
-    private Snapshotter snapshotter;
+    private Snapshotter<RaftLogEntry> snapshotter;
     @Setter
     private boolean enabled;
     private List<RaftLogEntry> entries = new ArrayList<>();
 
-    public RaftLogHandler(final Logger logger, final Snapshotter snapshotter) {
+    public RaftLogHandler(final Logger logger, final Snapshotter<RaftLogEntry> snapshotter) {
         this.logger = logger;
         this.snapshotter = snapshotter;
     }
@@ -66,12 +66,12 @@ public class RaftLogHandler implements BaseLogHandler<RaftLogEntry> {
     }
 
     @Override
-    public Snapshotter getSnapshotter() {
+    public Snapshotter<RaftLogEntry> getSnapshotter() {
         return snapshotter;
     }
 
     @Override
-    public void setSnapshotter(final Snapshotter snapshotter) {
+    public void setSnapshotter(final Snapshotter<RaftLogEntry> snapshotter) {
         this.snapshotter = snapshotter;
     }
 

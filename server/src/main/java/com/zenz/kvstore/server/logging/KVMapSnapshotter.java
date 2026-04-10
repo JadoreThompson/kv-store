@@ -18,11 +18,11 @@ import java.nio.file.StandardOpenOption;
 import java.util.ArrayList;
 import java.util.List;
 
-public class RaftKVMapSnapshotter implements Snapshotter<RaftLogEntry> {
+public class KVMapSnapshotter implements Snapshotter<LogEntry> {
 
     private final Path dir;
 
-    public RaftKVMapSnapshotter(final Path dir) {
+    public KVMapSnapshotter(final Path dir) {
         this.dir = dir;
     }
 
@@ -37,17 +37,17 @@ public class RaftKVMapSnapshotter implements Snapshotter<RaftLogEntry> {
             return;
         }
 
-        final RaftLogHandler logHandler = (RaftLogHandler) kvStore.getLogHandler();
+        final LogHandler logHandler = (LogHandler) kvStore.getLogHandler();
         final Logger prevLogger = logHandler.getLogger();
-        final Snapshotter<RaftLogEntry> prevSnapshotter = logHandler.getSnapshotter();
+        final Snapshotter<LogEntry> prevSnapshotter = logHandler.getSnapshotter();
         final Logger logger = new Logger() {
             @Override
             public void log(ByteBuffer buffer) {
             }
         };
-        final Snapshotter<RaftLogEntry> snapshotter = new Snapshotter<>() {
+        final Snapshotter<LogEntry> snapshotter = new Snapshotter<>() {
             @Override
-            public Path snapshot(List<RaftLogEntry> entries) {
+            public Path snapshot(List<LogEntry> entries) {
                 return null;
             }
         };
@@ -74,7 +74,7 @@ public class RaftKVMapSnapshotter implements Snapshotter<RaftLogEntry> {
 
                 // Applying records
                 while (bodyBuffer.hasRemaining()) {
-                    final RaftLogEntry logEntry = RaftLogEntry.deserialize(bodyBuffer);
+                    final LogEntry logEntry = LogEntry.deserialize(bodyBuffer);
                     switch (logEntry.command.type()) {
                         case PUT -> {
                             final PutCommand comm = (PutCommand) logEntry.command;
@@ -101,7 +101,7 @@ public class RaftKVMapSnapshotter implements Snapshotter<RaftLogEntry> {
      * @param entries Log entries to snapshot
      * @return Path to the snapshot file
      */
-    public Path snapshot(final List<RaftLogEntry> entries) throws IOException {
+    public Path snapshot(final List<LogEntry> entries) throws IOException {
         ByteBuffer buffer = ByteBuffer.allocate(1024);
 
         final ByteBuffer header = createHeader(entries);
@@ -141,20 +141,18 @@ public class RaftKVMapSnapshotter implements Snapshotter<RaftLogEntry> {
         return newBuffer;
     }
 
-    private ByteBuffer createHeader(final List<RaftLogEntry> entries) {
+    private ByteBuffer createHeader(final List<LogEntry> entries) {
         return ByteBuffer.wrap(new Header(
                 1,
                 entries.getFirst().id,
-                entries.getFirst().term,
-                entries.getLast().id,
-                entries.getFirst().term).serialize());
+                entries.getLast().id).serialize());
     }
 
-    private ByteBuffer createBody(final List<RaftLogEntry> entries) {
+    private ByteBuffer createBody(final List<LogEntry> entries) {
         return ByteBuffer.wrap(new Body(entries).serialize());
     }
 
-    private ByteBuffer createFooter(final List<RaftLogEntry> entries) {
+    private ByteBuffer createFooter(final List<LogEntry> entries) {
         return ByteBuffer.wrap(new Footer(System.currentTimeMillis()).serialize());
     }
 
@@ -170,10 +168,10 @@ public class RaftKVMapSnapshotter implements Snapshotter<RaftLogEntry> {
 
     private Body deserializeBody(final ByteBuffer body) {
         final long numEntries = body.getLong();
-        final List<RaftLogEntry> entries = new ArrayList<>();
+        final List<LogEntry> entries = new ArrayList<>();
 
         for (int i = 0; i < numEntries; i++) {
-            entries.add(RaftLogEntry.deserialize(body));
+            entries.add(LogEntry.deserialize(body));
         }
 
         return new Body(entries);
@@ -185,9 +183,7 @@ public class RaftKVMapSnapshotter implements Snapshotter<RaftLogEntry> {
 
         private final long version;
         private final long firstLogId;
-        private final long firstLogTerm;
         private final long lastLogId;
-        private final long lastLogTerm;
 
         @Override
         public byte[] serialize() {
@@ -195,9 +191,7 @@ public class RaftKVMapSnapshotter implements Snapshotter<RaftLogEntry> {
 
             buffer.putLong(version);
             buffer.putLong(firstLogId);
-            buffer.putLong(firstLogTerm);
             buffer.putLong(lastLogId);
-            buffer.putLong(lastLogTerm);
 
             return buffer.array();
         }
@@ -205,16 +199,12 @@ public class RaftKVMapSnapshotter implements Snapshotter<RaftLogEntry> {
         public static Header deserialize(final ByteBuffer buffer) {
             final long version = buffer.getLong();
             final long firstLogId = buffer.getLong();
-            final long firstLogTerm = buffer.getLong();
             final long lastLogId = buffer.getLong();
-            final long lastLogTerm = buffer.getLong();
 
             return new Header(
                     version,
                     firstLogId,
-                    firstLogTerm,
-                    lastLogId,
-                    lastLogTerm
+                    lastLogId
             );
 
         }
@@ -224,11 +214,11 @@ public class RaftKVMapSnapshotter implements Snapshotter<RaftLogEntry> {
     @RequiredArgsConstructor
     public static class Body implements KVSerializable {
 
-        private final List<RaftLogEntry> entries;
+        private final List<LogEntry> entries;
 
         @Override
         public byte[] serialize() {
-            final List<byte[]> serializedEntries = entries.stream().map(RaftLogEntry::serialize).toList();
+            final List<byte[]> serializedEntries = entries.stream().map(LogEntry::serialize).toList();
             final ByteBuffer buffer = ByteBuffer.allocate(4 + serializedEntries.size());
 
             buffer.putInt(serializedEntries.size());
