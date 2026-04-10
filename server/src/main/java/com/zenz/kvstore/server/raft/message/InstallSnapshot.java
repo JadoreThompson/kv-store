@@ -1,61 +1,93 @@
 package com.zenz.kvstore.server.raft.message;
 
-import com.zenz.kvstore.server.raft.MessageType;
+import com.zenz.kvstore.server.util.KVSerializable;
 
-import java.nio.BufferUnderflowException;
 import java.nio.ByteBuffer;
+import java.nio.charset.StandardCharsets;
 
 public record InstallSnapshot(
-        MessageType type,
-        byte[] snapshot,
-        long logId,
-        long term
-) implements Message {
+        RaftMessageType type,
+        String leaderId,
+        long term,
+        long lastIncludedIndex,
+        long lastIncludedTerm,
+        long offset,
+        byte[] data,
+        boolean done
+) implements Message, KVSerializable {
 
-    public InstallSnapshot(byte[] snapshot, long logId, long term) {
-        this(MessageType.INSTALL_SNAPSHOT, snapshot, logId, term);
+    public InstallSnapshot(String leaderId,
+                           long term,
+                           long lastIncludedIndex,
+                           long lastIncludedTerm,
+                           long offset,
+                           byte[] data,
+                           boolean done) {
+        this(RaftMessageType.INSTALL_SNAPSHOT, leaderId, term, lastIncludedIndex, lastIncludedTerm, offset, data, done);
     }
 
+    @Override
     public byte[] serialize() {
-        ByteBuffer buffer = ByteBuffer.allocate(4 + 8 + 8 + 4 + snapshot.length);
+        final byte[] leaderBytes = leaderId.getBytes(StandardCharsets.UTF_8);
+
+        final int size =
+                4 + // type
+                        4 + leaderBytes.length +
+                        8 + // term
+                        8 + // lastIncludedIndex
+                        8 + // lastIncludedTerm
+                        8 + // offset
+                        4 + data.length +
+                        1;  // done
+
+        final ByteBuffer buffer = ByteBuffer.allocate(size);
 
         buffer.putInt(type.getValue());
-        buffer.putLong(logId);
+
+        buffer.putInt(leaderBytes.length);
+        buffer.put(leaderBytes);
+
         buffer.putLong(term);
-        buffer.putInt(snapshot.length);
-        buffer.put(snapshot);
+        buffer.putLong(lastIncludedIndex);
+        buffer.putLong(lastIncludedTerm);
+        buffer.putLong(offset);
+
+        buffer.putInt(data.length);
+        buffer.put(data);
+
+        buffer.put((byte) (done ? 1 : 0));
 
         return buffer.array();
     }
 
-    public static InstallSnapshot deserialize(ByteBuffer buffer) {
-        try {
-            int typeValue = buffer.getInt();
-            MessageType messageType = MessageType.fromValue(typeValue);
-            if (!messageType.equals(MessageType.INSTALL_SNAPSHOT)) {
-                throw new IllegalArgumentException("Invalid message errorType " + messageType);
-            }
+    public static InstallSnapshot deserialize(final ByteBuffer buffer) {
+        final RaftMessageType type = RaftMessageType.fromValue(buffer.getInt());
 
-            long logId = buffer.getLong();
-            long term = buffer.getLong();
-            int snapshotLength = buffer.getInt();
-            byte[] snapshot = new byte[snapshotLength];
-            buffer.get(snapshot);
+        final int leaderLen = buffer.getInt();
+        final byte[] leaderBytes = new byte[leaderLen];
+        buffer.get(leaderBytes);
+        final String leaderId = new String(leaderBytes, StandardCharsets.UTF_8);
 
-            return new InstallSnapshot(snapshot, logId, term);
-        } catch (BufferUnderflowException e) {
-            return null;
-        }
-    }
+        final long term = buffer.getLong();
+        final long lastIncludedIndex = buffer.getLong();
+        final long lastIncludedTerm = buffer.getLong();
+        final long offset = buffer.getLong();
 
-    @Override
-    public String toString() {
-        return "InstallSnapshot{" +
-                "errorType=" + type +
-                ", snapshot=" + (snapshot != null ? snapshot.length + " bytes" : "null") +
-                ", prevLogId=" + logId +
-                ", term=" + term +
-                '}';
+        final int dataLength = buffer.getInt();
+        final byte[] data = new byte[dataLength];
+        buffer.get(data);
+
+        final boolean done = buffer.get() == 1;
+
+        return new InstallSnapshot(
+                type,
+                leaderId,
+                term,
+                lastIncludedIndex,
+                lastIncludedTerm,
+                offset,
+                data,
+                done
+        );
     }
 }
-

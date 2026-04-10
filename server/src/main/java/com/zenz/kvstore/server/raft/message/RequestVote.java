@@ -1,80 +1,60 @@
 package com.zenz.kvstore.server.raft.message;
 
-import com.zenz.kvstore.server.raft.MessageType;
+import com.zenz.kvstore.server.util.KVSerializable;
 
-import java.nio.BufferUnderflowException;
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
 
 public record RequestVote(
-        MessageType type,
-        String name,
-        long term,
-        long prevLogId,
-        long prevTerm
-) implements Message {
+        RaftMessageType type,
+        String leaderName,
+        long lastLogId,
+        long lastLogTerm
+) implements Message, KVSerializable {
 
-    public RequestVote(String name, long term, long prevLogId, long prevTerm) {
-        this(MessageType.REQUEST_VOTE, name, term, prevLogId, prevTerm);
+    public RequestVote(String leaderName, long lastLogId, long lastLogTerm) {
+        this(RaftMessageType.REQUEST_VOTE, leaderName, lastLogId, lastLogTerm);
     }
 
     @Override
     public byte[] serialize() {
-        byte[] nameBytes = name.getBytes(StandardCharsets.UTF_8);
-        ByteBuffer buffer = ByteBuffer.allocate(
-                4 // type
-                        + 8  // term
-                        + 4 // name bytes length
-                        + nameBytes.length // name bytes
-                        + 8
-                        + 8
-        );
+        final byte[] leaderBytes = leaderName.getBytes(StandardCharsets.UTF_8);
+
+        final int size =
+                4 + // type
+                        4 + leaderBytes.length +
+                        8 + // lastLogId
+                        8;  // lastLogTerm
+
+        final ByteBuffer buffer = ByteBuffer.allocate(size);
 
         buffer.putInt(type.getValue());
-        buffer.putLong(term);
-        buffer.putInt(nameBytes.length);
-        buffer.put(nameBytes);
-        buffer.putLong(prevLogId);
-        buffer.putLong(prevTerm);
+
+        buffer.putInt(leaderBytes.length);
+        buffer.put(leaderBytes);
+
+        buffer.putLong(lastLogId);
+        buffer.putLong(lastLogTerm);
 
         return buffer.array();
     }
 
-    public static RequestVote deserialize(ByteBuffer buffer) {
-        try {
-            int typeValue = buffer.getInt();
-            MessageType messageType = MessageType.fromValue(typeValue);
-            if (!messageType.equals(MessageType.REQUEST_VOTE)) {
-                throw new IllegalArgumentException("Invalid message errorType " + messageType);
-            }
+    public static RequestVote deserialize(final ByteBuffer buffer) {
+        final RaftMessageType type = RaftMessageType.fromValue(buffer.getInt());
 
-            long term = buffer.getLong();
-            int  nameLength = buffer.getInt();
-            byte[] nameBytes = new byte[nameLength];
-            buffer.get(nameBytes);
-            long prevLogId = buffer.getLong();
-            long prevTerm = buffer.getLong();
+        final int leaderLen = buffer.getInt();
+        final byte[] leaderBytes = new byte[leaderLen];
+        buffer.get(leaderBytes);
+        final String leaderName = new String(leaderBytes, StandardCharsets.UTF_8);
 
-            return new RequestVote(
-                    messageType,
-                    new String(nameBytes, StandardCharsets.UTF_8),
-                    term,
-                    prevLogId,
-                    prevTerm
-            );
-        } catch (BufferUnderflowException e) {
-            return null;
-        }
-    }
+        final long lastLogId = buffer.getLong();
+        final long lastLogTerm = buffer.getLong();
 
-    @Override
-    public String toString() {
-        return "RequestVote{" +
-                "type=" + type +
-                ", term=" + term +
-                ", name=" + name +
-                ", prevLogId=" + prevLogId +
-                ", prevTerm=" + prevTerm +
-                '}';
+        return new RequestVote(
+                type,
+                leaderName,
+                lastLogId,
+                lastLogTerm
+        );
     }
 }

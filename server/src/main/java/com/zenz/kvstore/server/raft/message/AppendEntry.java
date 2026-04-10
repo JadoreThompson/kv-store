@@ -1,83 +1,61 @@
 package com.zenz.kvstore.server.raft.message;
 
-import com.zenz.kvstore.server.logging.RaftLogHandler;
-import com.zenz.kvstore.server.raft.MessageType;
+import com.zenz.kvstore.server.logging.RaftLogEntry;
+import com.zenz.kvstore.server.util.KVSerializable;
 
-import java.nio.BufferUnderflowException;
 import java.nio.ByteBuffer;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 
 public record AppendEntry(
-        MessageType type,
-        long id,
+        RaftMessageType type,
+        String leaderName,
         long term,
-        List<RaftLogHandler.LogEntry> entries
-) implements Message {
+        long prevLogId,
+        long prevLogTerm,
+        List<RaftLogEntry> entries
+) implements Message, KVSerializable {
 
     public AppendEntry(
-            long id,
-            long term,
-            List<RaftLogHandler.LogEntry> entries
-    ) {
-        this(MessageType.APPEND_ENTRY, id, term, entries);
-    }
-
-    public static AppendEntry deserialize(ByteBuffer buffer) {
-        try {
-            int typeValue = buffer.getInt();
-            MessageType messageType = MessageType.fromValue(typeValue);
-            if (!messageType.equals(MessageType.APPEND_ENTRY)) {
-                throw new IllegalArgumentException("Invalid message errorType " + messageType);
-            }
-
-            long id = buffer.getLong();
-            long term = buffer.getLong();
-
-            int allEntryBytesLength = buffer.getInt();
-            byte[] allEntryBytes = new byte[allEntryBytesLength];
-            buffer.get(allEntryBytes);
-            ByteBuffer allEntryBuffer = ByteBuffer.wrap(allEntryBytes);
-
-            List<RaftLogHandler.LogEntry> entries = new ArrayList<>();
-            while (allEntryBuffer.hasRemaining()) {
-                int entryLength = allEntryBuffer.getInt();
-                byte[] entryBytes = new byte[entryLength];
-                allEntryBuffer.get(entryBytes);
-                RaftLogHandler.LogEntry entry = RaftLogHandler.LogEntry.deserialize(entryBytes);
-                entries.add(entry);
-            }
-
-            return new AppendEntry(id, term, entries);
-        } catch (BufferUnderflowException e) {
-            return null;
-        }
+            final String leaderName,
+            final long term,
+            final long prevLogId,
+            final long prevLogTerm,
+            final List<RaftLogEntry> entries) {
+        this(RaftMessageType.APPEND_ENTRY, leaderName, term, prevLogId, prevLogTerm, entries);
     }
 
     @Override
     public byte[] serialize() {
-        // Calculate total size needed for entries
-        int entriesSize = 0;
-        List<byte[]> entryBytesList = new ArrayList<>();
+        final byte[] leaderBytes = leaderName.getBytes(StandardCharsets.UTF_8);
 
-        if (entries != null) {
-            for (RaftLogHandler.LogEntry entry : entries) {
-                if (entry == null) continue;
+        int size =
+                4 + // type
+                        4 + leaderBytes.length +
+                        8 + // term
+                        8 + // prevLogId
+                        8 + // prevLogTerm
+                        4; // entries count
 
-                byte[] entryBytes = entry.serialize();
-                entryBytesList.add(entryBytes);
-                entriesSize += 4 + entryBytes.length; // 4 bytes for length + entry bytes
-            }
+        final List<byte[]> serializedEntries = new ArrayList<>();
+        for (RaftLogEntry entry : entries) {
+            byte[] bytes = entry.serialize();
+            serializedEntries.add(bytes);
+            size += 4 + bytes.length; // length + data
         }
 
-        ByteBuffer buffer = ByteBuffer.allocate(4 + 8 + 8 + 4 + entriesSize);
+        final ByteBuffer buffer = ByteBuffer.allocate(size);
 
         buffer.putInt(type.getValue());
-        buffer.putLong(id);
+        buffer.putInt(leaderBytes.length);
+        buffer.put(leaderBytes);
         buffer.putLong(term);
-        buffer.putInt(entriesSize);
+        buffer.putLong(prevLogId);
+        buffer.putLong(prevLogTerm);
 
-        for (byte[] entryBytes : entryBytesList) {
+        buffer.putInt(entries.size());
+        for (byte[] entryBytes : serializedEntries) {
             buffer.putInt(entryBytes.length);
             buffer.put(entryBytes);
         }
@@ -85,13 +63,39 @@ public record AppendEntry(
         return buffer.array();
     }
 
-    @Override
-    public String toString() {
-        return "AppendEntry{" +
-                "errorType=" + type +
-                ", id=" + id +
-                ", term=" + term +
-                ", entries=" + entries +
-                '}';
+    public static AppendEntry deserialize(final ByteBuffer buffer) {
+        final RaftMessageType type = RaftMessageType.fromValue(buffer.getInt());
+
+        final int leaderLen = buffer.getInt();
+        final byte[] leaderBytes = new byte[leaderLen];
+        buffer.get(leaderBytes);
+        final String leaderName = new String(leaderBytes, StandardCharsets.UTF_8);
+
+        final long term = buffer.getLong();
+        final long prevLogId = buffer.getLong();
+        final long prevLogTerm = buffer.getLong();
+
+        final int entryCount = buffer.getInt();
+        final List<RaftLogEntry> entries = new ArrayList<>(entryCount);
+
+        for (int i = 0; i < entryCount; i++) {
+            final int len = buffer.getInt();
+            final byte[] entryBytes = new byte[len];
+            buffer.get(entryBytes);
+
+            final RaftLogEntry entry =
+                    RaftLogEntry.deserialize(ByteBuffer.wrap(entryBytes));
+
+            entries.add(entry);
+        }
+
+        return new AppendEntry(
+                type,
+                leaderName,
+                term,
+                prevLogId,
+                prevLogTerm,
+                entries
+        );
     }
 }
