@@ -61,9 +61,10 @@ throughput.
 
 #### Write-Ahead Logging (WAL) & Snapshotting
 
-Upon each operation, a log entry is made describing the operation, containing all parameters used. This is used during
+Upon each operation, a logEntry entry is made describing the operation, containing all parameters used. This is used
+during
 the restoration process. Snapshotting is done periodically based on the number of commands processed to prevent
-ever-growing logs and reduce start-up time when the store is being restored.
+ever-growing logEntries and reduce start-up time when the store is being restored.
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
@@ -73,7 +74,7 @@ ever-growing logs and reduce start-up time when the store is being restored.
 │   Command ──► Log to WAL ──► Apply to KVMap ──► Response    │
 │                 │                                            │
 │                 ▼                                            │
-│           [log file]                                        │
+│           [logEntry file]                                        │
 │                 │                                            │
 │                 │ (when logCount >= threshold)               │
 │                 ▼                                            │
@@ -310,7 +311,7 @@ classDiagram
     class WALogger {
         -Path path
         -FileChannel channel
-        +log(ByteBuffer) void
+        +logEntry(ByteBuffer) void
     }
 
     class KVMapSnapshotter {
@@ -322,7 +323,7 @@ classDiagram
     %% Log Handlers
     class BaseLogHandler {
         <<interface>>
-        +log(Command) void
+        +logEntry(Command) void
         +getLogger() WALogger
         +setLogger(WALogger) void
     }
@@ -331,7 +332,7 @@ classDiagram
         -WALogger logger
         -long logId
         -boolean disabled
-        +log(Command) void
+        +logEntry(Command) void
         +getLogId() long
         +setLogId(long) void
         +isDisabled() boolean
@@ -349,9 +350,9 @@ classDiagram
         -WALogger logger
         -long logId
         -long term
-        -Log lastLog
+        -Log lastLogEntry
         -boolean disabled
-        +log(Command) void
+        +logEntry(Command) void
         +getLogId() long
         +getTerm() long
         +setTerm(long) void
@@ -384,7 +385,7 @@ classDiagram
     class RaftControllerServerHandler {
         -RaftLogHandler logHandler
         -KVMapSnapshotter snapshotter
-        -ArrayList~Log~ logs
+        -ArrayList~Log~ logEntries
         -RaftManager manager
         -CommandTask curCommandTask
         +handleCommand(Command, CompletableFuture) void
@@ -601,7 +602,7 @@ sequenceDiagram
     KVServer->>CommandHandler: handleCommand(PutCommand)
     CommandHandler->>KVStore: put(key, value)
     
-    KVStore->>WALogger: log(PutCommand)
+    KVStore->>WALogger: logEntry(PutCommand)
     Note over WALogger: Write to WAL file
     WALogger-->>KVStore: logged
     
@@ -609,7 +610,7 @@ sequenceDiagram
     alt Log count >= threshold
         KVStore->>Snapshotter: snapshot(map, path)
         Note over Snapshotter: Create snapshot file
-        KVStore->>WALogger: Reset log file
+        KVStore->>WALogger: Reset logEntry file
     end
     
     KVStore->>KVMap: put(key, value)
@@ -645,7 +646,7 @@ sequenceDiagram
     
     Note over ControllerHandler: Create AppendEntry<br/>with logId, term
     
-    ControllerHandler->>WALogger: log(PutCommand)
+    ControllerHandler->>WALogger: logEntry(PutCommand)
     
     loop For each follower
         ControllerHandler->>Followers: AppendEntry(id, term, entries)
@@ -685,7 +686,7 @@ sequenceDiagram
     Note over ControllerClient: Check if already applied
     
     loop For each entry
-        ControllerClient->>WALogger: log(command)
+        ControllerClient->>WALogger: logEntry(command)
         ControllerClient->>KVStore: put(key, value)
         KVStore->>KVMap: put(key, value)
     end
@@ -875,7 +876,7 @@ flowchart TB
     
     subgraph Interface["Interface"]
         BLH[BaseLogHandler]
-        BLH_Methods["log(Command)<br/>getLogger()<br/>setLogger(WALogger)"]
+        BLH_Methods["logEntry(Command)<br/>getLogger()<br/>setLogger(WALogger)"]
         
         BLH --> BLH_Methods
     end
@@ -909,7 +910,7 @@ classDiagram
         +long term
         +List~Log~ entries
         Used by: Leader → Followers
-        Purpose: Replicate log entries
+        Purpose: Replicate logEntry entries
     }
     
     class AppendEntryResponse {
@@ -978,12 +979,13 @@ grow without blocking operations.
 
 ### 2. Write-Ahead Logging (WAL)
 
-All mutations are logged before being applied, ensuring durability. In Raft mode, the log includes term and log ID for
+All mutations are logged before being applied, ensuring durability. In Raft mode, the logEntry includes term and
+logEntry ID for
 consensus.
 
 ### 3. Snapshotting
 
-Periodic snapshots compact the log and reduce recovery time. Snapshots are named with `logId_term.snapshot` format.
+Periodic snapshots compact the logEntry and reduce recovery time. Snapshots are named with `logId_term.snapshot` format.
 
 ### 4. Non-blocking I/O
 
@@ -1004,4 +1006,4 @@ efficiently.
 # Notes
 
 - Etcd, MongoDB and Kafka are a couple examples of real world applications using the Raft algorithm to handle
-  log replication and automatic failover.
+  logEntry replication and automatic failover.

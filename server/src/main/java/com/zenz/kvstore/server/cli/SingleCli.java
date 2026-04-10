@@ -6,7 +6,7 @@ import com.zenz.kvstore.server.KVServer;
 import com.zenz.kvstore.server.KVStore;
 import com.zenz.kvstore.server.command.handler.CommandHandler;
 import com.zenz.kvstore.server.logging.WALogger;
-import com.zenz.kvstore.server.logging.handler.LogHandler;
+import com.zenz.kvstore.server.logging.LogHandler;
 import com.zenz.kvstore.server.restorer.Restorer;
 import picocli.CommandLine.Command;
 import picocli.CommandLine.Option;

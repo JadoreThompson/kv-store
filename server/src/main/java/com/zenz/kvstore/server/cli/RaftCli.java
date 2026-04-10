@@ -5,7 +5,7 @@ import com.zenz.kvstore.server.KVServer;
 import com.zenz.kvstore.server.KVStore;
 import com.zenz.kvstore.server.command.handler.RaftCommandHandler;
 import com.zenz.kvstore.server.logging.WALogger;
-import com.zenz.kvstore.server.logging.handler.RaftLogHandler;
+import com.zenz.kvstore.server.logging.RaftLogHandler;
 import com.zenz.kvstore.server.raft.DiscoveryService;
 import com.zenz.kvstore.server.raft.Manager;
 import com.zenz.kvstore.server.raft.NodeConfig;

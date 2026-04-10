@@ -13,7 +13,7 @@ import com.zenz.kvstore.common.response.GetResponse;
 import com.zenz.kvstore.common.response.PutResponse;
 import com.zenz.kvstore.server.command.handler.CommandHandler;
 import com.zenz.kvstore.server.logging.WALogger;
-import com.zenz.kvstore.server.logging.handler.LogHandler;
+import com.zenz.kvstore.server.logging.LogHandler;
 import com.zenz.kvstore.server.restorer.Restorer;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;

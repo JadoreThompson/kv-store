@@ -6,8 +6,8 @@ import com.zenz.kvstore.common.enums.CommandType;
 import com.zenz.kvstore.server.KVMap;
 import com.zenz.kvstore.server.KVMapSnapshotter;
 import com.zenz.kvstore.server.KVStore;
+import com.zenz.kvstore.server.logging.RaftLogHandler;
 import com.zenz.kvstore.server.logging.WALogger;
-import com.zenz.kvstore.server.logging.handler.RaftLogHandler;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -41,8 +41,8 @@ public class RaftRestorer implements BaseRestorer {
             logHandler.setTerm(lastTerm);
 
             Path path = logHandler.getLogger().getPath();
-            ArrayList<RaftLogHandler.Log> logs = logHandler.deserialize(path);
-            if (!logs.isEmpty() && logs.get(logs.size() - 1).id() == lastLogId) {
+            ArrayList<RaftLogHandler.LogEntry> logEntries = logHandler.deserialize(path);
+            if (!logEntries.isEmpty() && logEntries.get(logEntries.size() - 1).Id() == lastLogId) {
                 WALogger logger = logHandler.getLogger();
                 path = logger.getPath();
                 Files.deleteIfExists(path);
@@ -52,22 +52,22 @@ public class RaftRestorer implements BaseRestorer {
         }
 
         KVStore store = new KVStore(builder);
-        logHandler.setDisabled(true);
+        logHandler.setEnabled(true);
         restoreState(store, logHandler);
-        logHandler.setDisabled(false);
+        logHandler.setEnabled(false);
         return store;
     }
 
     private void restoreState(KVStore store, RaftLogHandler logHandler) throws IOException {
-        ArrayList<RaftLogHandler.Log> logs = logHandler.deserialize(logHandler.getLogger().getPath());
-        if (logs == null || logs.isEmpty()) return;
+        ArrayList<RaftLogHandler.LogEntry> logEntries = logHandler.deserialize(logHandler.getLogger().getPath());
+        if (logEntries == null || logEntries.isEmpty()) return;
 
-        for (RaftLogHandler.Log log : logs) {
-            Command command = log.command();
+        for (RaftLogHandler.LogEntry logEntry : logEntries) {
+            Command command = logEntry.command();
 
-            if (log.term() != logHandler.getTerm()) logHandler.setTerm(log.term());
-            // log handler increments each time
-            logHandler.setLogId(log.id() - 1);
+            if (logEntry.term() != logHandler.getTerm()) logHandler.setTerm(logEntry.term());
+            // logEntry handler increments each time
+            logHandler.setLogId(logEntry.Id() - 1);
 
             if (command.type().equals(CommandType.PUT)) {
                 PutCommand comm = (PutCommand) command;

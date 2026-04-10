@@ -2,7 +2,7 @@ package com.zenz.kvstore.server.raft;
 
 import com.zenz.kvstore.common.utils.Utils;
 import com.zenz.kvstore.server.KVStore;
-import com.zenz.kvstore.server.logging.handler.RaftLogHandler;
+import com.zenz.kvstore.server.logging.RaftLogHandler;
 import com.zenz.kvstore.server.raft.message.*;
 
 import java.io.BufferedInputStream;

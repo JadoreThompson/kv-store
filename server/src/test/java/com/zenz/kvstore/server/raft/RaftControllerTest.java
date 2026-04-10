@@ -4,7 +4,7 @@ import com.zenz.kvstore.common.command.PutCommand;
 import com.zenz.kvstore.server.KVMapSnapshotter;
 import com.zenz.kvstore.server.KVStore;
 import com.zenz.kvstore.server.logging.WALogger;
-import com.zenz.kvstore.server.logging.handler.RaftLogHandler;
+import com.zenz.kvstore.server.logging.RaftLogHandler;
 import com.zenz.kvstore.server.raft.message.*;
 import org.junit.jupiter.api.*;
 
@@ -139,7 +139,7 @@ class RaftControllerTest {
     @Test
     @DisplayName("Fresh follower when controller has logs but no snapshot - returns first log")
     void freshFollower_noSnapshot_returnsFirstLog() throws Exception {
-        this.logHandler.setDisabled(false);
+        this.logHandler.setEnabled(false);
         this.logHandler.setTerm(1);
         this.kvStore.put("firstKey", "firstValue".getBytes(StandardCharsets.UTF_8));
         this.kvStore.put("secondKey", "secondValue".getBytes(StandardCharsets.UTF_8));
@@ -226,7 +226,7 @@ class RaftControllerTest {
     @DisplayName("Request prevLogId before first log with snapshot - returns snapshot")
     void requestLogIdBeforeFirstLog_withSnapshot_returnsSnapshot() throws Exception {
         this.logHandler.setTerm(2);
-        this.logHandler.setDisabled(false);
+        this.logHandler.setEnabled(false);
         for (int i = 1; i <= 5; i++) {
             this.kvStore.put("key" + i, ("value" + i).getBytes(StandardCharsets.UTF_8));
         }
@@ -280,7 +280,7 @@ class RaftControllerTest {
     @DisplayName("Request with prevLogId 0 but non-zero term")
     void logIdZeroWithNonZeroTerm() throws Exception {
         this.logHandler.setTerm(2);
-        this.logHandler.setDisabled(false);
+        this.logHandler.setEnabled(false);
         this.kvStore.put("key1", "value1".getBytes(StandardCharsets.UTF_8));
         final Path path = this.snapshotter.getDir().resolve(this.logHandler.getLogId() + "_" + this.logHandler.getTerm() + ".snapshot");
         this.snapshotter.snapshot(this.kvStore.getMap(), path);
@@ -293,7 +293,7 @@ class RaftControllerTest {
             this.managerNew.setRole(NodeRole.CONTROLLER);
             Utils.sendMessage(client, new RequestEntry(0, 2));
 
-            // Log file is empty and the store is loaded from a snapshot
+            // LogEntry file is empty and the store is loaded from a snapshot
             final Message resp = Utils.receiveMessage(client);
             assertInstanceOf(InstallSnapshot.class, resp, "Expected append snapshot. Received " + resp);
         }

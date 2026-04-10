@@ -1,5 +1,6 @@
 package com.zenz.kvstore.server.logging;
 
+import java.io.Closeable;
 import java.io.File;
 import java.io.IOException;
 import java.nio.ByteBuffer;
@@ -8,7 +9,8 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
 
-public class WALogger {
+public class WALogger implements Logger, Closeable {
+
     private final FileChannel channel;
     private final Path path;
 

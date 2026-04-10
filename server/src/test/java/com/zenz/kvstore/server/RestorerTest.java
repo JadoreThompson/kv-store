@@ -3,7 +3,7 @@ package com.zenz.kvstore.server;
 import com.zenz.kvstore.common.command.PutCommand;
 import com.zenz.kvstore.common.enums.CommandType;
 import com.zenz.kvstore.server.logging.WALogger;
-import com.zenz.kvstore.server.logging.handler.LogHandler;
+import com.zenz.kvstore.server.logging.LogHandler;
 import com.zenz.kvstore.server.restorer.Restorer;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -78,7 +78,7 @@ class RestorerTest {
         KVStore store = restorer.restore(builder);
 
         // Current implementation returns null, so we verify logs were written
-        ArrayList<LogHandler.Log> logs = LogHandler.deserialize(walLogger.getPath());
+        ArrayList<LogHandler.LogEntry> logs = LogHandler.deserialize(walLogger.getPath());
         assertNotNull(logs, "Logs should exist");
         assertEquals(3, logs.size(), "Should have 3 log entries");
     }
@@ -152,7 +152,7 @@ class RestorerTest {
 
         // The log file still contains the old entries (wasn't cleared)
         // Verify logs exist
-        ArrayList<LogHandler.Log> logsBeforeRestore = LogHandler.deserialize(walLogger.getPath());
+        ArrayList<LogHandler.LogEntry> logsBeforeRestore = LogHandler.deserialize(walLogger.getPath());
         assertNotNull(logsBeforeRestore, "Logs should exist before restore");
         assertEquals(2, logsBeforeRestore.size(), "Should have 2 log entries");
 
@@ -166,9 +166,9 @@ class RestorerTest {
 
         // After restore, the log should be cleared because last log ID == snapshot ID
         // This prevents replaying already-snapshotted data
-        ArrayList<LogHandler.Log> logsAfterRestore = LogHandler.deserialize(walLogger.getPath());
+        ArrayList<LogHandler.LogEntry> logsAfterRestore = LogHandler.deserialize(walLogger.getPath());
         assertTrue(logsAfterRestore == null || logsAfterRestore.isEmpty(),
-                "Log should be cleared after restore when last log ID matches snapshot ID");
+                "LogEntry should be cleared after restore when last log ID matches snapshot ID");
     }
 
     @Test
@@ -185,7 +185,7 @@ class RestorerTest {
         Path snapshotFile = snapshotsFolder.resolve("3.snapshot");
         snapshotter.snapshot(originalMap, snapshotFile);
 
-        // Log entries 1-5 (snapshot was at 3, so 4 and 5 are new)
+        // LogEntry entries 1-5 (snapshot was at 3, so 4 and 5 are new)
         logHandler.log(new PutCommand("key1", "value1".getBytes(StandardCharsets.UTF_8))); // ID 1
         logHandler.log(new PutCommand("key2", "value2".getBytes(StandardCharsets.UTF_8))); // ID 2
         logHandler.log(new PutCommand("key3", "value3".getBytes(StandardCharsets.UTF_8))); // ID 3
@@ -197,12 +197,12 @@ class RestorerTest {
                 .setSnapshotter(snapshotter);
 
         // Verify logs were written correctly
-        ArrayList<LogHandler.Log> logs = LogHandler.deserialize(walLogger.getPath());
+        ArrayList<LogHandler.LogEntry> logs = LogHandler.deserialize(walLogger.getPath());
         assertNotNull(logs, "Logs should exist");
         assertEquals(5, logs.size(), "Should have 5 log entries");
 
         // Verify the last log ID
-        assertEquals(5, logs.get(logs.size() - 1).id(), "Last log ID should be 5");
+        assertEquals(5, logs.get(logs.size() - 1).Id(), "Last log ID should be 5");
     }
 
     @Test
@@ -335,7 +335,7 @@ class RestorerTest {
         assertNotNull(loaded, "Should load a snapshot");
     }
 
-    // Log Handler Integration Tests
+    // LogEntry Handler Integration Tests
 
     @Test
     void logHandler_serializeDeserialize_maintainsData() throws IOException {
@@ -345,13 +345,13 @@ class RestorerTest {
         logHandler.log(cmd1);
         logHandler.log(cmd2);
 
-        ArrayList<LogHandler.Log> logs = LogHandler.deserialize(walLogger.getPath());
+        ArrayList<LogHandler.LogEntry> logs = LogHandler.deserialize(walLogger.getPath());
 
         assertNotNull(logs, "Logs should not be null");
         assertEquals(2, logs.size(), "Should have 2 logs");
 
-        assertEquals(1, logs.get(0).id(), "First log ID should be 1");
-        assertEquals(2, logs.get(1).id(), "Second log ID should be 2");
+        assertEquals(1, logs.get(0).Id(), "First log ID should be 1");
+        assertEquals(2, logs.get(1).Id(), "Second log ID should be 2");
 
         assertEquals(CommandType.PUT, logs.get(0).command().type());
         assertEquals(CommandType.PUT, logs.get(1).command().type());
@@ -359,15 +359,15 @@ class RestorerTest {
 
     @Test
     void logHandler_disabled_doesNotLog() throws IOException {
-        logHandler.setDisabled(true);
+        logHandler.setEnabled(true);
 
         logHandler.log(new PutCommand("key1", "value1".getBytes(StandardCharsets.UTF_8)));
         logHandler.log(new PutCommand("key2", "value2".getBytes(StandardCharsets.UTF_8)));
 
-        ArrayList<LogHandler.Log> logs = LogHandler.deserialize(walLogger.getPath());
+        ArrayList<LogHandler.LogEntry> logs = LogHandler.deserialize(walLogger.getPath());
 
         // When disabled, log ID increments but nothing is written
-        assertEquals(2, logHandler.getLogId(), "Log ID should increment");
+        assertEquals(2, logHandler.getLogId(), "LogEntry ID should increment");
         assertTrue(logs == null || logs.isEmpty(), "No logs should be written when disabled");
     }
 
@@ -377,11 +377,11 @@ class RestorerTest {
 
         logHandler.log(new PutCommand("key", "value".getBytes(StandardCharsets.UTF_8)));
 
-        ArrayList<LogHandler.Log> logs = LogHandler.deserialize(walLogger.getPath());
+        ArrayList<LogHandler.LogEntry> logs = LogHandler.deserialize(walLogger.getPath());
 
         assertNotNull(logs, "Logs should not be null");
         assertEquals(1, logs.size(), "Should have 1 log");
-        assertEquals(101, logs.get(0).id(), "Log ID should be 101 (100 + 1)");
+        assertEquals(101, logs.get(0).Id(), "LogEntry ID should be 101 (100 + 1)");
     }
 
     // Full Integration Tests
@@ -424,12 +424,12 @@ class RestorerTest {
         }
 
         // Verify log IDs are sequential
-        ArrayList<LogHandler.Log> logs = LogHandler.deserialize(walLogger.getPath());
+        ArrayList<LogHandler.LogEntry> logs = LogHandler.deserialize(walLogger.getPath());
         assertNotNull(logs, "Logs should exist");
         assertEquals(100, logs.size(), "Should have 100 logs");
 
         for (int i = 0; i < 100; i++) {
-            assertEquals(i + 1, logs.get(i).id(), "Log ID should be sequential");
+            assertEquals(i + 1, logs.get(i).Id(), "LogEntry ID should be sequential");
         }
     }
 }

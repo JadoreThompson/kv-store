@@ -5,8 +5,8 @@ import com.zenz.kvstore.common.command.PutCommand;
 import com.zenz.kvstore.common.enums.CommandType;
 import com.zenz.kvstore.server.KVMapSnapshotter;
 import com.zenz.kvstore.server.KVStore;
+import com.zenz.kvstore.server.logging.RaftLogHandler;
 import com.zenz.kvstore.server.logging.WALogger;
-import com.zenz.kvstore.server.logging.handler.RaftLogHandler;
 import com.zenz.kvstore.server.raft.message.*;
 
 import java.io.File;
@@ -28,7 +28,7 @@ public class ControllerClient {
     private final Manager manager;
     private boolean shouldSendHeartbeat;
     private boolean initialised;
-    private final List<RaftLogHandler.Log> logs = new ArrayList<>();
+    private final List<RaftLogHandler.LogEntry> logEntries = new ArrayList<>();
     private final KVStore kvStore;
     private final RaftLogHandler logHandler;
 
@@ -159,7 +159,7 @@ public class ControllerClient {
     }
 
     /**
-     * Loads all logs from log file and sends a request for entries to the controller with
+     * Loads all logEntries from log file and sends a request for entries to the controller with
      * the latest log id and term
      *
      * @throws IOException
@@ -175,10 +175,10 @@ public class ControllerClient {
         long curLogId = logHandler.getLogId();
         long curTerm = logHandler.getTerm();
 
-        if (!this.logs.isEmpty()) {
-            RaftLogHandler.Log lastLog = this.logs.getLast();
-            curLogId = lastLog.id();
-            curTerm = lastLog.term();
+        if (!this.logEntries.isEmpty()) {
+            RaftLogHandler.LogEntry lastLogEntry = this.logEntries.getLast();
+            curLogId = lastLogEntry.Id();
+            curTerm = lastLogEntry.term();
         }
 
         queueWrite(ByteBuffer.wrap(new RequestEntry(curLogId, curTerm).serialize()));
@@ -188,12 +188,12 @@ public class ControllerClient {
     private void loadLogs() throws IOException {
         // Adding the last command processed within the snapshot.
         File[] files = this.kvStore.getSnapshotter().getDir().toFile().listFiles();
-        if (files.length > 0 && this.logHandler.getLog() != null) {
-            this.logs.add(this.logHandler.getLog());
+        if (files.length > 0 && this.logHandler.getLogEntry() != null) {
+            this.logEntries.add(this.logHandler.getLogEntry());
         }
 
         Path path = this.logHandler.getLogger().getPath();
-        this.logs.addAll(RaftLogHandler.deserialize(path));
+        this.logEntries.addAll(RaftLogHandler.deserialize(path));
     }
 
     private void handleRead(SelectionKey key) throws IOException {
@@ -276,8 +276,8 @@ public class ControllerClient {
         if (curLogId == message.id() && curTerm == message.term()) return null;
 
         // Processing all commands.
-        List<RaftLogHandler.Log> commands = message.entries();
-        for (RaftLogHandler.Log command : commands) {
+        List<RaftLogHandler.LogEntry> commands = message.entries();
+        for (RaftLogHandler.LogEntry command : commands) {
             if (command.term() != this.logHandler.getTerm()) {
                 this.logHandler.setTerm(command.term());
             }
@@ -297,7 +297,7 @@ public class ControllerClient {
     }
 
     /**
-     * Persist the snapshot to disk, clear the current log file as those logs are now
+     * Persist the snapshot to disk, clear the current log file as those logEntries are now
      * redundant. Return an acknowledgement containing the snapshot has been applied and send
      * the last log id and term known within the snapshot.
      *

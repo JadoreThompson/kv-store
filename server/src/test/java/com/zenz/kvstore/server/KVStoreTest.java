@@ -3,8 +3,8 @@ package com.zenz.kvstore.server;
 import com.zenz.kvstore.common.command.DeleteCommand;
 import com.zenz.kvstore.common.command.PutCommand;
 import com.zenz.kvstore.common.enums.CommandType;
+import com.zenz.kvstore.server.logging.LogHandler;
 import com.zenz.kvstore.server.logging.WALogger;
-import com.zenz.kvstore.server.logging.handler.LogHandler;
 import com.zenz.kvstore.server.restorer.Restorer;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -144,7 +144,7 @@ class KVStoreTest {
         logger.close();
 
         File logFile = logsFolder.resolve("app.log").toFile();
-        ArrayList<LogHandler.Log> logs = LogHandler.deserialize(logFile.toPath());
+        ArrayList<LogHandler.LogEntry> logs = LogHandler.deserialize(logFile.toPath());
 
         assertNotNull(logs, "Logs should not be null");
         assertEquals(1, logs.size(), "WAL should contain one operation");
@@ -161,7 +161,7 @@ class KVStoreTest {
         logger.close();
 
         File logFile = logsFolder.resolve("app.log").toFile();
-        ArrayList<LogHandler.Log> logs = LogHandler.deserialize(logFile.toPath());
+        ArrayList<LogHandler.LogEntry> logs = LogHandler.deserialize(logFile.toPath());
 
         assertNotNull(logs, "Logs should not be null");
         assertEquals(1, logs.size(), "Should have 2 log entries");
@@ -175,7 +175,7 @@ class KVStoreTest {
         logger.close();
 
         File logFile = logsFolder.resolve("app.log").toFile();
-        ArrayList<LogHandler.Log> logs = LogHandler.deserialize(logFile.toPath());
+        ArrayList<LogHandler.LogEntry> logs = LogHandler.deserialize(logFile.toPath());
 
         assertNotNull(logs, "Logs should not be null");
         assertEquals(1, logs.size(), "WAL should have exactly 2 entries");
@@ -191,7 +191,7 @@ class KVStoreTest {
         logger.close();
 
         File logFile = logsFolder.resolve("app.log").toFile();
-        ArrayList<LogHandler.Log> logs = LogHandler.deserialize(logFile.toPath());
+        ArrayList<LogHandler.LogEntry> logs = LogHandler.deserialize(logFile.toPath());
 
         assertNotNull(logs, "Logs should not be null");
         assertEquals(2, logs.size(), "WAL should have exactly 2 entries");
@@ -214,10 +214,10 @@ class KVStoreTest {
 
         // Verify log file exists
         Path logFile = logsFolder.resolve("app.log");
-        assertTrue(logFile.toFile().exists(), "Log file should be created");
+        assertTrue(logFile.toFile().exists(), "LogEntry file should be created");
 
         // Verify log contents using LogHandler
-        ArrayList<LogHandler.Log> logs = LogHandler.deserialize(logFile);
+        ArrayList<LogHandler.LogEntry> logs = LogHandler.deserialize(logFile);
         assertNotNull(logs, "Logs should not be null");
         assertEquals(2, logs.size(), "Should have 2 log entries");
 
@@ -235,7 +235,7 @@ class KVStoreTest {
         store.put("restoreKey2", "restoreValue2".getBytes(StandardCharsets.UTF_8));
         logger.close();
 
-        // Create snapshot using KVMapSnapshotter
+        // Create snapshot using RaftKVMapSnapshotter
         store.setSnapshotter(snapshotter);
         KVMap map = getMap(store);
         Path fpath = snapshotter.getDir().resolve(store.getLogHandler().getLogId() + ".snapshot");
@@ -269,7 +269,7 @@ class KVStoreTest {
         }
         logger.close();
 
-        // Create snapshot using KVMapSnapshotter
+        // Create snapshot using RaftKVMapSnapshotter
         store.setSnapshotter(snapshotter);
         KVMap map = getMap(store);
         Path fpath = snapshotter.getDir().resolve(store.getLogHandler().getLogId() + ".snapshot");
@@ -446,7 +446,7 @@ class KVStoreTest {
         logger.close();
 
         File logFile = logsFolder.resolve("app.log").toFile();
-        ArrayList<LogHandler.Log> logs = LogHandler.deserialize(logFile.toPath());
+        ArrayList<LogHandler.LogEntry> logs = LogHandler.deserialize(logFile.toPath());
 
         assertNotNull(logs, "Logs should not be null");
         assertEquals(2, logs.size(), "WAL should contain two operations");
@@ -463,7 +463,7 @@ class KVStoreTest {
         logger.close();
 
         File logFile = logsFolder.resolve("app.log").toFile();
-        ArrayList<LogHandler.Log> logs = LogHandler.deserialize(logFile.toPath());
+        ArrayList<LogHandler.LogEntry> logs = LogHandler.deserialize(logFile.toPath());
 
         assertNotNull(logs, "Logs should not be null");
         assertEquals(1, logs.size(), "WAL should contain one operation");

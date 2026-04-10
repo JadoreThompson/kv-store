@@ -1,6 +1,6 @@
 package com.zenz.kvstore.server.raft.message;
 
-import com.zenz.kvstore.server.logging.handler.RaftLogHandler;
+import com.zenz.kvstore.server.logging.RaftLogHandler;
 import com.zenz.kvstore.server.raft.MessageType;
 
 import java.nio.BufferUnderflowException;
@@ -12,13 +12,13 @@ public record AppendEntry(
         MessageType type,
         long id,
         long term,
-        List<RaftLogHandler.Log> entries
+        List<RaftLogHandler.LogEntry> entries
 ) implements Message {
 
     public AppendEntry(
             long id,
             long term,
-            List<RaftLogHandler.Log> entries
+            List<RaftLogHandler.LogEntry> entries
     ) {
         this(MessageType.APPEND_ENTRY, id, term, entries);
     }
@@ -39,12 +39,12 @@ public record AppendEntry(
             buffer.get(allEntryBytes);
             ByteBuffer allEntryBuffer = ByteBuffer.wrap(allEntryBytes);
 
-            List<RaftLogHandler.Log> entries = new ArrayList<>();
+            List<RaftLogHandler.LogEntry> entries = new ArrayList<>();
             while (allEntryBuffer.hasRemaining()) {
                 int entryLength = allEntryBuffer.getInt();
                 byte[] entryBytes = new byte[entryLength];
                 allEntryBuffer.get(entryBytes);
-                RaftLogHandler.Log entry = RaftLogHandler.Log.deserialize(entryBytes);
+                RaftLogHandler.LogEntry entry = RaftLogHandler.LogEntry.deserialize(entryBytes);
                 entries.add(entry);
             }
 
@@ -61,7 +61,7 @@ public record AppendEntry(
         List<byte[]> entryBytesList = new ArrayList<>();
 
         if (entries != null) {
-            for (RaftLogHandler.Log entry : entries) {
+            for (RaftLogHandler.LogEntry entry : entries) {
                 if (entry == null) continue;
 
                 byte[] entryBytes = entry.serialize();

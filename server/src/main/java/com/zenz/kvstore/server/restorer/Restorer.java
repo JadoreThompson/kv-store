@@ -7,7 +7,7 @@ import com.zenz.kvstore.common.enums.CommandType;
 import com.zenz.kvstore.server.KVMapSnapshotter;
 import com.zenz.kvstore.server.KVStore;
 import com.zenz.kvstore.server.logging.WALogger;
-import com.zenz.kvstore.server.logging.handler.LogHandler;
+import com.zenz.kvstore.server.logging.LogHandler;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -37,8 +37,8 @@ public class Restorer implements BaseRestorer {
             logHandler.setLogId(lastLogId);
 
             Path path = logHandler.getLogger().getPath();
-            ArrayList<LogHandler.Log> logs = logHandler.deserialize(path);
-            if (logs != null && !logs.isEmpty() && logs.get(logs.size() - 1).id() == lastLogId) {
+            ArrayList<LogHandler.LogEntry> logs = logHandler.deserialize(path);
+            if (logs != null && !logs.isEmpty() && logs.get(logs.size() - 1).Id() == lastLogId) {
                 WALogger logger = logHandler.getLogger();
                 path = logger.getPath();
                 Files.deleteIfExists(path);
@@ -49,7 +49,7 @@ public class Restorer implements BaseRestorer {
 
         KVStore store = new KVStore(builder);
 
-        logHandler.setDisabled(true);
+        logHandler.setEnabled(true);
         if (pairs != null) {
             for (KVMapSnapshotter.KVPair pair : pairs) {
                 store.put(pair.key(), pair.value());
@@ -57,15 +57,15 @@ public class Restorer implements BaseRestorer {
         }
 
         restoreState(store, logHandler);
-        logHandler.setDisabled(false);
+        logHandler.setEnabled(false);
         return store;
     }
 
     private void restoreState(KVStore store, LogHandler logHandler) throws IOException {
-        ArrayList<LogHandler.Log> logs = logHandler.deserialize(logHandler.getLogger().getPath());
+        ArrayList<LogHandler.LogEntry> logs = logHandler.deserialize(logHandler.getLogger().getPath());
         if (logs == null || logs.isEmpty()) return;
 
-        for (LogHandler.Log log : logs) {
+        for (LogHandler.LogEntry log : logs) {
             Command command = log.command();
             if (command.type().equals(CommandType.PUT)) {
                 PutCommand comm = (PutCommand) command;
