@@ -1,7 +1,6 @@
 package com.zenz.kvstore.server.cli;
 
 
-import com.zenz.kvstore.server.Config;
 import com.zenz.kvstore.server.KVMapSnapshotter;
 import com.zenz.kvstore.server.KVServer;
 import com.zenz.kvstore.server.KVStore;
@@ -10,16 +9,17 @@ import com.zenz.kvstore.server.logging.WALogger;
 import com.zenz.kvstore.server.logging.handler.LogHandler;
 import com.zenz.kvstore.server.restorer.Restorer;
 import picocli.CommandLine.Command;
-import picocli.CommandLine.Parameters;
+import picocli.CommandLine.Option;
 
 import java.util.concurrent.Callable;
 
-@Command(name = "single", description = "Running an isolated node")
+@Command(name = "run", description = "Running an isolated node")
 public class SingleCli implements Callable<Integer> {
-    @Parameters(index = "0", description = "Host")
+
+    @Option(names = {"-h", "--host"}, required = true, description = "Host")
     private String host;
 
-    @Parameters(index = "1", description = "Port")
+    @Option(names = {"-p", "--port"}, required = true, description = "Port")
     private int port;
 
     @Override
