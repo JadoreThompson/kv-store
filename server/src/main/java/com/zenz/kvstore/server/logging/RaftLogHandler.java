@@ -1,6 +1,7 @@
 package com.zenz.kvstore.server.logging;
 
 import com.zenz.kvstore.common.command.Command;
+import com.zenz.kvstore.common.command.GetCommand;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -21,17 +22,20 @@ public class RaftLogHandler implements BaseLogHandler<RaftLogEntry> {
     private long term;
     @Setter
     private Snapshotter<RaftLogEntry> snapshotter;
+
     private List<RaftLogEntry> entries = new ArrayList<>();
+    private RaftLogEntry seedEntry = new RaftLogEntry(0L, 0L, new GetCommand(""));
+
 
     public RaftLogHandler(final Logger logger, final Snapshotter<RaftLogEntry> snapshotter) {
         this.logger = logger;
         this.snapshotter = snapshotter;
-        entries.add(new RaftLogEntry(0L, 0L, null));
     }
 
     @Override
     public RaftLogEntry log(final Command command) throws IOException {
         if (entries.size() == LOGS_PER_SNAPSHOT) {
+            seedEntry = entries.getLast();
             snapshotter.snapshot(entries);
             entries = new ArrayList<>();
         }

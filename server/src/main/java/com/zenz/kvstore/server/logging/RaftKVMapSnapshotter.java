@@ -31,7 +31,7 @@ public class RaftKVMapSnapshotter implements Snapshotter<RaftLogEntry> {
      *
      * @param kvStore The KVStore instance to restore
      */
-    public void restore(final KVStore kvStore) throws IOException {
+    public void restore(final KVStore kvStore) {
         final File[] files = dir.toFile().listFiles();
         if (files == null) {
             return;
@@ -45,7 +45,11 @@ public class RaftKVMapSnapshotter implements Snapshotter<RaftLogEntry> {
             public void log(LogEntry logEntry) {
             }
         };
-        final Snapshotter<RaftLogEntry> snapshotter = new Snapshotter<RaftLogEntry>() {
+        final Snapshotter<RaftLogEntry> snapshotter = new Snapshotter<>() {
+            @Override
+            public void restore(KVStore kvstore) {
+            }
+
             @Override
             public Path snapshot(List<RaftLogEntry> entries) {
                 return null;
@@ -85,6 +89,9 @@ public class RaftKVMapSnapshotter implements Snapshotter<RaftLogEntry> {
                 // Applying records
                 while (bodyBuffer.hasRemaining()) {
                     final RaftLogEntry logEntry = RaftLogEntry.deserialize(bodyBuffer);
+                    logHandler.setLogId(logEntry.id - 1);
+                    logHandler.setTerm(logEntry.term);
+
                     switch (logEntry.command.type()) {
                         case PUT -> {
                             final PutCommand comm = (PutCommand) logEntry.command;

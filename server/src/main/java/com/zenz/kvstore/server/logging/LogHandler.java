@@ -1,6 +1,7 @@
 package com.zenz.kvstore.server.logging;
 
 import com.zenz.kvstore.common.command.Command;
+import com.zenz.kvstore.common.command.GetCommand;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -24,7 +25,7 @@ public class LogHandler implements BaseLogHandler<LogEntry> {
     public LogHandler(final Logger logger, final Snapshotter<LogEntry> snapshotter) {
         this.logger = logger;
         this.snapshotter = snapshotter;
-        entries.add(new LogEntry(0L, null));
+        entries.add(new LogEntry(0L, new GetCommand("")));
     }
 
     @Override

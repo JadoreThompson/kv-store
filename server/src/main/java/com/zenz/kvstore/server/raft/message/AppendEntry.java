@@ -17,12 +17,12 @@ public record AppendEntry(
         List<RaftLogEntry> entries) implements Message, KVSerializable {
 
     public AppendEntry(
-            final String leaderName,
+            final String leaderId,
             final long term,
             final long prevLogId,
             final long prevLogTerm,
             final List<RaftLogEntry> entries) {
-        this(RaftMessageType.APPEND_ENTRY, leaderName, term, prevLogId, prevLogTerm, entries);
+        this(RaftMessageType.APPEND_ENTRY, leaderId, term, prevLogId, prevLogTerm, entries);
     }
 
     @Override
@@ -68,7 +68,7 @@ public record AppendEntry(
         final int leaderLen = buffer.getInt();
         final byte[] leaderBytes = new byte[leaderLen];
         buffer.get(leaderBytes);
-        final String leaderName = new String(leaderBytes, StandardCharsets.UTF_8);
+        final String leaderId = new String(leaderBytes, StandardCharsets.UTF_8);
 
         final long term = buffer.getLong();
         final long prevLogId = buffer.getLong();
@@ -89,7 +89,7 @@ public record AppendEntry(
         }
 
         return new AppendEntry(
-                leaderName,
+                leaderId,
                 term,
                 prevLogId,
                 prevLogTerm,

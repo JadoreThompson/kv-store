@@ -40,8 +40,8 @@ public class Server implements AutoCloseable {
     private final Map<SocketChannel, Queue<ByteBuffer>> pendingWrites = new HashMap<>();
     volatile private boolean isRunning;
 
-    private int logIndex;
-    private RaftLogEntry prevLogEntry;
+    private long prevLogTerm = -1;
+    private long prevLogId = -1;
     private Path snapshotPath;
     private FileChannel fileChannel;
 
@@ -221,29 +221,41 @@ public class Server implements AutoCloseable {
     }
 
     private ByteBuffer handleAppendEntry(final AppendEntry appendEntry) throws IOException {
-        if (logIndex >= logHandler.getEntries().size() || logHandler.getEntries().get(logIndex) != prevLogEntry) {
-            logIndex = 0;
-        }
+        long prevLogId = this.prevLogId;
+        long prevLogTerm = this.prevLogTerm;
 
-        final RaftLogEntry logEntry = prevLogEntry != null ? prevLogEntry : logHandler.getEntries().get(logIndex);
+        if (prevLogId == -1 || prevLogTerm == -1) {
+            final RaftLogEntry firstEntry = logHandler.getFirstEntry();
+            if (firstEntry != null) {
+                prevLogId = firstEntry.id;
+                prevLogTerm = firstEntry.term;
+            } else {
+                final RaftLogEntry seedEntry = logHandler.getSeedEntry();
+                prevLogId = seedEntry.id;
+                prevLogTerm = seedEntry.term;
+            }
+        }
 
         if (appendEntry.term() < stateObject.getCurrentTerm()) {
             return ByteBuffer.wrap(new AppendEntryResponse(
                     stateObject.getCurrentTerm(),
                     AppendEntryResponse.FailureReason.TERM,
-                    logEntry.id,
-                    logEntry.term).serialize());
+                    prevLogId,
+                    prevLogTerm,
+                    -1,
+                    -1).serialize());
         }
 
         stateObject.setCurrentTerm(appendEntry.term());
 
-        if (appendEntry.prevLogId() < logEntry.getId() ||
-                (appendEntry.prevLogId() == logEntry.getId() && appendEntry.prevLogTerm() != logHandler.getTerm())) {
+        if (appendEntry.prevLogId() != prevLogId || appendEntry.prevLogTerm() != prevLogTerm) {
             return ByteBuffer.wrap(new AppendEntryResponse(
                     stateObject.getCurrentTerm(),
                     AppendEntryResponse.FailureReason.PREV_LOG,
-                    logEntry.id,
-                    logEntry.term).serialize());
+                    prevLogId,
+                    prevLogTerm,
+                    -1,
+                    -1).serialize());
         }
 
         for (RaftLogEntry entry : logHandler.getEntries()) {
@@ -260,13 +272,15 @@ public class Server implements AutoCloseable {
             }
         }
 
-        logIndex += logHandler.getEntries().size();
-        prevLogEntry = logHandler.getEntries().get(logIndex);
+        this.prevLogId = logHandler.getLastEntry().id;
+        this.prevLogTerm = logHandler.getLastEntry().term;
         return ByteBuffer.wrap(new AppendEntryResponse(
                 stateObject.getCurrentTerm(),
                 null,
-                logEntry.id,
-                logEntry.term).serialize());
+                prevLogId,
+                prevLogTerm,
+                logHandler.getEntries().getLast().id,
+                logHandler.getEntries().getLast().term).serialize());
     }
 
     private ByteBuffer handleInstallSnapshot(final InstallSnapshot installSnapshot) throws IOException {
@@ -280,6 +294,9 @@ public class Server implements AutoCloseable {
 
         if (installSnapshot.offset() == 0) {
             closeFileChannel();
+            if (!snapshotPath.toFile().delete()) {
+                throw new IOException("Unable to delete snapshot file");
+            }
             snapshotPath = logHandler.getSnapshotter().getFpath(List.of(new RaftLogEntry(
                     installSnapshot.lastIncludedId(), installSnapshot.lastIncludedTerm(), null)));
             fileChannel = FileChannel.open(snapshotPath, StandardOpenOption.CREATE, StandardOpenOption.WRITE);
@@ -290,13 +307,16 @@ public class Server implements AutoCloseable {
                 installSnapshot.offset(),
                 installSnapshot.data().length);
 
-
         if (installSnapshot.done()) {
             fileChannel.force(true);
+            closeFileChannel();
+
+            logHandler = new RaftLogHandler(logHandler.getLogger(), logHandler.getSnapshotter());
+            logHandler.setLogId(installSnapshot.lastIncludedId() - 1);
+            logHandler.setTerm(installSnapshot.lastIncludedTerm());
             final KVStore newKvstore = new KVStore(logHandler);
             logHandler.getSnapshotter().restore(newKvstore);
             manager.setKvstore(newKvstore);
-            closeFileChannel();
         }
 
         return ByteBuffer.wrap(new InstallSnapshotResponse(currentTerm).serialize());
@@ -305,9 +325,6 @@ public class Server implements AutoCloseable {
     private void closeFileChannel() throws IOException {
         if (fileChannel != null) {
             fileChannel.close();
-            if (!snapshotPath.toFile().delete()) {
-                throw new IOException("Unable to delete snapshot file");
-            }
         }
     }
 

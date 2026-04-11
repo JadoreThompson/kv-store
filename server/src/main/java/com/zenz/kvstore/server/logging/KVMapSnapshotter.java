@@ -31,7 +31,7 @@ public class KVMapSnapshotter implements Snapshotter<LogEntry> {
      *
      * @param kvStore The KVStore instance to restore
      */
-    public void restore(final KVStore kvStore) throws IOException {
+    public void restore(final KVStore kvStore) {
         final File[] files = dir.toFile().listFiles();
         if (files == null) {
             return;
@@ -46,6 +46,10 @@ public class KVMapSnapshotter implements Snapshotter<LogEntry> {
             }
         };
         final Snapshotter<LogEntry> snapshotter = new Snapshotter<>() {
+            @Override
+            public void restore(KVStore kvstore) {
+            }
+
             @Override
             public Path snapshot(List<LogEntry> entries) {
                 return null;

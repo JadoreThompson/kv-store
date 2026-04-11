@@ -8,11 +8,12 @@ import java.util.concurrent.Future;
 
 public class StateObject {
 
-    volatile private State state;
+    volatile public State state;
+
     @Getter
     volatile private long currentTerm;
     volatile public long votedTerm;
-    volatile private ReplicateTask replicateTask;
+    volatile public ReplicateTask replicateTask;
     volatile public Election election;
 
     private final Object currentTermLock = new Object();
@@ -20,19 +21,24 @@ public class StateObject {
     public StateObject() {
     }
 
-    public void setCurrentTerm(final long currentTerm) {
+    public long setCurrentTerm(final long currentTerm) {
         synchronized (this.currentTermLock) {
             this.currentTerm = Math.max(this.currentTerm, currentTerm);
+            return this.currentTerm;
         }
     }
 
     public static class ReplicateTask {
 
         public final RaftLogEntry logEntry;
+        public final long prevLogTerm;
+        public final long prevLogId;
         public final Future<Void> fut = new CompletableFuture<>();
 
-        public ReplicateTask(final RaftLogEntry logEntry) {
+        public ReplicateTask(final RaftLogEntry logEntry, final long prevLogId, final long prevLogTerm) {
             this.logEntry = logEntry;
+            this.prevLogId = prevLogId;
+            this.prevLogTerm = prevLogTerm;
         }
     }
 

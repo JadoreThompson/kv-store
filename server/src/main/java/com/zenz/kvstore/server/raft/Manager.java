@@ -2,6 +2,7 @@ package com.zenz.kvstore.server.raft;
 
 import com.zenz.kvstore.common.command.Command;
 import com.zenz.kvstore.server.KVStore;
+import com.zenz.kvstore.server.raft.message.RequestVoteResponse;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -40,7 +41,13 @@ public class Manager implements Closeable {
     }
 
     public StateObject.Election startElection() {
-        return null;
+        final int majority = (1 + peerConfigs.size()) / 2;
+        final long term = stateObject.setCurrentTerm(stateObject.getCurrentTerm() + 1);
+        stateObject.election = new StateObject.Election(term, majority, System.currentTimeMillis() + 1500);
+        return stateObject.election;
+    }
+
+    public void handleRequestVoteResponse(final RequestVoteResponse response) {
     }
 
     public Future<Void> replicateCommand(final Command command) {

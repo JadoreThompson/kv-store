@@ -10,10 +10,18 @@ public record AppendEntryResponse(
         long term,
         FailureReason reason,
         long prevLogId,
-        long prevLogTerm) implements Message, KVSerializable {
+        long prevLogTerm,
+        long lastLogId,
+        long lastLogTerm) implements Message, KVSerializable {
 
-    public AppendEntryResponse(long term, FailureReason reason, long prevLogId, long prevLogTerm) {
-        this(RaftMessageType.APPEND_ENTRY_RESPONSE, term, reason, prevLogId, prevLogTerm);
+    public AppendEntryResponse(
+            long term,
+            FailureReason reason,
+            long prevLogId,
+            long prevLogTerm,
+            long lastLogId,
+            long lastLogTerm) {
+        this(RaftMessageType.APPEND_ENTRY_RESPONSE, term, reason, prevLogId, prevLogTerm, lastLogId, lastLogTerm);
     }
 
     public boolean isSuccess() {
@@ -35,6 +43,8 @@ public record AppendEntryResponse(
         buffer.putInt(reason != null ? reason.getValue() : 0);
         buffer.putLong(prevLogId);
         buffer.putLong(prevLogTerm);
+        buffer.putLong(lastLogId);
+        buffer.putLong(lastLogTerm);
 
         return buffer.array();
     }
@@ -49,13 +59,17 @@ public record AppendEntryResponse(
 
         final long prevLogId = buffer.getLong();
         final long prevLogTerm = buffer.getLong();
+        final long lastLogId = buffer.getLong();
+        final long lastLogTerm = buffer.getLong();
 
         return new AppendEntryResponse(
                 type,
                 term,
                 reason,
                 prevLogId,
-                prevLogTerm
+                prevLogTerm,
+                lastLogId,
+                lastLogTerm
         );
     }
 
