@@ -50,6 +50,16 @@ public class KVMapSnapshotter implements Snapshotter<LogEntry> {
             public Path snapshot(List<LogEntry> entries) {
                 return null;
             }
+
+            @Override
+            public Path getFpath(List<LogEntry> entries) {
+                return null;
+            }
+
+            @Override
+            public Path findSnapshot(long logId) {
+                return null;
+            }
         };
         logHandler.setLogger(logger);
         logHandler.setSnapshotter(snapshotter);
@@ -167,6 +177,12 @@ public class KVMapSnapshotter implements Snapshotter<LogEntry> {
      */
     public Path findSnapshot(final long logId) {
         return null;
+    }
+
+    @Override
+    public Path getFpath(final List<LogEntry> entries) {
+        final LogEntry logEntry = entries.getLast();
+        return dir.resolve(logEntry.id + ".snapshot");
     }
 
     private Body deserializeBody(final ByteBuffer body) {

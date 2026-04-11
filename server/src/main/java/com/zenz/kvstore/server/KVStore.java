@@ -4,6 +4,7 @@ import com.zenz.kvstore.common.command.DeleteCommand;
 import com.zenz.kvstore.common.command.PutCommand;
 import com.zenz.kvstore.server.logging.BaseLogHandler;
 import lombok.Getter;
+import lombok.Setter;
 
 import java.io.IOException;
 import java.util.Collections;
@@ -13,9 +14,17 @@ public class KVStore {
 
     @Getter
     private final KVMap map;
+
     private final Trie trie = new Trie('\0');
+
     @Getter
+    @Setter
     private BaseLogHandler<?> logHandler;
+
+    public KVStore(final BaseLogHandler<?> logHandler) {
+        this.logHandler = logHandler;
+        map = new KVMap();
+    }
 
     public KVStore(final KVMap map, final BaseLogHandler<?> logHandler) {
         this.map = map;
@@ -53,13 +62,5 @@ public class KVStore {
             return Collections.emptyList();
         }
         return keys.stream().map(this::get).toList();
-    }
-
-    public KVMap getMap() {
-        return this.map;
-    }
-
-    public void setLogHandler(BaseLogHandler<?> logHandler) {
-        this.logHandler = logHandler;
     }
 }

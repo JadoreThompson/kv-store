@@ -33,6 +33,6 @@ public record RequestVoteResponse(
         final long term = buffer.getLong();
         final boolean voteGranted = buffer.get() == 1;
 
-        return new RequestVoteResponse(type, term, voteGranted);
+        return new RequestVoteResponse(term, voteGranted);
     }
 }

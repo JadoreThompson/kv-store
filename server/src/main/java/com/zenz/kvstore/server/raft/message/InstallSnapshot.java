@@ -9,18 +9,17 @@ public record InstallSnapshot(
         RaftMessageType type,
         String leaderId,
         long term,
-        long lastIncludedIndex,
+        long lastIncludedId,
         long lastIncludedTerm,
-        long offset,
+        int offset,
         byte[] data,
-        boolean done
-) implements Message, KVSerializable {
+        boolean done) implements Message, KVSerializable {
 
     public InstallSnapshot(String leaderId,
                            long term,
                            long lastIncludedIndex,
                            long lastIncludedTerm,
-                           long offset,
+                           int offset,
                            byte[] data,
                            boolean done) {
         this(RaftMessageType.INSTALL_SNAPSHOT, leaderId, term, lastIncludedIndex, lastIncludedTerm, offset, data, done);
@@ -34,7 +33,7 @@ public record InstallSnapshot(
                 4 + // type
                         4 + leaderBytes.length +
                         8 + // term
-                        8 + // lastIncludedIndex
+                        8 + // lastIncludedId
                         8 + // lastIncludedTerm
                         8 + // offset
                         4 + data.length +
@@ -48,9 +47,9 @@ public record InstallSnapshot(
         buffer.put(leaderBytes);
 
         buffer.putLong(term);
-        buffer.putLong(lastIncludedIndex);
+        buffer.putLong(lastIncludedId);
         buffer.putLong(lastIncludedTerm);
-        buffer.putLong(offset);
+        buffer.putInt(offset);
 
         buffer.putInt(data.length);
         buffer.put(data);
@@ -71,7 +70,7 @@ public record InstallSnapshot(
         final long term = buffer.getLong();
         final long lastIncludedIndex = buffer.getLong();
         final long lastIncludedTerm = buffer.getLong();
-        final long offset = buffer.getLong();
+        final int offset = buffer.getInt();
 
         final int dataLength = buffer.getInt();
         final byte[] data = new byte[dataLength];
@@ -80,7 +79,6 @@ public record InstallSnapshot(
         final boolean done = buffer.get() == 1;
 
         return new InstallSnapshot(
-                type,
                 leaderId,
                 term,
                 lastIncludedIndex,

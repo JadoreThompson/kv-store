@@ -26,10 +26,11 @@ public class RaftLogHandler implements BaseLogHandler<RaftLogEntry> {
     public RaftLogHandler(final Logger logger, final Snapshotter<RaftLogEntry> snapshotter) {
         this.logger = logger;
         this.snapshotter = snapshotter;
+        entries.add(new RaftLogEntry(0L, 0L, null));
     }
 
     @Override
-    public void log(final Command command) throws IOException {
+    public RaftLogEntry log(final Command command) throws IOException {
         if (entries.size() == LOGS_PER_SNAPSHOT) {
             snapshotter.snapshot(entries);
             entries = new ArrayList<>();
@@ -38,12 +39,19 @@ public class RaftLogHandler implements BaseLogHandler<RaftLogEntry> {
         final RaftLogEntry logEntry = new RaftLogEntry(++logId, term, command);
         logger.log(logEntry);
         entries.add(logEntry);
+        return logEntry;
     }
 
+    /**
+     * @return Returns the first entry in the buffer. Note that upon each snapshot the buffer is wiped
+     */
     public RaftLogEntry getFirstEntry() {
         return entries.isEmpty() ? null : entries.getFirst();
     }
 
+    /**
+     * @return Returns the last entry in the buffer. Note that upon each snapshot the buffer is wiped
+     */
     public RaftLogEntry getLastEntry() {
         return entries.isEmpty() ? null : entries.getLast();
     }

@@ -45,9 +45,19 @@ public class RaftKVMapSnapshotter implements Snapshotter<RaftLogEntry> {
             public void log(LogEntry logEntry) {
             }
         };
-        final Snapshotter<RaftLogEntry> snapshotter = new Snapshotter<>() {
+        final Snapshotter<RaftLogEntry> snapshotter = new Snapshotter<RaftLogEntry>() {
             @Override
             public Path snapshot(List<RaftLogEntry> entries) {
+                return null;
+            }
+
+            @Override
+            public Path getFpath(List<RaftLogEntry> entries) {
+                return null;
+            }
+
+            @Override
+            public Path findSnapshot(long logId) {
                 return null;
             }
         };
@@ -166,6 +176,12 @@ public class RaftKVMapSnapshotter implements Snapshotter<RaftLogEntry> {
      */
     public Path findSnapshot(final long logId) {
         return null;
+    }
+
+    @Override
+    public Path getFpath(final List<RaftLogEntry> entries) {
+        final RaftLogEntry logEntry = entries.getLast();
+        return dir.resolve(logEntry.id + ".snapshot");
     }
 
     private Body deserializeBody(final ByteBuffer body) {

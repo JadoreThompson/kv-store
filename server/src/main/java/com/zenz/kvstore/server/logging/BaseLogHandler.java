@@ -6,7 +6,7 @@ import java.io.IOException;
 
 public interface BaseLogHandler<L extends LogEntry> {
 
-    void log(Command command) throws IOException;
+    L log(Command command) throws IOException;
 
     Logger getLogger();
 
@@ -15,6 +15,8 @@ public interface BaseLogHandler<L extends LogEntry> {
     Snapshotter<L> getSnapshotter();
 
     void setSnapshotter(Snapshotter<L> snapshotter);
+
+    long getLogId();
 
     void setLogId(long logId);
 }

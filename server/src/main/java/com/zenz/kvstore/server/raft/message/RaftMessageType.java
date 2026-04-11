@@ -9,7 +9,8 @@ public enum RaftMessageType {
     INSTALL_SNAPSHOT(2),
     REQUEST_VOTE(3),
     REQUEST_VOTE_RESPONSE(4),
-    LEADER_ELECTED(5);
+    APPEND_ENTRY_RESPONSE(5),
+    INSTALL_SNAPSHOT_RESPONSE(6);
 
     private final int value;
 

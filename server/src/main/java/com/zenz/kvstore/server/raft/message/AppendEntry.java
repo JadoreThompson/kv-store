@@ -10,12 +10,11 @@ import java.util.List;
 
 public record AppendEntry(
         RaftMessageType type,
-        String leaderName,
+        String leaderId,
         long term,
         long prevLogId,
         long prevLogTerm,
-        List<RaftLogEntry> entries
-) implements Message, KVSerializable {
+        List<RaftLogEntry> entries) implements Message, KVSerializable {
 
     public AppendEntry(
             final String leaderName,
@@ -28,7 +27,7 @@ public record AppendEntry(
 
     @Override
     public byte[] serialize() {
-        final byte[] leaderBytes = leaderName.getBytes(StandardCharsets.UTF_8);
+        final byte[] leaderBytes = leaderId.getBytes(StandardCharsets.UTF_8);
 
         int size =
                 4 + // type
@@ -90,7 +89,6 @@ public record AppendEntry(
         }
 
         return new AppendEntry(
-                type,
                 leaderName,
                 term,
                 prevLogId,

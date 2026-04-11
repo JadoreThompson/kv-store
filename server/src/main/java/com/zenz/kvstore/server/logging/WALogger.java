@@ -27,6 +27,12 @@ public class WALogger implements Logger, Closeable {
         channel = FileChannel.open(path, StandardOpenOption.APPEND);
     }
 
+    /**
+     * Persists the log entry to a file
+     *
+     * @param logEntry Log entry to persist
+     * @throws IOException During write operation
+     */
     public void log(final LogEntry logEntry) throws IOException {
         final ByteBuffer buffer = ByteBuffer.wrap(logEntry.serialize());
         channel.write(buffer);

@@ -24,10 +24,11 @@ public class LogHandler implements BaseLogHandler<LogEntry> {
     public LogHandler(final Logger logger, final Snapshotter<LogEntry> snapshotter) {
         this.logger = logger;
         this.snapshotter = snapshotter;
+        entries.add(new LogEntry(0L, null));
     }
 
     @Override
-    public void log(final Command command) throws IOException {
+    public LogEntry log(final Command command) throws IOException {
         if (entries.size() == LOGS_PER_SNAPSHOT) {
             snapshotter.snapshot(entries);
             entries = new ArrayList<>();
@@ -36,5 +37,6 @@ public class LogHandler implements BaseLogHandler<LogEntry> {
         final LogEntry logEntry = new LogEntry(++logId, command);
         logger.log(logEntry);
         entries.add(logEntry);
+        return logEntry;
     }
 }

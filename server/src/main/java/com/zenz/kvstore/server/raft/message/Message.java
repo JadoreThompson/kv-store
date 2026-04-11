@@ -15,7 +15,9 @@ public interface Message {
             case INSTALL_SNAPSHOT -> InstallSnapshot.deserialize(buffer);
             case REQUEST_VOTE -> RequestVote.deserialize(buffer);
             case REQUEST_VOTE_RESPONSE -> RequestVoteResponse.deserialize(buffer);
-            default -> throw new IllegalArgumentException("Unknown message type: " + messageType);
+            case APPEND_ENTRY_RESPONSE -> AppendEntryResponse.deserialize(buffer);
+            case INSTALL_SNAPSHOT_RESPONSE -> InstallSnapshotResponse.deserialize(buffer);
+            default -> throw new InvalidMessageException("Unknown message type: " + messageType);
         };
     }
 }
