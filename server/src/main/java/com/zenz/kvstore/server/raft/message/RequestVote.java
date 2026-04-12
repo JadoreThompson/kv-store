@@ -1,7 +1,5 @@
 package com.zenz.kvstore.server.raft.message;
 
-import com.zenz.kvstore.server.util.KVSerializable;
-
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
 
@@ -10,7 +8,7 @@ public record RequestVote(
         String leaderId,
         long term,
         long lastLogId,
-        long lastLogTerm) implements Message, KVSerializable {
+        long lastLogTerm) implements Message {
 
     public RequestVote(final String leaderId, final long term, final long lastLogId, final long lastLogTerm) {
         this(RaftMessageType.REQUEST_VOTE, leaderId, term, lastLogId, lastLogTerm);

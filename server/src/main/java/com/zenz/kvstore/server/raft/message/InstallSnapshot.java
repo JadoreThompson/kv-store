@@ -1,7 +1,5 @@
 package com.zenz.kvstore.server.raft.message;
 
-import com.zenz.kvstore.server.util.KVSerializable;
-
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
 
@@ -13,7 +11,7 @@ public record InstallSnapshot(
         long lastIncludedTerm,
         int offset,
         byte[] data,
-        boolean done) implements Message, KVSerializable {
+        boolean done) implements Message {
 
     public InstallSnapshot(String leaderId,
                            long term,

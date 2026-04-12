@@ -1,6 +1,5 @@
 package com.zenz.kvstore.server.raft.message;
 
-import com.zenz.kvstore.server.util.KVSerializable;
 import lombok.Getter;
 
 import java.nio.ByteBuffer;
@@ -12,7 +11,7 @@ public record AppendEntryResponse(
         long prevLogId,
         long prevLogTerm,
         long lastLogId,
-        long lastLogTerm) implements Message, KVSerializable {
+        long lastLogTerm) implements Message {
 
     public AppendEntryResponse(
             long term,

@@ -1,13 +1,11 @@
 package com.zenz.kvstore.server.raft.message;
 
-import com.zenz.kvstore.server.util.KVSerializable;
-
 import java.nio.ByteBuffer;
 
 public record RequestVoteResponse(
         RaftMessageType type,
         long term,
-        boolean voteGranted) implements Message, KVSerializable {
+        boolean voteGranted) implements Message {
 
     public RequestVoteResponse(long term, boolean voteGranted) {
         this(RaftMessageType.REQUEST_VOTE, term, voteGranted);

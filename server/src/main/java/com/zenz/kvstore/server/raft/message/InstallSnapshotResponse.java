@@ -1,10 +1,8 @@
 package com.zenz.kvstore.server.raft.message;
 
-import com.zenz.kvstore.server.util.KVSerializable;
-
 import java.nio.ByteBuffer;
 
-public record InstallSnapshotResponse(RaftMessageType type, long term) implements Message, KVSerializable {
+public record InstallSnapshotResponse(RaftMessageType type, long term) implements Message {
 
     public InstallSnapshotResponse(long term) {
         this(RaftMessageType.INSTALL_SNAPSHOT_RESPONSE, term);

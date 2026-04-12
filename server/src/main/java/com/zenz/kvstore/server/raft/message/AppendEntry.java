@@ -14,7 +14,7 @@ public record AppendEntry(
         long term,
         long prevLogId,
         long prevLogTerm,
-        List<RaftLogEntry> entries) implements Message, KVSerializable {
+        List<RaftLogEntry> entries) implements Message {
 
     public AppendEntry(
             final String leaderId,
