@@ -7,6 +7,7 @@ import com.zenz.kvstore.server.KVStore;
 import com.zenz.kvstore.server.logging.RaftLogEntry;
 import com.zenz.kvstore.server.logging.RaftLogHandler;
 import com.zenz.kvstore.server.raft.message.*;
+import com.zenz.kvstore.server.restore.RaftKVStoreRestorer;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
@@ -49,7 +50,7 @@ public class Server implements AutoCloseable {
         this.address = address;
     }
 
-    public void open() throws Exception {
+    public void open() throws IOException {
         if (isRunning) {
             return;
         }
@@ -85,7 +86,7 @@ public class Server implements AutoCloseable {
     }
 
     @Override
-    public void close() throws Exception {
+    public void close() throws IOException {
         if (!isRunning) {
             return;
         }
@@ -100,7 +101,6 @@ public class Server implements AutoCloseable {
         if (socketChannel != null) {
             socketChannel.close();
         }
-
     }
 
     private void handleAccept(final SelectionKey key) throws IOException {
@@ -223,6 +223,7 @@ public class Server implements AutoCloseable {
     private ByteBuffer handleAppendEntry(final AppendEntry appendEntry) throws IOException {
         long prevLogId = this.prevLogId;
         long prevLogTerm = this.prevLogTerm;
+        manager.setLeader(appendEntry.leaderId());
 
         if (prevLogId == -1 || prevLogTerm == -1) {
             final RaftLogEntry firstEntry = logHandler.getFirstEntry();
@@ -314,8 +315,8 @@ public class Server implements AutoCloseable {
             logHandler = new RaftLogHandler(logHandler.getLogger(), logHandler.getSnapshotter());
             logHandler.setLogId(installSnapshot.lastIncludedId() - 1);
             logHandler.setTerm(installSnapshot.lastIncludedTerm());
-            final KVStore newKvstore = new KVStore(logHandler);
-            logHandler.getSnapshotter().restore(newKvstore);
+            final RaftKVStoreRestorer restorer = new RaftKVStoreRestorer();
+            final KVStore newKvstore = restorer.restore();
             manager.setKvstore(newKvstore);
         }
 

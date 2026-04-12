@@ -1,2 +1,3 @@
 com\zenz\kvstore\client\KVStoreClientException.class
+com\zenz\kvstore\client\Example.class
 com\zenz\kvstore\client\KVStoreClient.class

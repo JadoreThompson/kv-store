@@ -7,24 +7,34 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
-import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
 
 public class WALogger implements Logger, Closeable {
 
-    private final FileChannel channel;
-    @Getter
-    private final Path path;
+    public static final Path DEFAULT_PATH = Path.of("app.log");
 
-    public WALogger(Path fpath) throws IOException {
+    @Getter
+    private Path path = DEFAULT_PATH;
+
+    private FileChannel channel;
+
+    public WALogger() throws IOException {
+        openChannel(path);
+    }
+
+    public WALogger(Path path) throws IOException {
+        openChannel(path);
+        this.path = path;
+    }
+
+    private void openChannel(final Path fpath) throws IOException {
         File file = fpath.toFile();
         if (!file.exists() && !file.createNewFile()) {
             throw new IOException("Failed to create file " + file.getPath());
         }
 
-        this.path = fpath;
-        channel = FileChannel.open(path, StandardOpenOption.APPEND);
+        channel = FileChannel.open(fpath, StandardOpenOption.APPEND);
     }
 
     /**
@@ -33,14 +43,23 @@ public class WALogger implements Logger, Closeable {
      * @param logEntry Log entry to persist
      * @throws IOException During write operation
      */
+    @Override
     public void log(final LogEntry logEntry) throws IOException {
-        final ByteBuffer buffer = ByteBuffer.wrap(logEntry.serialize());
+        final byte[] bytes = logEntry.serialize();
+        final ByteBuffer buffer = ByteBuffer.allocate(4 + bytes.length);
+        buffer.putInt(bytes.length);
+        buffer.put(bytes);
         channel.write(buffer);
-        channel.write(ByteBuffer.wrap("\n".getBytes(StandardCharsets.UTF_8)));
         channel.force(true);
     }
 
+    @Override
     public void close() throws IOException {
         channel.close();
+    }
+
+    @Override
+    public WALoggerFactory getLoggerFactory() {
+        return new WALoggerFactory();
     }
 }

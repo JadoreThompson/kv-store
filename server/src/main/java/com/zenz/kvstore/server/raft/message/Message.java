@@ -1,8 +1,10 @@
 package com.zenz.kvstore.server.raft.message;
 
+import com.zenz.kvstore.server.util.ByteArraySerializable;
+
 import java.nio.ByteBuffer;
 
-public interface Message {
+public interface Message extends ByteArraySerializable {
 
     RaftMessageType type();
 

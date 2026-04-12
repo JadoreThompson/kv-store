@@ -19,14 +19,14 @@ public class KVStore {
 
     @Getter
     @Setter
-    private BaseLogHandler<?> logHandler;
+    private BaseLogHandler<?, ?> logHandler;
 
-    public KVStore(final BaseLogHandler<?> logHandler) {
+    public KVStore(final BaseLogHandler<?, ?> logHandler) {
         this.logHandler = logHandler;
         map = new KVMap();
     }
 
-    public KVStore(final KVMap map, final BaseLogHandler<?> logHandler) {
+    public KVStore(final KVMap map, final BaseLogHandler<?, ?> logHandler) {
         this.map = map;
         this.logHandler = logHandler;
     }

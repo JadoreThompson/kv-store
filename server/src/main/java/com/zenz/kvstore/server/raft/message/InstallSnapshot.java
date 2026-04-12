@@ -15,12 +15,12 @@ public record InstallSnapshot(
 
     public InstallSnapshot(String leaderId,
                            long term,
-                           long lastIncludedIndex,
+                           long lastIncludedId,
                            long lastIncludedTerm,
                            int offset,
                            byte[] data,
                            boolean done) {
-        this(RaftMessageType.INSTALL_SNAPSHOT, leaderId, term, lastIncludedIndex, lastIncludedTerm, offset, data, done);
+        this(RaftMessageType.INSTALL_SNAPSHOT, leaderId, term, lastIncludedId, lastIncludedTerm, offset, data, done);
     }
 
     @Override
@@ -66,7 +66,7 @@ public record InstallSnapshot(
         final String leaderId = new String(leaderBytes, StandardCharsets.UTF_8);
 
         final long term = buffer.getLong();
-        final long lastIncludedIndex = buffer.getLong();
+        final long lastIncludedId = buffer.getLong();
         final long lastIncludedTerm = buffer.getLong();
         final int offset = buffer.getInt();
 
@@ -79,7 +79,7 @@ public record InstallSnapshot(
         return new InstallSnapshot(
                 leaderId,
                 term,
-                lastIncludedIndex,
+                lastIncludedId,
                 lastIncludedTerm,
                 offset,
                 data,
