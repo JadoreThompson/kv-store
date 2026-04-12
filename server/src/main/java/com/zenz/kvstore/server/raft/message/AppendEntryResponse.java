@@ -7,7 +7,7 @@ import java.nio.ByteBuffer;
 public record AppendEntryResponse(
         RaftMessageType type,
         long term,
-        FailureReason reason,
+        FailureReason failureReason,
         long prevLogId,
         long prevLogTerm,
         long lastLogId,
@@ -24,7 +24,7 @@ public record AppendEntryResponse(
     }
 
     public boolean isSuccess() {
-        return reason == null;
+        return failureReason == null;
     }
 
     @Override
@@ -32,14 +32,14 @@ public record AppendEntryResponse(
         final ByteBuffer buffer = ByteBuffer.allocate(
                 4 + // type
                         8 + // term
-                        4 + // reason
+                        4 + // failureReason
                         8 + // prevLogId
                         8   // prevLogTerm
         );
 
         buffer.putInt(type.getValue());
         buffer.putLong(term);
-        buffer.putInt(reason != null ? reason.getValue() : 0);
+        buffer.putInt(failureReason != null ? failureReason.getValue() : 0);
         buffer.putLong(prevLogId);
         buffer.putLong(prevLogTerm);
         buffer.putLong(lastLogId);
@@ -80,7 +80,7 @@ public record AppendEntryResponse(
 
         /**
          * Previous logs doesn't contain a log entry with prevLogId and prevLogTerm. The local
-         * prevLogId and prevLogTerm will be provided in the response for the leader to reason with.
+         * prevLogId and prevLogTerm will be provided in the response for the leader to failureReason with.
          */
         PREV_LOG(2);
 

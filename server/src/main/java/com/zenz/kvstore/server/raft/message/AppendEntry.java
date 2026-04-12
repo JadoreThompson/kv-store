@@ -1,7 +1,7 @@
 package com.zenz.kvstore.server.raft.message;
 
 import com.zenz.kvstore.server.logging.RaftLogEntry;
-import com.zenz.kvstore.server.util.KVSerializable;
+import com.zenz.kvstore.server.logging.RaftLogEntryDeserializer;
 
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
@@ -83,7 +83,7 @@ public record AppendEntry(
             buffer.get(entryBytes);
 
             final RaftLogEntry entry =
-                    RaftLogEntry.deserialize(ByteBuffer.wrap(entryBytes));
+                    new RaftLogEntryDeserializer().deserialize(ByteBuffer.wrap(entryBytes));
 
             entries.add(entry);
         }

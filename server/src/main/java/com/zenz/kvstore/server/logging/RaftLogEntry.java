@@ -28,18 +28,4 @@ public class RaftLogEntry extends LogEntry {
 
         return buffer.array();
     }
-
-    public static RaftLogEntry deserialize(final ByteBuffer buffer) {
-        final long id = buffer.getLong();
-        final long term = buffer.getLong();
-        final int commandLength = buffer.getInt();
-        if (commandLength == 0) {
-            return new RaftLogEntry(id, term, null);
-        }
-        final byte[] commandBytes = new byte[commandLength];
-        buffer.get(commandBytes);
-        final Command command = Command.deserialize(ByteBuffer.wrap(commandBytes));
-
-        return new RaftLogEntry(id, term, command);
-    }
 }
