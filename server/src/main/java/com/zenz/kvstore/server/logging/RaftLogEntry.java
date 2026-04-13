@@ -28,4 +28,13 @@ public class RaftLogEntry extends LogEntry {
 
         return buffer.array();
     }
+
+    @Override
+    public String toString() {
+        return "RaftLogEntry{" +
+                "term=" + term +
+                ", id=" + id +
+                ", command=" + command +
+                '}';
+    }
 }

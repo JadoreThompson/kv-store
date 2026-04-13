@@ -4,7 +4,7 @@ import com.zenz.kvstore.common.command.Command;
 
 import java.nio.ByteBuffer;
 
-public class LogEntryDeserializer implements  Deserializer<LogEntry> {
+public class LogEntryDeserializer implements Deserializer<LogEntry> {
 
     static {
         LogEntryRegister.register(LogEntry.class, new LogEntryDeserializer());
@@ -17,6 +17,7 @@ public class LogEntryDeserializer implements  Deserializer<LogEntry> {
         if (commandLength == 0) {
             return new LogEntry(id, null);
         }
+
         final byte[] commandBytes = new byte[commandLength];
         buffer.get(commandBytes);
         final Command command = Command.deserialize(ByteBuffer.wrap(commandBytes));

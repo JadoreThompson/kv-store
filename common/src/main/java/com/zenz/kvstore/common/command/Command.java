@@ -10,7 +10,7 @@ public interface Command {
 
     byte[] serialize();
 
-    static Command deserialize(ByteBuffer buffer) {
+    static Command deserialize(final ByteBuffer buffer) {
         int typeValue = buffer.getInt();
         CommandType type = CommandType.fromValue(typeValue);
 

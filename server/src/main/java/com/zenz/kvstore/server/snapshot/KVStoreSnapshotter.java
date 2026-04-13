@@ -1,10 +1,10 @@
 package com.zenz.kvstore.server.snapshot;
 
 import com.zenz.kvstore.server.logging.LogEntry;
-import com.zenz.kvstore.server.logging.RaftLogEntry;
 import lombok.Getter;
 import lombok.Setter;
 
+import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -105,33 +105,40 @@ public class KVStoreSnapshotter<H extends SnapshotHeader, B extends SnapshotBody
 
     public B getBody(final Path snapshotPath) throws IOException {
         try (final InputStream is = new FileInputStream(snapshotPath.toString())) {
-            // Skipping header
-            ByteBuffer buffer = ByteBuffer.wrap(is.readNBytes(4));
-            is.readNBytes(buffer.getInt());
-            buffer.clear();
+            byte[] headerLenBytes = is.readNBytes(4);
+            final int headerLen = ByteBuffer.wrap(headerLenBytes).getInt();
+            is.readNBytes(headerLen);
 
-            // Fetching body
-            buffer.put(is.readNBytes(4));
-            final int len = buffer.getInt();
-            return SnapshotRegistry.deserializeBody(bodyClass, ByteBuffer.wrap(is.readNBytes(len)));
+            byte[] bodyLenBytes = is.readNBytes(4);
+            final int bodyLen = ByteBuffer.wrap(bodyLenBytes).getInt();
+            return SnapshotRegistry.deserializeBody(bodyClass, ByteBuffer.wrap(is.readNBytes(bodyLen)));
         }
     }
 
     public F getFooter(final Path snapshotPath) throws IOException {
         try (final InputStream is = new FileInputStream(snapshotPath.toString())) {
-            // Skipping header
-            ByteBuffer buffer = ByteBuffer.wrap(is.readNBytes(4));
-            is.readNBytes(buffer.getInt());
-            buffer.clear();
+            ByteBuffer buffer = ByteBuffer.allocate(4);
 
-            // Fetching body
-            buffer.put(is.readNBytes(4));
-            is.readNBytes(buffer.getInt());
-            buffer.clear();
+            byte[] headerLenBytes = is.readNBytes(4);
+            buffer.put(headerLenBytes);
+            buffer.flip();
+            int headerLen = buffer.getInt();
+            is.readNBytes(headerLen);
 
-            buffer.put(is.readNBytes(4));
-            final int len = buffer.getInt();
-            return SnapshotRegistry.deserializeFooter(footerClass, ByteBuffer.wrap(is.readNBytes(len)));
+            buffer.clear();
+            byte[] bodyLenBytes = is.readNBytes(4);
+            buffer.put(bodyLenBytes);
+            buffer.flip();
+            int bodyLen = buffer.getInt();
+            is.readNBytes(bodyLen);
+
+            buffer.clear();
+            byte[] footerLenBytes = is.readNBytes(4);
+            buffer.put(footerLenBytes);
+            buffer.flip();
+            int footerLen = buffer.getInt();
+
+            return SnapshotRegistry.deserializeFooter(footerClass, ByteBuffer.wrap(is.readNBytes(footerLen)));
         }
     }
 
@@ -143,17 +150,31 @@ public class KVStoreSnapshotter<H extends SnapshotHeader, B extends SnapshotBody
     }
 
     /**
-     * Finds the path to a snapshot file which will contain a log entry with the requested id
+     * Finds the path to a snapshot file which will contain a log entry with the provided log id
      *
-     * @param logId
-     * @return
+     * @param logId Log ID to search for
+     * @return File path to a snapshot file which may contain a log entry with the provided log id
      */
     public Path findSnapshot(final long logId) {
+        final File[] files = dir.toFile().listFiles();
+        if (files == null) {
+            return null;
+        }
+
+        for (File file : files) {
+            final Path path = file.toPath();
+            final long lastLogId =
+                    Long.parseLong(path.getFileName().toString().replace(".snapshot", ""));
+            if (lastLogId >= logId) {
+                return path;
+            }
+        }
+
         return null;
     }
 
-    public Path getFpath(final List<RaftLogEntry> entries) {
-        final RaftLogEntry logEntry = entries.getLast();
+    public Path getFpath(final List<LogEntry> entries) {
+        final LogEntry logEntry = entries.getLast();
         return dir.resolve(logEntry.id + ".snapshot");
     }
 }

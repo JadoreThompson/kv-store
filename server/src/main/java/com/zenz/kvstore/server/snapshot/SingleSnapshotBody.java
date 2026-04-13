@@ -21,12 +21,13 @@ public class SingleSnapshotBody implements SnapshotBody {
         int totalSize = 4; // initial size
 
         for (byte[] entry : serializedEntries) {
-            totalSize += entry.length;
+            totalSize += 4 + entry.length;
         }
 
         final ByteBuffer buffer = ByteBuffer.allocate(totalSize);
         buffer.putInt(serializedEntries.size());
         for (byte[] serializedEntry : serializedEntries) {
+            buffer.putInt(serializedEntry.length);
             buffer.put(serializedEntry);
         }
 

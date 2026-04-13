@@ -12,11 +12,14 @@ public class SingleSnapshotBodyDeserializer implements SnapshotBodyDeserializer 
     @Override
     public SingleSnapshotBody deserialize(final ByteBuffer buffer) {
         final LogEntryDeserializer deserializer = new LogEntryDeserializer();
-        final long numEntries = buffer.getLong();
+        final int numEntries = buffer.getInt();
         final List<LogEntry> entries = new ArrayList<>();
 
         for (int i = 0; i < numEntries; i++) {
-            entries.add(deserializer.deserialize(buffer));
+            final int len = buffer.getInt();
+            final byte[] entryBytes = new byte[len];
+            buffer.get(entryBytes);
+            entries.add(deserializer.deserialize(ByteBuffer.wrap(entryBytes)));
         }
 
         return new SingleSnapshotBody(entries);
