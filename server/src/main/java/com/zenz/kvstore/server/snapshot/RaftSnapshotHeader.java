@@ -6,7 +6,7 @@ import java.nio.ByteBuffer;
 
 
 @Getter
-public class RaftSnapshotHeader extends Snapshot.Header {
+public class RaftSnapshotHeader extends SnapshotHeader {
 
     private final long firstLogTerm;
     private final long lastLogTerm;

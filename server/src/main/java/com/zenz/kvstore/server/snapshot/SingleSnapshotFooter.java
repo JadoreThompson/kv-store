@@ -3,7 +3,7 @@ package com.zenz.kvstore.server.snapshot;
 import java.nio.ByteBuffer;
 
 
-public class SingleSnapshotFooter extends Snapshot.Footer {
+public class SingleSnapshotFooter extends SnapshotFooter {
 
     public SingleSnapshotFooter(final long timestamp) {
         super(timestamp);

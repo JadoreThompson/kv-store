@@ -2,11 +2,7 @@ package com.zenz.kvstore.server.snapshot;
 
 import java.nio.ByteBuffer;
 
-public class RaftSnapshotHeaderDeserializer implements Snapshot.HeaderDeserializer {
-
-    static {
-        SnapshotRegistry.registerHeaderDeserializer(RaftSnapshotHeader.class, new RaftSnapshotHeaderDeserializer());
-    }
+public class RaftSnapshotHeaderDeserializer implements SnapshotHeaderDeserializer {
 
     @Override
     public RaftSnapshotHeader deserialize(final ByteBuffer buffer) {

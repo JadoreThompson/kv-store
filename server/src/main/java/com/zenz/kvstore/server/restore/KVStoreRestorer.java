@@ -46,7 +46,7 @@ public class KVStoreRestorer {
 
         if (snapshotFiles != null) {
             for (File snapshotFile : snapshotFiles) {
-                final Snapshot.Body body = snapshotter.getBody(snapshotFile.toPath());
+                final SnapshotBody body = snapshotter.getBody(snapshotFile.toPath());
                 for (LogEntry logEntry : body.getEntries()) {
                     applyLogEntry(logEntry, kvStore, logHandler);
                 }

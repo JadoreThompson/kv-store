@@ -6,7 +6,7 @@ import java.nio.ByteBuffer;
 
 
 @Getter
-public class SingleSnapshotHeader extends Snapshot.Header {
+public class SingleSnapshotHeader extends SnapshotHeader {
 
     public SingleSnapshotHeader(
             final long version,

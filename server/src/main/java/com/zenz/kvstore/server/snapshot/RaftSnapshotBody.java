@@ -7,7 +7,7 @@ import java.nio.ByteBuffer;
 import java.util.List;
 
 @Getter
-public class RaftSnapshotBody implements Snapshot.Body {
+public class RaftSnapshotBody implements SnapshotBody {
 
     private final List<RaftLogEntry> entries;
 

@@ -17,7 +17,7 @@ import java.nio.file.StandardOpenOption;
 import java.util.List;
 
 @Getter
-public class KVStoreSnapshotter<H extends Snapshot.Header, B extends Snapshot.Body, F extends Snapshot.Footer> {
+public class KVStoreSnapshotter<H extends SnapshotHeader, B extends SnapshotBody, F extends SnapshotFooter> {
 
     public static final Path DEFAULT_DIR = Path.of("snapshots");
 
@@ -41,26 +41,26 @@ public class KVStoreSnapshotter<H extends Snapshot.Header, B extends Snapshot.Bo
      */
     public Path snapshot(final List<? extends LogEntry> entries) throws IOException {
         if (entries == null || entries.isEmpty()) {
-            throw new IllegalArgumentException("entries cannot be null or empty");
+            throw new IllegalArgumentException("Entries cannot be null or empty");
         }
 
         ByteBuffer buffer = ByteBuffer.allocate(1024);
 
         final H header = SnapshotRegistry.createHeader(headerClass, entries);
         final byte[] headerBytes = header.serialize();
-        buffer = expandBuffer(buffer, buffer.position() + Integer.BYTES + headerBytes.length);
+        buffer = expandBuffer(buffer.flip(), buffer.limit() + Integer.BYTES + headerBytes.length);
         buffer.putInt(headerBytes.length);
         buffer.put(headerBytes);
 
         final B body = SnapshotRegistry.createBody(bodyClass, entries);
         final byte[] bodyBytes = body.serialize();
-        buffer = expandBuffer(buffer, buffer.position() + Integer.BYTES + bodyBytes.length);
+        buffer = expandBuffer(buffer.flip(), buffer.limit() + Integer.BYTES + bodyBytes.length);
         buffer.putInt(bodyBytes.length);
         buffer.put(bodyBytes);
 
         final F footer = SnapshotRegistry.createFooter(footerClass, entries);
         final byte[] footerBytes = footer.serialize();
-        buffer = expandBuffer(buffer, buffer.position() + Integer.BYTES + footerBytes.length);
+        buffer = expandBuffer(buffer.flip(), buffer.limit() + Integer.BYTES + footerBytes.length);
         buffer.putInt(footerBytes.length);
         buffer.put(footerBytes);
 
@@ -133,6 +133,13 @@ public class KVStoreSnapshotter<H extends Snapshot.Header, B extends Snapshot.Bo
             final int len = buffer.getInt();
             return SnapshotRegistry.deserializeFooter(footerClass, ByteBuffer.wrap(is.readNBytes(len)));
         }
+    }
+
+    public Snapshot<H, B, F> getSnapshot(final Path snapshotPath) throws IOException {
+        final H header = getHeader(snapshotPath);
+        final B body = getBody(snapshotPath);
+        final F footer = getFooter(snapshotPath);
+        return new Snapshot<>(header, body, footer);
     }
 
     /**

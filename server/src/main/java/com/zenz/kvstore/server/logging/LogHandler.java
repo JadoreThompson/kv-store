@@ -23,7 +23,10 @@ public class LogHandler implements BaseLogHandler<
     private static final int LOGS_PER_SNAPSHOT = 100_000;
 
     @Setter
-    private Logger logger;
+    private int logsPerSnapshot = LOGS_PER_SNAPSHOT;
+
+    @Setter
+    private CommandLogger logger;
 
     @Setter
     private long logId;
@@ -34,7 +37,7 @@ public class LogHandler implements BaseLogHandler<
     private List<LogEntry> entries = new ArrayList<>();
 
     public LogHandler(
-            final Logger logger,
+            final CommandLogger logger,
             final KVStoreSnapshotter<SingleSnapshotHeader, SingleSnapshotBody, SingleSnapshotFooter> snapshotter
     ) {
         this.logger = logger;
@@ -43,14 +46,15 @@ public class LogHandler implements BaseLogHandler<
 
     @Override
     public LogEntry log(final Command command) throws IOException {
-        if (entries.size() == LOGS_PER_SNAPSHOT) {
+        final LogEntry logEntry = new LogEntry(++logId, command);
+        logger.log(logEntry);
+        entries.add(logEntry);
+
+        if (entries.size() == logsPerSnapshot) {
             snapshotter.snapshot(entries);
             entries = new ArrayList<>();
         }
 
-        final LogEntry logEntry = new LogEntry(++logId, command);
-        logger.log(logEntry);
-        entries.add(logEntry);
         return logEntry;
     }
 

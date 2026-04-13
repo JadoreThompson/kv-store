@@ -15,6 +15,7 @@ public class KVStore {
     @Getter
     private final KVMap map;
 
+    @Getter
     private final Trie trie = new Trie('\0');
 
     @Getter

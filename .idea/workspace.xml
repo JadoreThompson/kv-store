@@ -4,34 +4,24 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="f2a63f83-7187-4a54-8703-b4d1ce6944cf" name="Changes" comment="Creatd ByteArraySerializable interface for serialize method">
+    <list default="true" id="f2a63f83-7187-4a54-8703-b4d1ce6944cf" name="Changes" comment="saving">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/client/target/client-1.0-SNAPSHOT.jar" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/client/target/maven-archiver/pom.properties" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/client/target/maven-status/maven-compiler-plugin/compile/default-compile/createdFiles.lst" beforeDir="false" afterPath="$PROJECT_DIR$/client/target/maven-status/maven-compiler-plugin/compile/default-compile/createdFiles.lst" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/client/target/maven-status/maven-compiler-plugin/testCompile/default-testCompile/createdFiles.lst" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/client/target/maven-status/maven-compiler-plugin/testCompile/default-testCompile/inputFiles.lst" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/client/target/original-client-1.0-SNAPSHOT.jar" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/logs/0.log" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/node-1-logs/0.log" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/node-2-logs/0.log" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/node-3-logs/0.log" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/server/src/main/java/com/zenz/kvstore/server/KVStore.java" beforeDir="false" afterPath="$PROJECT_DIR$/server/src/main/java/com/zenz/kvstore/server/KVStore.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/server/src/main/java/com/zenz/kvstore/server/logging/BaseLogEntry.java" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/server/src/main/java/com/zenz/kvstore/server/logging/BaseLogHandler.java" beforeDir="false" afterPath="$PROJECT_DIR$/server/src/main/java/com/zenz/kvstore/server/logging/BaseLogHandler.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/server/src/main/java/com/zenz/kvstore/server/logging/KVMapSnapshotter.java" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/server/src/main/java/com/zenz/kvstore/server/logging/LogEntry.java" beforeDir="false" afterPath="$PROJECT_DIR$/server/src/main/java/com/zenz/kvstore/server/logging/LogEntry.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/server/src/main/java/com/zenz/kvstore/server/logging/LogHandler.java" beforeDir="false" afterPath="$PROJECT_DIR$/server/src/main/java/com/zenz/kvstore/server/logging/LogHandler.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/server/src/main/java/com/zenz/kvstore/server/logging/Logger.java" beforeDir="false" afterPath="$PROJECT_DIR$/server/src/main/java/com/zenz/kvstore/server/logging/Logger.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/server/src/main/java/com/zenz/kvstore/server/logging/RaftKVMapSnapshotter.java" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/server/src/main/java/com/zenz/kvstore/server/logging/RaftLogEntry.java" beforeDir="false" afterPath="$PROJECT_DIR$/server/src/main/java/com/zenz/kvstore/server/logging/RaftLogEntry.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/server/src/main/java/com/zenz/kvstore/server/logging/RaftLogHandler.java" beforeDir="false" afterPath="$PROJECT_DIR$/server/src/main/java/com/zenz/kvstore/server/logging/RaftLogHandler.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/server/src/main/java/com/zenz/kvstore/server/logging/WALogger.java" beforeDir="false" afterPath="$PROJECT_DIR$/server/src/main/java/com/zenz/kvstore/server/logging/WALogger.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/server/src/main/java/com/zenz/kvstore/server/raft/Client.java" beforeDir="false" afterPath="$PROJECT_DIR$/server/src/main/java/com/zenz/kvstore/server/raft/Client.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/server/src/main/java/com/zenz/kvstore/server/raft/Manager.java" beforeDir="false" afterPath="$PROJECT_DIR$/server/src/main/java/com/zenz/kvstore/server/raft/Manager.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/server/src/main/java/com/zenz/kvstore/server/raft/Server.java" beforeDir="false" afterPath="$PROJECT_DIR$/server/src/main/java/com/zenz/kvstore/server/raft/Server.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/server/src/main/java/com/zenz/kvstore/server/util/KVSerializable.java" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/server/src/test/java/com/zenz/kvstore/server/KVServerTest.java" beforeDir="false" afterPath="$PROJECT_DIR$/server/src/test/java/com/zenz/kvstore/server/KVServerTest.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/server/src/main/java/com/zenz/kvstore/server/snapshot/KVStoreSnapshotter.java" beforeDir="false" afterPath="$PROJECT_DIR$/server/src/main/java/com/zenz/kvstore/server/snapshot/KVStoreSnapshotter.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/server/src/main/java/com/zenz/kvstore/server/snapshot/RaftSnapshotBodyCreator.java" beforeDir="false" afterPath="$PROJECT_DIR$/server/src/main/java/com/zenz/kvstore/server/snapshot/RaftSnapshotBodyCreator.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/server/src/main/java/com/zenz/kvstore/server/snapshot/RaftSnapshotBodyDeserializer.java" beforeDir="false" afterPath="$PROJECT_DIR$/server/src/main/java/com/zenz/kvstore/server/snapshot/RaftSnapshotBodyDeserializer.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/server/src/main/java/com/zenz/kvstore/server/snapshot/RaftSnapshotFooterCreator.java" beforeDir="false" afterPath="$PROJECT_DIR$/server/src/main/java/com/zenz/kvstore/server/snapshot/RaftSnapshotFooterCreator.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/server/src/main/java/com/zenz/kvstore/server/snapshot/RaftSnapshotFooterDeserializer.java" beforeDir="false" afterPath="$PROJECT_DIR$/server/src/main/java/com/zenz/kvstore/server/snapshot/RaftSnapshotFooterDeserializer.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/server/src/main/java/com/zenz/kvstore/server/snapshot/RaftSnapshotHeaderCreator.java" beforeDir="false" afterPath="$PROJECT_DIR$/server/src/main/java/com/zenz/kvstore/server/snapshot/RaftSnapshotHeaderCreator.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/server/src/main/java/com/zenz/kvstore/server/snapshot/RaftSnapshotHeaderDeserializer.java" beforeDir="false" afterPath="$PROJECT_DIR$/server/src/main/java/com/zenz/kvstore/server/snapshot/RaftSnapshotHeaderDeserializer.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/server/src/main/java/com/zenz/kvstore/server/snapshot/SingleSnapshotBody.java" beforeDir="false" afterPath="$PROJECT_DIR$/server/src/main/java/com/zenz/kvstore/server/snapshot/SingleSnapshotBody.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/server/src/main/java/com/zenz/kvstore/server/snapshot/SingleSnapshotBodyCreator.java" beforeDir="false" afterPath="$PROJECT_DIR$/server/src/main/java/com/zenz/kvstore/server/snapshot/SingleSnapshotBodyCreator.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/server/src/main/java/com/zenz/kvstore/server/snapshot/SingleSnapshotBodyDeserializer.java" beforeDir="false" afterPath="$PROJECT_DIR$/server/src/main/java/com/zenz/kvstore/server/snapshot/SingleSnapshotBodyDeserializer.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/server/src/main/java/com/zenz/kvstore/server/snapshot/SingleSnapshotFooterCreator.java" beforeDir="false" afterPath="$PROJECT_DIR$/server/src/main/java/com/zenz/kvstore/server/snapshot/SingleSnapshotFooterCreator.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/server/src/main/java/com/zenz/kvstore/server/snapshot/SingleSnapshotFooterDeserializer.java" beforeDir="false" afterPath="$PROJECT_DIR$/server/src/main/java/com/zenz/kvstore/server/snapshot/SingleSnapshotFooterDeserializer.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/server/src/main/java/com/zenz/kvstore/server/snapshot/SingleSnapshotHeaderCreator.java" beforeDir="false" afterPath="$PROJECT_DIR$/server/src/main/java/com/zenz/kvstore/server/snapshot/SingleSnapshotHeaderCreator.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/server/src/main/java/com/zenz/kvstore/server/snapshot/SingleSnapshotHeaderDeserializer.java" beforeDir="false" afterPath="$PROJECT_DIR$/server/src/main/java/com/zenz/kvstore/server/snapshot/SingleSnapshotHeaderDeserializer.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/server/src/main/java/com/zenz/kvstore/server/snapshot/SnapshotRegistry.java" beforeDir="false" afterPath="$PROJECT_DIR$/server/src/main/java/com/zenz/kvstore/server/snapshot/SnapshotRegistry.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/server/src/test/java/com/zenz/kvstore/server/KVStoreTest.java" beforeDir="false" afterPath="$PROJECT_DIR$/server/src/test/java/com/zenz/kvstore/server/KVStoreTest.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
@@ -112,6 +102,7 @@
     "JUnit.KVStoreTest.search_afterRestoreWithReaddedKey_keyFound.executor": "Run",
     "JUnit.KVStoreTest.search_emptySnapshot_returnsEmptyList.executor": "Run",
     "JUnit.KVStoreTest.search_largeDatasetAfterRestore_returnsCorrectResults.executor": "Run",
+    "JUnit.KVStoreTest.snapshotDuringOperations_triggersWhenThresholdReached.executor": "Run",
     "JUnit.LeaderElectionNewTest.executor": "Run",
     "JUnit.LeaderElectionNewTest.testBootstrapConcludes_withFreshNodes.executor": "Run",
     "JUnit.LeaderElectionTest.brokerConnectionFailure_incrementsVoteCount_duringElection.executor": "Run",
@@ -175,8 +166,12 @@
       <recent name="C:\Users\ADMIN\MyProjects\kvstore" />
     </key>
     <key name="MoveClassesOrPackagesDialog.RECENTS_KEY">
+      <recent name="com.zenz.kvstore.server.snapshot" />
       <recent name="com.zenz.kvstore.server.raft" />
       <recent name="com.zenz.kvstore.server" />
+    </key>
+    <key name="MoveInnerDialog.RECENTS_KEY">
+      <recent name="com.zenz.kvstore.server.snapshot" />
     </key>
     <key name="CopyClassDialog.RECENTS_KEY">
       <recent name="com.zenz.kvstore.server.logging" />
@@ -184,19 +179,7 @@
       <recent name="com.zenz.kvstore.server.raft" />
     </key>
   </component>
-  <component name="RunManager" selected="JUnit.server in server">
-    <configuration name="KVMapTest and 2 more" type="JUnit" factoryName="JUnit" temporary="true" nameIsGenerated="true">
-      <module name="server" />
-      <option name="TEST_OBJECT" value="pattern" />
-      <patterns>
-        <pattern testClass="com.zenz.kvstore.server.KVMapTest" />
-        <pattern testClass="com.zenz.kvstore.server.KVServerTest" />
-        <pattern testClass="com.zenz.kvstore.server.KVStoreTest" />
-      </patterns>
-      <method v="2">
-        <option name="Make" enabled="true" />
-      </method>
-    </configuration>
+  <component name="RunManager" selected="JUnit.KVStoreTest and 1 more">
     <configuration name="KVMapTest and 4 more" type="JUnit" factoryName="JUnit" temporary="true" nameIsGenerated="true">
       <module name="server" />
       <option name="TEST_OBJECT" value="pattern" />
@@ -211,32 +194,44 @@
         <option name="Make" enabled="true" />
       </method>
     </configuration>
-    <configuration name="KVServerTest" type="JUnit" factoryName="JUnit" temporary="true" nameIsGenerated="true">
+    <configuration name="KVStoreTest and 1 more" type="JUnit" factoryName="JUnit" temporary="true" nameIsGenerated="true">
+      <module name="server" />
+      <option name="TEST_OBJECT" value="pattern" />
+      <patterns>
+        <pattern testClass="com.zenz.kvstore.server.KVStoreTest" />
+        <pattern testClass="com.zenz.kvstore.server.TrieTest" />
+      </patterns>
+      <method v="2">
+        <option name="Make" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="KVStoreTest" type="JUnit" factoryName="JUnit" temporary="true" nameIsGenerated="true">
       <module name="server" />
       <extension name="coverage">
         <pattern>
-          <option name="PATTERN" value="com.zenz.kvstore.server.util.*" />
+          <option name="PATTERN" value="com.zenz.kvstore.server.*" />
           <option name="ENABLED" value="true" />
         </pattern>
       </extension>
       <option name="PACKAGE_NAME" value="com.zenz.kvstore.server" />
-      <option name="MAIN_CLASS_NAME" value="com.zenz.kvstore.server.KVServerTest" />
+      <option name="MAIN_CLASS_NAME" value="com.zenz.kvstore.server.KVStoreTest" />
       <option name="TEST_OBJECT" value="class" />
       <method v="2">
         <option name="Make" enabled="true" />
       </method>
     </configuration>
-    <configuration name="LeaderElectionTest" type="JUnit" factoryName="JUnit" temporary="true" nameIsGenerated="true">
+    <configuration name="KVStoreTest.snapshotDuringOperations_triggersWhenThresholdReached" type="JUnit" factoryName="JUnit" temporary="true" nameIsGenerated="true">
       <module name="server" />
       <extension name="coverage">
         <pattern>
-          <option name="PATTERN" value="com.zenz.kvstore.server.raft.*" />
+          <option name="PATTERN" value="com.zenz.kvstore.server.*" />
           <option name="ENABLED" value="true" />
         </pattern>
       </extension>
-      <option name="PACKAGE_NAME" value="com.zenz.kvstore.server.raft" />
-      <option name="MAIN_CLASS_NAME" value="com.zenz.kvstore.server.raft.LeaderElectionTest" />
-      <option name="TEST_OBJECT" value="class" />
+      <option name="PACKAGE_NAME" value="com.zenz.kvstore.server" />
+      <option name="MAIN_CLASS_NAME" value="com.zenz.kvstore.server.KVStoreTest" />
+      <option name="METHOD_NAME" value="snapshotDuringOperations_triggersWhenThresholdReached" />
+      <option name="TEST_OBJECT" value="method" />
       <method v="2">
         <option name="Make" enabled="true" />
       </method>
@@ -251,11 +246,11 @@
     </configuration>
     <recent_temporary>
       <list>
+        <item itemvalue="JUnit.KVStoreTest and 1 more" />
+        <item itemvalue="JUnit.KVStoreTest" />
+        <item itemvalue="JUnit.KVStoreTest.snapshotDuringOperations_triggersWhenThresholdReached" />
         <item itemvalue="JUnit.server in server" />
         <item itemvalue="JUnit.KVMapTest and 4 more" />
-        <item itemvalue="JUnit.KVMapTest and 2 more" />
-        <item itemvalue="JUnit.LeaderElectionTest" />
-        <item itemvalue="JUnit.KVServerTest" />
       </list>
     </recent_temporary>
   </component>
@@ -319,6 +314,8 @@
       <workItem from="1775854854226" duration="7669000" />
       <workItem from="1775891007502" duration="16107000" />
       <workItem from="1775980175551" duration="25970000" />
+      <workItem from="1776018158113" duration="5152000" />
+      <workItem from="1776064664747" duration="3880000" />
     </task>
     <task id="LOCAL-00002" summary="Handling broker disconnect during election">
       <option name="closed" value="true" />
@@ -560,7 +557,15 @@
       <option name="project" value="LOCAL" />
       <updated>1776011054997</updated>
     </task>
-    <option name="localTasksCounter" value="32" />
+    <task id="LOCAL-00032" summary="saving">
+      <option name="closed" value="true" />
+      <created>1776071954848</created>
+      <option name="number" value="00032" />
+      <option name="presentableId" value="LOCAL-00032" />
+      <option name="project" value="LOCAL" />
+      <updated>1776071954848</updated>
+    </task>
+    <option name="localTasksCounter" value="33" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -601,8 +606,8 @@
     <MESSAGE value="Refactored raft messages" />
     <MESSAGE value="Implemented raft Server" />
     <MESSAGE value="Updated AppendEntry and InstallSnapshot handlers in raft Server ; Implemented logic CANDIDATE and LEADER state in raft Client" />
-    <MESSAGE value="saving" />
     <MESSAGE value="Creatd ByteArraySerializable interface for serialize method" />
-    <option name="LAST_COMMIT_MESSAGE" value="Creatd ByteArraySerializable interface for serialize method" />
+    <MESSAGE value="saving" />
+    <option name="LAST_COMMIT_MESSAGE" value="saving" />
   </component>
 </project>

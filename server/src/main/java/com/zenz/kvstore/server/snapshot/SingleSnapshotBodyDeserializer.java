@@ -7,11 +7,7 @@ import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.List;
 
-public class SingleSnapshotBodyDeserializer implements Snapshot.BodyDeserializer {
-
-    static {
-        SnapshotRegistry.registerBodyDeserializer(SingleSnapshotBody.class, new SingleSnapshotBodyDeserializer());
-    }
+public class SingleSnapshotBodyDeserializer implements SnapshotBodyDeserializer {
 
     @Override
     public SingleSnapshotBody deserialize(final ByteBuffer buffer) {

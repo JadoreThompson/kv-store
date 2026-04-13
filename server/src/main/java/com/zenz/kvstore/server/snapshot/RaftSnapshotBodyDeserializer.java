@@ -7,11 +7,7 @@ import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.List;
 
-public class RaftSnapshotBodyDeserializer implements Snapshot.BodyDeserializer {
-
-    static {
-        SnapshotRegistry.registerBodyDeserializer(RaftSnapshotBody.class, new RaftSnapshotBodyDeserializer());
-    }
+public class RaftSnapshotBodyDeserializer implements SnapshotBodyDeserializer {
 
     @Override
     public RaftSnapshotBody deserialize(final ByteBuffer buffer) {

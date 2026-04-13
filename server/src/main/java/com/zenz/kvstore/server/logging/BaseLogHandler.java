@@ -11,9 +11,9 @@ public interface BaseLogHandler<L extends LogEntry, S extends KVStoreSnapshotter
 
     L log(Command command) throws IOException;
 
-    Logger getLogger();
+    CommandLogger getLogger();
 
-    void setLogger(Logger logger);
+    void setLogger(CommandLogger logger);
 
     S getSnapshotter();
 
@@ -24,4 +24,8 @@ public interface BaseLogHandler<L extends LogEntry, S extends KVStoreSnapshotter
     void setLogId(long logId);
 
     List<L> loadLogs(Path fpath) throws IOException;
+
+    void setLogsPerSnapshot(int logsPerSnapshot);
+
+    int getLogsPerSnapshot();
 }

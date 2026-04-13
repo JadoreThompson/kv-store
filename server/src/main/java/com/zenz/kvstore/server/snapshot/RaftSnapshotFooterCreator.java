@@ -4,11 +4,7 @@ import com.zenz.kvstore.server.logging.RaftLogEntry;
 
 import java.util.List;
 
-public class RaftSnapshotFooterCreator implements Snapshot.FooterCreator<RaftLogEntry> {
-
-    static {
-        SnapshotRegistry.registerFooterCreator(RaftSnapshotFooter.class, new RaftSnapshotFooterCreator());
-    }
+public class RaftSnapshotFooterCreator implements SnapshotFooterCreator<RaftLogEntry> {
 
     @Override
     public RaftSnapshotFooter create(final List<RaftLogEntry> entries) {

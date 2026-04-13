@@ -7,7 +7,7 @@ import java.nio.ByteBuffer;
 import java.util.List;
 
 @Getter
-public class SingleSnapshotBody implements Snapshot.Body {
+public class SingleSnapshotBody implements SnapshotBody {
 
     private final List<LogEntry> entries;
 
@@ -18,8 +18,13 @@ public class SingleSnapshotBody implements Snapshot.Body {
     @Override
     public byte[] serialize() {
         final List<byte[]> serializedEntries = entries.stream().map(LogEntry::serialize).toList();
-        final ByteBuffer buffer = ByteBuffer.allocate(4 + serializedEntries.size());
+        int totalSize = 4; // initial size
 
+        for (byte[] entry : serializedEntries) {
+            totalSize += entry.length;
+        }
+
+        final ByteBuffer buffer = ByteBuffer.allocate(totalSize);
         buffer.putInt(serializedEntries.size());
         for (byte[] serializedEntry : serializedEntries) {
             buffer.put(serializedEntry);

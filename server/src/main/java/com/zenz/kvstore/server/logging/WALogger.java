@@ -10,7 +10,7 @@ import java.nio.channels.FileChannel;
 import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
 
-public class WALogger implements Logger, Closeable {
+public class WALogger implements CommandLogger, Closeable {
 
     public static final Path DEFAULT_PATH = Path.of("app.log");
 

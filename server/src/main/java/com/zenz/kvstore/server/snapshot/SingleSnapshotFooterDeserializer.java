@@ -3,11 +3,7 @@ package com.zenz.kvstore.server.snapshot;
 import java.nio.ByteBuffer;
 
 
-public class SingleSnapshotFooterDeserializer implements Snapshot.FooterDeserializer {
-
-    static {
-        SnapshotRegistry.registerFooterDeserializer(SingleSnapshotFooter.class, new SingleSnapshotFooterDeserializer());
-    }
+public class SingleSnapshotFooterDeserializer implements SnapshotFooterDeserializer {
 
     @Override
     public SingleSnapshotFooter deserialize(final ByteBuffer buffer) {

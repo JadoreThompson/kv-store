@@ -2,7 +2,7 @@ package com.zenz.kvstore.server.snapshot;
 
 import java.nio.ByteBuffer;
 
-public class RaftSnapshotFooter extends Snapshot.Footer {
+public class RaftSnapshotFooter extends SnapshotFooter {
 
     public RaftSnapshotFooter(final long timestamp) {
         super(timestamp);

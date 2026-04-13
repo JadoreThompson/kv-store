@@ -5,5 +5,5 @@ import java.nio.file.Path;
 
 public interface LoggerFactory {
 
-    Logger create(Path path) throws IOException;
+    CommandLogger create(Path path) throws IOException;
 }

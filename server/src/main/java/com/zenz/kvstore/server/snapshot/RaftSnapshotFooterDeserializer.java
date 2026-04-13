@@ -3,11 +3,7 @@ package com.zenz.kvstore.server.snapshot;
 import java.nio.ByteBuffer;
 
 
-public class RaftSnapshotFooterDeserializer implements Snapshot.FooterDeserializer {
-
-    static {
-        SnapshotRegistry.registerFooterDeserializer(RaftSnapshotFooter.class, new RaftSnapshotFooterDeserializer());
-    }
+public class RaftSnapshotFooterDeserializer implements SnapshotFooterDeserializer {
 
     @Override
     public RaftSnapshotFooter deserialize(final ByteBuffer buffer) {

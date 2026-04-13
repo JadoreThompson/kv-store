@@ -24,7 +24,10 @@ public class RaftLogHandler implements BaseLogHandler<
     private static final int LOGS_PER_SNAPSHOT = 100_000;
 
     @Setter
-    private Logger logger;
+    private int logsPerSnapshot = LOGS_PER_SNAPSHOT;
+
+    @Setter
+    private CommandLogger logger;
 
     @Setter
     private long logId;
@@ -40,7 +43,7 @@ public class RaftLogHandler implements BaseLogHandler<
     private RaftLogEntry seedEntry = new RaftLogEntry(0L, 0L, new GetCommand(""));
 
     public RaftLogHandler(
-            final Logger logger,
+            final CommandLogger logger,
             final KVStoreSnapshotter<RaftSnapshotHeader, RaftSnapshotBody, RaftSnapshotFooter> snapshotter
     ) {
         this.logger = logger;
@@ -49,7 +52,7 @@ public class RaftLogHandler implements BaseLogHandler<
 
     @Override
     public RaftLogEntry log(final Command command) throws IOException {
-        if (entries.size() == LOGS_PER_SNAPSHOT) {
+        if (entries.size() == logsPerSnapshot) {
             seedEntry = entries.getLast();
             snapshotter.snapshot(entries);
             entries = new ArrayList<>();

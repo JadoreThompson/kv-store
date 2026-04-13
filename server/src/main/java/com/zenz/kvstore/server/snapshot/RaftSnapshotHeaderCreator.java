@@ -4,13 +4,9 @@ import com.zenz.kvstore.server.logging.RaftLogEntry;
 
 import java.util.List;
 
-public class RaftSnapshotHeaderCreator implements Snapshot.HeaderCreator<RaftLogEntry> {
+public class RaftSnapshotHeaderCreator implements SnapshotHeaderCreator<RaftLogEntry> {
 
     private static final long VERSION = 1L;
-
-    static {
-        SnapshotRegistry.registerHeaderCreator(RaftSnapshotHeader.class, new RaftSnapshotHeaderCreator());
-    }
 
     @Override
     public RaftSnapshotHeader create(final List<RaftLogEntry> entries) {

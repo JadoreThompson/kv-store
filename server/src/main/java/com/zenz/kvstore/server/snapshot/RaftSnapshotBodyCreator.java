@@ -4,11 +4,7 @@ import com.zenz.kvstore.server.logging.RaftLogEntry;
 
 import java.util.List;
 
-public class RaftSnapshotBodyCreator implements Snapshot.BodyCreator<RaftLogEntry> {
-
-    static {
-        SnapshotRegistry.registerBodyCreator(RaftSnapshotBody.class, new RaftSnapshotBodyCreator());
-    }
+public class RaftSnapshotBodyCreator implements SnapshotBodyCreator<RaftLogEntry> {
 
     @Override
     public RaftSnapshotBody create(final List<RaftLogEntry> entries) {
