@@ -4,7 +4,13 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="f2a63f83-7187-4a54-8703-b4d1ce6944cf" name="Changes" comment="Created WALogger tests" />
+    <list default="true" id="f2a63f83-7187-4a54-8703-b4d1ce6944cf" name="Changes" comment="saving">
+      <change afterPath="$PROJECT_DIR$/client/target/client-1.0-SNAPSHOT.jar" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/client/target/maven-archiver/pom.properties" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/client/target/maven-status/maven-compiler-plugin/testCompile/default-testCompile/createdFiles.lst" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/client/target/maven-status/maven-compiler-plugin/testCompile/default-testCompile/inputFiles.lst" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/server/src/test/java/com/zenz/kvstore/server/logging/RaftLogHandlerTest.java" afterDir="false" />
+    </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -162,7 +168,7 @@
       <recent name="com.zenz.kvstore.server.raft" />
     </key>
   </component>
-  <component name="RunManager" selected="JUnit.LogHandlerTest">
+  <component name="RunManager" selected="JUnit.RaftLogHandlerTest">
     <configuration name="KVStoreTest and 1 more" type="JUnit" factoryName="JUnit" temporary="true" nameIsGenerated="true">
       <module name="server" />
       <option name="TEST_OBJECT" value="pattern" />
@@ -189,22 +195,6 @@
         <option name="Make" enabled="true" />
       </method>
     </configuration>
-    <configuration name="KVStoreTest.snapshotDuringOperations_triggersWhenThresholdReached" type="JUnit" factoryName="JUnit" temporary="true" nameIsGenerated="true">
-      <module name="server" />
-      <extension name="coverage">
-        <pattern>
-          <option name="PATTERN" value="com.zenz.kvstore.server.*" />
-          <option name="ENABLED" value="true" />
-        </pattern>
-      </extension>
-      <option name="PACKAGE_NAME" value="com.zenz.kvstore.server" />
-      <option name="MAIN_CLASS_NAME" value="com.zenz.kvstore.server.KVStoreTest" />
-      <option name="METHOD_NAME" value="snapshotDuringOperations_triggersWhenThresholdReached" />
-      <option name="TEST_OBJECT" value="method" />
-      <method v="2">
-        <option name="Make" enabled="true" />
-      </method>
-    </configuration>
     <configuration name="LogHandlerTest" type="JUnit" factoryName="JUnit" temporary="true" nameIsGenerated="true">
       <module name="server" />
       <extension name="coverage">
@@ -215,6 +205,21 @@
       </extension>
       <option name="PACKAGE_NAME" value="com.zenz.kvstore.server.logging" />
       <option name="MAIN_CLASS_NAME" value="com.zenz.kvstore.server.logging.LogHandlerTest" />
+      <option name="TEST_OBJECT" value="class" />
+      <method v="2">
+        <option name="Make" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="RaftLogHandlerTest" type="JUnit" factoryName="JUnit" temporary="true" nameIsGenerated="true">
+      <module name="server" />
+      <extension name="coverage">
+        <pattern>
+          <option name="PATTERN" value="com.zenz.kvstore.server.logging.*" />
+          <option name="ENABLED" value="true" />
+        </pattern>
+      </extension>
+      <option name="PACKAGE_NAME" value="com.zenz.kvstore.server.logging" />
+      <option name="MAIN_CLASS_NAME" value="com.zenz.kvstore.server.logging.RaftLogHandlerTest" />
       <option name="TEST_OBJECT" value="class" />
       <method v="2">
         <option name="Make" enabled="true" />
@@ -233,11 +238,11 @@
     </configuration>
     <recent_temporary>
       <list>
+        <item itemvalue="JUnit.RaftLogHandlerTest" />
         <item itemvalue="JUnit.LogHandlerTest" />
         <item itemvalue="JUnit.WALoggerTest and 1 more" />
         <item itemvalue="JUnit.KVStoreTest and 1 more" />
         <item itemvalue="JUnit.KVStoreTest" />
-        <item itemvalue="JUnit.KVStoreTest.snapshotDuringOperations_triggersWhenThresholdReached" />
       </list>
     </recent_temporary>
   </component>
@@ -560,7 +565,15 @@
       <option name="project" value="LOCAL" />
       <updated>1776074381417</updated>
     </task>
-    <option name="localTasksCounter" value="34" />
+    <task id="LOCAL-00034" summary="Created LogHandler tests">
+      <option name="closed" value="true" />
+      <created>1776074832783</created>
+      <option name="number" value="00034" />
+      <option name="presentableId" value="LOCAL-00034" />
+      <option name="project" value="LOCAL" />
+      <updated>1776074832783</updated>
+    </task>
+    <option name="localTasksCounter" value="35" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -578,7 +591,6 @@
     </option>
   </component>
   <component name="VcsManagerConfiguration">
-    <MESSAGE value="Created BrokerClient" />
     <MESSAGE value="Implemeted" />
     <MESSAGE value="saving - Implemented client utils in raft test package" />
     <MESSAGE value="Removed unused properties in RaftCommandHandlerTest" />
@@ -601,8 +613,9 @@
     <MESSAGE value="Implemented raft Server" />
     <MESSAGE value="Updated AppendEntry and InstallSnapshot handlers in raft Server ; Implemented logic CANDIDATE and LEADER state in raft Client" />
     <MESSAGE value="Creatd ByteArraySerializable interface for serialize method" />
-    <MESSAGE value="saving" />
     <MESSAGE value="Created WALogger tests" />
-    <option name="LAST_COMMIT_MESSAGE" value="Created WALogger tests" />
+    <MESSAGE value="Created LogHandler tests" />
+    <MESSAGE value="saving" />
+    <option name="LAST_COMMIT_MESSAGE" value="saving" />
   </component>
 </project>
