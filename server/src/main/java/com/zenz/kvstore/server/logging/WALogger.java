@@ -49,6 +49,7 @@ public class WALogger implements CommandLogger, Closeable {
         final ByteBuffer buffer = ByteBuffer.allocate(4 + bytes.length);
         buffer.putInt(bytes.length);
         buffer.put(bytes);
+        buffer.flip();
         channel.write(buffer);
         channel.force(true);
     }

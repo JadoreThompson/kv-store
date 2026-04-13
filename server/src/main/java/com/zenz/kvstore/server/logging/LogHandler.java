@@ -64,20 +64,18 @@ public class LogHandler implements BaseLogHandler<
         final List<LogEntry> entries = new ArrayList<>();
 
         try (final InputStream is = new FileInputStream(path.toString())) {
-            ByteBuffer lenBuffer = ByteBuffer.allocate(4);
-
             while (true) {
-                byte[] bytes = is.readNBytes(4);
-                if (bytes.length != 4) {
+                byte[] lenBytes = is.readNBytes(4);
+                if (lenBytes.length != 4) {
                     break;
                 }
 
-                lenBuffer.putInt(bytes.length);
+                final ByteBuffer lenBuffer = ByteBuffer.wrap(lenBytes);
                 final int len = lenBuffer.getInt();
-                lenBuffer.clear();
 
                 ByteBuffer buffer = ByteBuffer.allocate(len);
-                lenBuffer.put(is.readNBytes(len));
+                buffer.put(is.readNBytes(len));
+                buffer.flip();
                 entries.add(deserializer.deserialize(buffer));
             }
         }
