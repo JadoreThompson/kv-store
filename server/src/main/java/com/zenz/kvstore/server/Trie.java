@@ -1,5 +1,7 @@
 package com.zenz.kvstore.server;
 
+import lombok.Getter;
+
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -7,20 +9,22 @@ import java.util.Map;
 
 public class Trie {
 
+    @Getter
     private final char character;
+    @Getter
     private boolean isWord;
     private Map<Character, Trie> children;
 
-    public Trie(char character) {
+    public Trie(final char character) {
         this.character = character;
     }
 
-    public Trie(char character, boolean isWord) {
+    public Trie(final char character, final boolean isWord) {
         this.character = character;
         this.isWord = isWord;
     }
 
-    public void add(String word) {
+    public void add(final String word) {
         add(word, 0);
     }
 
@@ -48,7 +52,7 @@ public class Trie {
         }
     }
 
-    public boolean remove(String word) {
+    public boolean remove(final String word) {
         return remove(word, 0);
     }
 
@@ -84,7 +88,7 @@ public class Trie {
         return result;
     }
 
-    public List<String> search(String prefix) {
+    public List<String> get(final String prefix) {
         Trie trie = this;
         boolean found = true;
         for (int i = 0; i < prefix.length(); i++) {
@@ -116,13 +120,5 @@ public class Trie {
         }
 
         return words;
-    }
-
-    public char getCharacter() {
-        return character;
-    }
-
-    public boolean isWord() {
-        return isWord;
     }
 }

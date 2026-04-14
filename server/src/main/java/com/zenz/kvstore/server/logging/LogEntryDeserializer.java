@@ -14,10 +14,6 @@ public class LogEntryDeserializer implements Deserializer<LogEntry> {
     public LogEntry deserialize(final ByteBuffer buffer) {
         final long id = buffer.getLong();
         final int commandLength = buffer.getInt();
-        if (commandLength == 0) {
-            return new LogEntry(id, null);
-        }
-
         final byte[] commandBytes = new byte[commandLength];
         buffer.get(commandBytes);
         final Command command = Command.deserialize(ByteBuffer.wrap(commandBytes));

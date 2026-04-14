@@ -15,10 +15,9 @@ public class RaftLogEntry extends LogEntry {
         this.term = term;
     }
 
-
     @Override
     public byte[] serialize() {
-        final byte[] commandBytes = command != null ? command.serialize() : new byte[0];
+        final byte[] commandBytes = command.serialize();
         final ByteBuffer buffer = ByteBuffer.allocate(8 + 8 + 4 + commandBytes.length);
 
         buffer.putLong(id);

@@ -316,7 +316,7 @@ public class Server implements AutoCloseable {
             logHandler.setLogId(installSnapshot.lastIncludedId() - 1);
             logHandler.setTerm(installSnapshot.lastIncludedTerm());
             final RaftKVStoreRestorer restorer = new RaftKVStoreRestorer();
-            final KVStore newKvstore = restorer.restore();
+            final KVStore newKvstore = restorer.restore(new KVStore(logHandler));
             manager.setKvstore(newKvstore);
         }
 

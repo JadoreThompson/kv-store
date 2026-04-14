@@ -265,7 +265,6 @@ class KVStoreSnapshotterTest {
             snapshotter.snapshot(entries);
 
             Path foundPath = snapshotter.findSnapshot(5);
-
             assertNotNull(foundPath, "Should find snapshot with logId <= requested");
         }
 
@@ -276,7 +275,6 @@ class KVStoreSnapshotterTest {
 
             List<RaftLogEntry> entries2 = createRaftLogEntries(5, 16, 2);
             snapshotter.snapshot(entries2);
-
             Path foundPath = snapshotter.findSnapshot(12);
 
             assertNotNull(foundPath);

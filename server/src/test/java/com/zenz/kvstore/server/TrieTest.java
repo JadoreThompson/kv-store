@@ -60,7 +60,7 @@ class TrieTest {
         void shouldAddSingleWord() {
             root.add("hello");
 
-            List<String> result = root.search("hello");
+            List<String> result = root.get("hello");
             assertNotNull(result);
             assertTrue(result.contains("hello"));
         }
@@ -72,9 +72,9 @@ class TrieTest {
             root.add("world");
             root.add("hi");
 
-            List<String> helloResult = root.search("hello");
-            List<String> worldResult = root.search("world");
-            List<String> hiResult = root.search("hi");
+            List<String> helloResult = root.get("hello");
+            List<String> worldResult = root.get("world");
+            List<String> hiResult = root.get("hi");
 
             assertNotNull(helloResult);
             assertNotNull(worldResult);
@@ -90,7 +90,7 @@ class TrieTest {
             root.add("test");
             root.add("test");
 
-            List<String> result = root.search("test");
+            List<String> result = root.get("test");
             assertNotNull(result);
             assertEquals(1, result.size());
             assertTrue(result.contains("test"));
@@ -103,7 +103,7 @@ class TrieTest {
             root.add("cat");
             root.add("cart");
 
-            List<String> result = root.search("ca");
+            List<String> result = root.get("ca");
             assertNotNull(result);
             assertEquals(3, result.size());
             assertTrue(result.contains("car"));
@@ -116,7 +116,7 @@ class TrieTest {
         void shouldHandleEmptyString() {
             root.add("");
 
-            List<String> result = root.search("");
+            List<String> result = root.get("");
             assertNotNull(result);
         }
 
@@ -125,7 +125,7 @@ class TrieTest {
         void shouldAddSingleCharacterWord() {
             root.add("a");
 
-            List<String> result = root.search("a");
+            List<String> result = root.get("a");
             assertNotNull(result);
             assertTrue(result.contains("a"));
         }
@@ -136,8 +136,8 @@ class TrieTest {
             root.add("car");
             root.add("cart");
 
-            List<String> carResult = root.search("car");
-            List<String> cartResult = root.search("cart");
+            List<String> carResult = root.get("car");
+            List<String> cartResult = root.get("cart");
 
             assertNotNull(carResult);
             assertNotNull(cartResult);
@@ -153,12 +153,12 @@ class TrieTest {
             root.add("hello");
             root.add("HELLO");
 
-            List<String> result = root.search("h");
+            List<String> result = root.get("h");
             assertNotNull(result);
             assertEquals(1, result.size());
             assertTrue(result.contains("hello"));
 
-            List<String> upperResult = root.search("H");
+            List<String> upperResult = root.get("H");
             assertNotNull(upperResult);
             assertEquals(2, upperResult.size());
             assertTrue(upperResult.contains("Hello"));
@@ -175,7 +175,7 @@ class TrieTest {
             root.add("hello");
             assertTrue(root.remove("hello"));
 
-            List<String> result = root.search("hello");
+            List<String> result = root.get("hello");
             assertNull(result);
         }
 
@@ -199,7 +199,7 @@ class TrieTest {
 
             assertTrue(root.remove("car"));
 
-            List<String> result = root.search("ca");
+            List<String> result = root.get("ca");
             assertNotNull(result);
             assertEquals(1, result.size());
             assertTrue(result.contains("cat"));
@@ -214,7 +214,7 @@ class TrieTest {
 
             assertTrue(root.remove("car"));
 
-            List<String> result = root.search("car");
+            List<String> result = root.get("car");
             assertNotNull(result);
             assertEquals(1, result.size());
             assertTrue(result.contains("cart"));
@@ -253,7 +253,7 @@ class TrieTest {
 
             assertTrue(root.remove("a"));
 
-            List<String> result = root.search("a");
+            List<String> result = root.get("a");
             assertNull(result);
         }
 
@@ -276,7 +276,7 @@ class TrieTest {
             root.add("application");
             root.add("banana");
 
-            List<String> result = root.search("app");
+            List<String> result = root.get("app");
             assertNotNull(result);
             assertEquals(3, result.size());
             assertTrue(result.contains("apple"));
@@ -290,7 +290,7 @@ class TrieTest {
         void shouldReturnNullForNonExistentPrefix() {
             root.add("hello");
 
-            List<String> result = root.search("xyz");
+            List<String> result = root.get("xyz");
             assertNull(result);
         }
 
@@ -301,7 +301,7 @@ class TrieTest {
             root.add("banana");
             root.add("cherry");
 
-            List<String> result = root.search("");
+            List<String> result = root.get("");
             assertNotNull(result);
             assertEquals(3, result.size());
             assertTrue(result.contains("apple"));
@@ -315,7 +315,7 @@ class TrieTest {
             root.add("hello");
             root.add("helloWorld");
 
-            List<String> result = root.search("hello");
+            List<String> result = root.get("hello");
             assertNotNull(result);
             assertTrue(result.contains("hello"));
             assertTrue(result.contains("helloWorld"));
@@ -328,14 +328,14 @@ class TrieTest {
 
             root.remove("hello");
 
-            List<String> result = root.search("h");
+            List<String> result = root.get("h");
             assertNull(result);
         }
 
         @Test
         @DisplayName("Should handle search in empty trie")
         void shouldHandleSearchInEmptyTrie() {
-            List<String> result = root.search("anything");
+            List<String> result = root.get("anything");
             assertNull(result);
         }
 
@@ -346,7 +346,7 @@ class TrieTest {
             root.add("ab");
             root.add("abc");
 
-            List<String> result = root.search("a");
+            List<String> result = root.get("a");
             assertNotNull(result);
             assertEquals(3, result.size());
         }
@@ -356,7 +356,7 @@ class TrieTest {
         void shouldReturnSingleWordListForUniqueWord() {
             root.add("unique");
 
-            List<String> result = root.search("unique");
+            List<String> result = root.get("unique");
             assertNotNull(result);
             assertEquals(1, result.size());
             assertTrue(result.contains("unique"));
@@ -409,14 +409,14 @@ class TrieTest {
             root.add("progress");
 
             // Verify all words exist
-            List<String> progResult = root.search("prog");
+            List<String> progResult = root.get("prog");
             assertNotNull(progResult);
             assertEquals(5, progResult.size());
 
             assertTrue(root.remove("program"));
 
             // Verify removal
-            List<String> afterRemove = root.search("prog");
+            List<String> afterRemove = root.get("prog");
             assertNotNull(afterRemove);
             assertEquals(4, afterRemove.size());
             assertFalse(afterRemove.contains("program"));
@@ -424,7 +424,7 @@ class TrieTest {
             root.add("program");
 
             // Verify it's back
-            List<String> afterAdd = root.search("prog");
+            List<String> afterAdd = root.get("prog");
             assertNotNull(afterAdd);
             assertEquals(5, afterAdd.size());
             assertTrue(afterAdd.contains("program"));
@@ -441,7 +441,7 @@ class TrieTest {
             assertTrue(root.remove("two"));
             assertTrue(root.remove("three"));
 
-            List<String> result = root.search("");
+            List<String> result = root.get("");
             assertNotNull(result);
             assertTrue(result.isEmpty());
         }
@@ -459,13 +459,13 @@ class TrieTest {
             assertTrue(root.remove("testing"));
 
             // Verify other words still exist
-            List<String> testResult = root.search("test");
+            List<String> testResult = root.get("test");
             assertNotNull(testResult);
             assertTrue(testResult.contains("test"));
             assertTrue(testResult.contains("tester"));
             assertFalse(testResult.contains("testing"));
 
-            List<String> teaResult = root.search("tea");
+            List<String> teaResult = root.get("tea");
             assertNotNull(teaResult);
             assertTrue(teaResult.contains("tea"));
         }
@@ -483,7 +483,7 @@ class TrieTest {
             root.add("hello.world");
             root.add("hello123");
 
-            List<String> result = root.search("hello");
+            List<String> result = root.get("hello");
             assertNotNull(result);
             assertEquals(4, result.size());
         }
@@ -494,7 +494,7 @@ class TrieTest {
             root.add("test123");
             root.add("test456");
 
-            List<String> result = root.search("test");
+            List<String> result = root.get("test");
             assertNotNull(result);
             assertEquals(2, result.size());
             assertTrue(result.contains("test123"));
@@ -512,7 +512,7 @@ class TrieTest {
 
             root.add(word);
 
-            List<String> result = root.search(word);
+            List<String> result = root.get(word);
             assertNotNull(result);
             assertTrue(result.contains(word));
         }
@@ -524,11 +524,11 @@ class TrieTest {
             root.add("naïve");
             root.add("日本語");
 
-            List<String> cafeResult = root.search("caf");
+            List<String> cafeResult = root.get("caf");
             assertNotNull(cafeResult);
             assertTrue(cafeResult.contains("café"));
 
-            List<String> japaneseResult = root.search("日");
+            List<String> japaneseResult = root.get("日");
             assertNotNull(japaneseResult);
             assertTrue(japaneseResult.contains("日本語"));
         }
@@ -540,7 +540,7 @@ class TrieTest {
             root.add("hello\ttab");
             root.add("hello\nnewline");
 
-            List<String> result = root.search("hello");
+            List<String> result = root.get("hello");
             assertNotNull(result);
             assertEquals(3, result.size());
         }

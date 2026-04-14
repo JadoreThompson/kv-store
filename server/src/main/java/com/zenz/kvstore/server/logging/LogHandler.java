@@ -2,25 +2,19 @@ package com.zenz.kvstore.server.logging;
 
 import com.zenz.kvstore.common.command.Command;
 import com.zenz.kvstore.server.snapshot.KVStoreSnapshotter;
-import com.zenz.kvstore.server.snapshot.SingleSnapshotBody;
-import com.zenz.kvstore.server.snapshot.SingleSnapshotFooter;
-import com.zenz.kvstore.server.snapshot.SingleSnapshotHeader;
 import lombok.Getter;
 import lombok.Setter;
 
-import java.io.FileInputStream;
 import java.io.IOException;
-import java.io.InputStream;
-import java.nio.ByteBuffer;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 
 @Getter
 public class LogHandler implements BaseLogHandler<
-        LogEntry, KVStoreSnapshotter<SingleSnapshotHeader, SingleSnapshotBody, SingleSnapshotFooter>> {
+        LogEntry, KVStoreSnapshotter<?, ?, ?>> {
 
-    private static final int LOGS_PER_SNAPSHOT = 100_000;
+    public static final int LOGS_PER_SNAPSHOT = 100_000;
 
     @Setter
     private int logsPerSnapshot = LOGS_PER_SNAPSHOT;
@@ -32,13 +26,13 @@ public class LogHandler implements BaseLogHandler<
     private long logId;
 
     @Setter
-    private KVStoreSnapshotter<SingleSnapshotHeader, SingleSnapshotBody, SingleSnapshotFooter> snapshotter;
+    private KVStoreSnapshotter<?, ?, ?> snapshotter;
 
     private List<LogEntry> entries = new ArrayList<>();
 
     public LogHandler(
             final CommandLogger logger,
-            final KVStoreSnapshotter<SingleSnapshotHeader, SingleSnapshotBody, SingleSnapshotFooter> snapshotter
+            final KVStoreSnapshotter<?, ?, ?> snapshotter
     ) {
         this.logger = logger;
         this.snapshotter = snapshotter;
@@ -60,26 +54,6 @@ public class LogHandler implements BaseLogHandler<
 
     @Override
     public List<LogEntry> loadLogs(Path path) throws IOException {
-        final Deserializer<LogEntry> deserializer = new LogEntryDeserializer();
-        final List<LogEntry> entries = new ArrayList<>();
-
-        try (final InputStream is = new FileInputStream(path.toString())) {
-            while (true) {
-                byte[] lenBytes = is.readNBytes(4);
-                if (lenBytes.length != 4) {
-                    break;
-                }
-
-                final ByteBuffer lenBuffer = ByteBuffer.wrap(lenBytes);
-                final int len = lenBuffer.getInt();
-
-                ByteBuffer buffer = ByteBuffer.allocate(len);
-                buffer.put(is.readNBytes(len));
-                buffer.flip();
-                entries.add(deserializer.deserialize(buffer));
-            }
-        }
-
-        return entries;
+        return logger.loadLogs(path, new LogEntryDeserializer());
     }
 }

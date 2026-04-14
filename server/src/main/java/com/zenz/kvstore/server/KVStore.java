@@ -58,7 +58,7 @@ public class KVStore {
      * @return
      */
     public List<KVMap.Node> search(final String prefix) {
-        final List<String> keys = this.trie.search(prefix);
+        final List<String> keys = this.trie.get(prefix);
         if (keys == null || keys.isEmpty()) {
             return Collections.emptyList();
         }

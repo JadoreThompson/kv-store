@@ -4,13 +4,14 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="f2a63f83-7187-4a54-8703-b4d1ce6944cf" name="Changes" comment="saving - Created KVStoreSnapshotter tests">
+    <list default="true" id="f2a63f83-7187-4a54-8703-b4d1ce6944cf" name="Changes" comment="saving - Created restorer tests">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/server/src/main/java/com/zenz/kvstore/server/logging/RaftLogEntry.java" beforeDir="false" afterPath="$PROJECT_DIR$/server/src/main/java/com/zenz/kvstore/server/logging/RaftLogEntry.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/server/src/main/java/com/zenz/kvstore/server/snapshot/KVStoreSnapshotter.java" beforeDir="false" afterPath="$PROJECT_DIR$/server/src/main/java/com/zenz/kvstore/server/snapshot/KVStoreSnapshotter.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/server/src/main/java/com/zenz/kvstore/server/snapshot/RaftSnapshotBody.java" beforeDir="false" afterPath="$PROJECT_DIR$/server/src/main/java/com/zenz/kvstore/server/snapshot/RaftSnapshotBody.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/server/src/main/java/com/zenz/kvstore/server/snapshot/RaftSnapshotBodyDeserializer.java" beforeDir="false" afterPath="$PROJECT_DIR$/server/src/main/java/com/zenz/kvstore/server/snapshot/RaftSnapshotBodyDeserializer.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/server/src/test/java/com/zenz/kvstore/server/snapshot/KVStoreSnapshotterTest.java" beforeDir="false" afterPath="$PROJECT_DIR$/server/src/test/java/com/zenz/kvstore/server/snapshot/KVStoreSnapshotterTest.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/server/src/main/java/com/zenz/kvstore/server/KVStore.java" beforeDir="false" afterPath="$PROJECT_DIR$/server/src/main/java/com/zenz/kvstore/server/KVStore.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/server/src/main/java/com/zenz/kvstore/server/logging/LogEntryDeserializer.java" beforeDir="false" afterPath="$PROJECT_DIR$/server/src/main/java/com/zenz/kvstore/server/logging/LogEntryDeserializer.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/server/src/main/java/com/zenz/kvstore/server/logging/WALogger.java" beforeDir="false" afterPath="$PROJECT_DIR$/server/src/main/java/com/zenz/kvstore/server/logging/WALogger.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/server/src/main/java/com/zenz/kvstore/server/restore/KVStoreRestorer.java" beforeDir="false" afterPath="$PROJECT_DIR$/server/src/main/java/com/zenz/kvstore/server/restore/KVStoreRestorer.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/server/src/main/java/com/zenz/kvstore/server/restore/RaftKVStoreRestorer.java" beforeDir="false" afterPath="$PROJECT_DIR$/server/src/main/java/com/zenz/kvstore/server/restore/RaftKVStoreRestorer.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/server/src/test/java/com/zenz/kvstore/server/restore/KVStoreRestorerTest.java" beforeDir="false" afterPath="$PROJECT_DIR$/server/src/test/java/com/zenz/kvstore/server/restore/KVStoreRestorerTest.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -78,7 +79,14 @@
     "JUnit.KVMapTest and 4 more.executor": "Run",
     "JUnit.KVServerTest.executor": "Run",
     "JUnit.KVServerTest.put_withSpacesInValue.executor": "Run",
+    "JUnit.KVStoreRestorerTest$RaftKVStoreRestorerTests.executor": "Run",
+    "JUnit.KVStoreRestorerTest$RaftKVStoreRestorerTests.restore_withMultipleTerms_restoresHighestTerm.executor": "Run",
+    "JUnit.KVStoreRestorerTest$SingleKVStoreRestorerTests.executor": "Run",
+    "JUnit.KVStoreRestorerTest$SingleKVStoreRestorerTests.restore_withLogsAfterSnapshot_restoresAllKeysAndLogs.executor": "Run",
+    "JUnit.KVStoreRestorerTest.executor": "Run",
     "JUnit.KVStoreSnapshotterTest$RaftSnapshotTests.executor": "Run",
+    "JUnit.KVStoreSnapshotterTest$RaftSnapshotTests.findSnapshot_returnsFirstMatchingSnapshot.executor": "Run",
+    "JUnit.KVStoreSnapshotterTest$RaftSnapshotTests.findSnapshot_returnsPathForHigherLogId.executor": "Run",
     "JUnit.KVStoreSnapshotterTest$RaftSnapshotTests.getHeader_returnsCorrectValues.executor": "Run",
     "JUnit.KVStoreSnapshotterTest$RaftSnapshotTests.getSnapshot_returnsAllComponents.executor": "Run",
     "JUnit.KVStoreSnapshotterTest.executor": "Run",
@@ -176,70 +184,71 @@
       <recent name="com.zenz.kvstore.server.raft" />
     </key>
   </component>
-  <component name="RunManager" selected="JUnit.KVStoreSnapshotterTest">
-    <configuration name="KVStoreSnapshotterTest$RaftSnapshotTests" type="JUnit" factoryName="JUnit" temporary="true" nameIsGenerated="true">
+  <component name="RunManager" selected="JUnit.KVStoreRestorerTest$SingleKVStoreRestorerTests.restore_withLogsAfterSnapshot_restoresAllKeysAndLogs">
+    <configuration name="KVStoreRestorerTest$RaftKVStoreRestorerTests" type="JUnit" factoryName="JUnit" temporary="true" nameIsGenerated="true">
       <module name="server" />
       <extension name="coverage">
         <pattern>
-          <option name="PATTERN" value="com.zenz.kvstore.server.snapshot.*" />
+          <option name="PATTERN" value="com.zenz.kvstore.server.restore.*" />
           <option name="ENABLED" value="true" />
         </pattern>
       </extension>
-      <option name="PACKAGE_NAME" value="com.zenz.kvstore.server.snapshot.KVStoreSnapshotterTest" />
-      <option name="MAIN_CLASS_NAME" value="com.zenz.kvstore.server.snapshot.KVStoreSnapshotterTest$RaftSnapshotTests" />
+      <option name="PACKAGE_NAME" value="com.zenz.kvstore.server.restore.KVStoreRestorerTest" />
+      <option name="MAIN_CLASS_NAME" value="com.zenz.kvstore.server.restore.KVStoreRestorerTest$RaftKVStoreRestorerTests" />
+      <option name="METHOD_NAME" value="restore_withMultipleTerms_restoresHighestTerm" />
       <option name="TEST_OBJECT" value="class" />
       <method v="2">
         <option name="Make" enabled="true" />
       </method>
     </configuration>
-    <configuration name="KVStoreSnapshotterTest$RaftSnapshotTests.getHeader_returnsCorrectValues" type="JUnit" factoryName="JUnit" temporary="true" nameIsGenerated="true">
+    <configuration name="KVStoreRestorerTest$RaftKVStoreRestorerTests.restore_withMultipleTerms_restoresHighestTerm" type="JUnit" factoryName="JUnit" temporary="true" nameIsGenerated="true">
       <module name="server" />
       <extension name="coverage">
         <pattern>
-          <option name="PATTERN" value="com.zenz.kvstore.server.snapshot.*" />
+          <option name="PATTERN" value="com.zenz.kvstore.server.restore.*" />
           <option name="ENABLED" value="true" />
         </pattern>
       </extension>
-      <option name="PACKAGE_NAME" value="com.zenz.kvstore.server.snapshot.KVStoreSnapshotterTest" />
-      <option name="MAIN_CLASS_NAME" value="com.zenz.kvstore.server.snapshot.KVStoreSnapshotterTest$RaftSnapshotTests" />
-      <option name="METHOD_NAME" value="getHeader_returnsCorrectValues" />
+      <option name="PACKAGE_NAME" value="com.zenz.kvstore.server.restore.KVStoreRestorerTest" />
+      <option name="MAIN_CLASS_NAME" value="com.zenz.kvstore.server.restore.KVStoreRestorerTest$RaftKVStoreRestorerTests" />
+      <option name="METHOD_NAME" value="restore_withMultipleTerms_restoresHighestTerm" />
       <option name="TEST_OBJECT" value="method" />
       <method v="2">
         <option name="Make" enabled="true" />
       </method>
     </configuration>
-    <configuration name="KVStoreSnapshotterTest$RaftSnapshotTests.getSnapshot_returnsAllComponents" type="JUnit" factoryName="JUnit" temporary="true" nameIsGenerated="true">
+    <configuration name="KVStoreRestorerTest$SingleKVStoreRestorerTests" type="JUnit" factoryName="JUnit" temporary="true" nameIsGenerated="true">
       <module name="server" />
       <extension name="coverage">
         <pattern>
-          <option name="PATTERN" value="com.zenz.kvstore.server.snapshot.*" />
+          <option name="PATTERN" value="com.zenz.kvstore.server.restore.*" />
           <option name="ENABLED" value="true" />
         </pattern>
       </extension>
-      <option name="PACKAGE_NAME" value="com.zenz.kvstore.server.snapshot.KVStoreSnapshotterTest" />
-      <option name="MAIN_CLASS_NAME" value="com.zenz.kvstore.server.snapshot.KVStoreSnapshotterTest$RaftSnapshotTests" />
-      <option name="METHOD_NAME" value="getSnapshot_returnsAllComponents" />
-      <option name="TEST_OBJECT" value="method" />
-      <method v="2">
-        <option name="Make" enabled="true" />
-      </method>
-    </configuration>
-    <configuration name="KVStoreSnapshotterTest" type="JUnit" factoryName="JUnit" temporary="true" nameIsGenerated="true">
-      <module name="server" />
-      <extension name="coverage">
-        <pattern>
-          <option name="PATTERN" value="com.zenz.kvstore.server.snapshot.*" />
-          <option name="ENABLED" value="true" />
-        </pattern>
-      </extension>
-      <option name="PACKAGE_NAME" value="com.zenz.kvstore.server.snapshot" />
-      <option name="MAIN_CLASS_NAME" value="com.zenz.kvstore.server.snapshot.KVStoreSnapshotterTest" />
+      <option name="PACKAGE_NAME" value="com.zenz.kvstore.server.restore.KVStoreRestorerTest" />
+      <option name="MAIN_CLASS_NAME" value="com.zenz.kvstore.server.restore.KVStoreRestorerTest$SingleKVStoreRestorerTests" />
       <option name="TEST_OBJECT" value="class" />
       <method v="2">
         <option name="Make" enabled="true" />
       </method>
     </configuration>
-    <configuration name="KVStoreSnapshotterTest.findSnapshot_returnsFirstMatchingSnapshot" type="JUnit" factoryName="JUnit" temporary="true" nameIsGenerated="true">
+    <configuration name="KVStoreRestorerTest$SingleKVStoreRestorerTests.restore_withLogsAfterSnapshot_restoresAllKeysAndLogs" type="JUnit" factoryName="JUnit" temporary="true" nameIsGenerated="true">
+      <module name="server" />
+      <extension name="coverage">
+        <pattern>
+          <option name="PATTERN" value="com.zenz.kvstore.server.restore.*" />
+          <option name="ENABLED" value="true" />
+        </pattern>
+      </extension>
+      <option name="PACKAGE_NAME" value="com.zenz.kvstore.server.restore.KVStoreRestorerTest" />
+      <option name="MAIN_CLASS_NAME" value="com.zenz.kvstore.server.restore.KVStoreRestorerTest$SingleKVStoreRestorerTests" />
+      <option name="METHOD_NAME" value="restore_withLogsAfterSnapshot_restoresAllKeysAndLogs" />
+      <option name="TEST_OBJECT" value="method" />
+      <method v="2">
+        <option name="Make" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="KVStoreSnapshotterTest$RaftSnapshotTests.findSnapshot_returnsFirstMatchingSnapshot" type="JUnit" factoryName="JUnit" temporary="true" nameIsGenerated="true">
       <module name="server" />
       <extension name="coverage">
         <pattern>
@@ -247,8 +256,8 @@
           <option name="ENABLED" value="true" />
         </pattern>
       </extension>
-      <option name="PACKAGE_NAME" value="com.zenz.kvstore.server.snapshot" />
-      <option name="MAIN_CLASS_NAME" value="com.zenz.kvstore.server.snapshot.KVStoreSnapshotterTest" />
+      <option name="PACKAGE_NAME" value="com.zenz.kvstore.server.snapshot.KVStoreSnapshotterTest" />
+      <option name="MAIN_CLASS_NAME" value="com.zenz.kvstore.server.snapshot.KVStoreSnapshotterTest$RaftSnapshotTests" />
       <option name="METHOD_NAME" value="findSnapshot_returnsFirstMatchingSnapshot" />
       <option name="TEST_OBJECT" value="method" />
       <method v="2">
@@ -257,11 +266,11 @@
     </configuration>
     <recent_temporary>
       <list>
-        <item itemvalue="JUnit.KVStoreSnapshotterTest" />
-        <item itemvalue="JUnit.KVStoreSnapshotterTest$RaftSnapshotTests" />
-        <item itemvalue="JUnit.KVStoreSnapshotterTest$RaftSnapshotTests.getSnapshot_returnsAllComponents" />
-        <item itemvalue="JUnit.KVStoreSnapshotterTest$RaftSnapshotTests.getHeader_returnsCorrectValues" />
-        <item itemvalue="JUnit.KVStoreSnapshotterTest.findSnapshot_returnsFirstMatchingSnapshot" />
+        <item itemvalue="JUnit.KVStoreRestorerTest$SingleKVStoreRestorerTests.restore_withLogsAfterSnapshot_restoresAllKeysAndLogs" />
+        <item itemvalue="JUnit.KVStoreRestorerTest$SingleKVStoreRestorerTests" />
+        <item itemvalue="JUnit.KVStoreRestorerTest$RaftKVStoreRestorerTests" />
+        <item itemvalue="JUnit.KVStoreRestorerTest$RaftKVStoreRestorerTests.restore_withMultipleTerms_restoresHighestTerm" />
+        <item itemvalue="JUnit.KVStoreSnapshotterTest$RaftSnapshotTests.findSnapshot_returnsFirstMatchingSnapshot" />
       </list>
     </recent_temporary>
   </component>
@@ -327,6 +336,10 @@
       <workItem from="1775980175551" duration="25970000" />
       <workItem from="1776018158113" duration="5152000" />
       <workItem from="1776064664747" duration="3880000" />
+      <workItem from="1776088561199" duration="450000" />
+      <workItem from="1776089058333" duration="2536000" />
+      <workItem from="1776116323408" duration="4049000" />
+      <workItem from="1776152564916" duration="5656000" />
     </task>
     <task id="LOCAL-00002" summary="Handling broker disconnect during election">
       <option name="closed" value="true" />
@@ -632,7 +645,15 @@
       <option name="project" value="LOCAL" />
       <updated>1776077306120</updated>
     </task>
-    <option name="localTasksCounter" value="40" />
+    <task id="LOCAL-00040" summary="saving - Created restorer tests">
+      <option name="closed" value="true" />
+      <created>1776087981071</created>
+      <option name="number" value="00040" />
+      <option name="presentableId" value="LOCAL-00040" />
+      <option name="project" value="LOCAL" />
+      <updated>1776087981071</updated>
+    </task>
+    <option name="localTasksCounter" value="41" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -650,7 +671,6 @@
     </option>
   </component>
   <component name="VcsManagerConfiguration">
-    <MESSAGE value="Removed unused properties in RaftCommandHandlerTest" />
     <MESSAGE value="saving - Improved code quality in RaftControllerTest" />
     <MESSAGE value="Improved code quality in RaftControllerTest ; Fixed compilation error in DiscoveryServiceTest" />
     <MESSAGE value="Replaced assertTrue with assertInstanceOf where applicable in KVServerTest" />
@@ -675,6 +695,7 @@
     <MESSAGE value="Created RaftLogHandlerTest" />
     <MESSAGE value="saving" />
     <MESSAGE value="saving - Created KVStoreSnapshotter tests" />
-    <option name="LAST_COMMIT_MESSAGE" value="saving - Created KVStoreSnapshotter tests" />
+    <MESSAGE value="saving - Created restorer tests" />
+    <option name="LAST_COMMIT_MESSAGE" value="saving - Created restorer tests" />
   </component>
 </project>

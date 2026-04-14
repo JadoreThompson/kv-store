@@ -16,11 +16,11 @@ import java.nio.file.StandardCopyOption;
 import java.nio.file.StandardOpenOption;
 import java.util.List;
 
-@Getter
 public class KVStoreSnapshotter<H extends SnapshotHeader, B extends SnapshotBody, F extends SnapshotFooter> {
 
     public static final Path DEFAULT_DIR = Path.of("snapshots");
 
+    @Getter
     @Setter
     private Path dir = DEFAULT_DIR;
     private final Class<H> headerClass;
@@ -67,7 +67,7 @@ public class KVStoreSnapshotter<H extends SnapshotHeader, B extends SnapshotBody
         final String prefix = String.valueOf(entries.getLast().id);
         final String suffix = ".snapshot";
 
-        final Path tempPath = Files.createTempFile(dir, prefix + "-", suffix);
+        final Path tempPath = Files.createTempFile(prefix, suffix);
         final Path destPath = dir.resolve(prefix + suffix);
 
         try (FileChannel channel =
@@ -82,7 +82,6 @@ public class KVStoreSnapshotter<H extends SnapshotHeader, B extends SnapshotBody
         Files.move(
                 tempPath,
                 destPath,
-                StandardCopyOption.REPLACE_EXISTING,
                 StandardCopyOption.ATOMIC_MOVE
         );
 

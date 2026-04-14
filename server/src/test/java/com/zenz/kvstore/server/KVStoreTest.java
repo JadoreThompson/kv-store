@@ -3,21 +3,18 @@ package com.zenz.kvstore.server;
 import com.zenz.kvstore.common.command.DeleteCommand;
 import com.zenz.kvstore.common.command.PutCommand;
 import com.zenz.kvstore.common.enums.CommandType;
-import com.zenz.kvstore.server.logging.CommandLogger;
-import com.zenz.kvstore.server.logging.LogEntry;
-import com.zenz.kvstore.server.logging.LogHandler;
-import com.zenz.kvstore.server.logging.LoggerFactory;
+import com.zenz.kvstore.server.logging.*;
 import com.zenz.kvstore.server.snapshot.KVStoreSnapshotter;
 import com.zenz.kvstore.server.snapshot.SingleSnapshotBody;
 import com.zenz.kvstore.server.snapshot.SingleSnapshotFooter;
 import com.zenz.kvstore.server.snapshot.SingleSnapshotHeader;
-import com.zenz.kvstore.server.snapshot.SingleSnapshotHeaderCreator;
 import lombok.Getter;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.io.File;
+import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
@@ -651,6 +648,11 @@ class KVStoreTest {
 
         public void close() {
             isClosed = true;
+        }
+
+        @Override
+        public <L extends LogEntry> List<L> loadLogs(Path path, Deserializer<L> deserializer) throws IOException {
+            return List.of();
         }
     }
 }

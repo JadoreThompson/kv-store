@@ -2,13 +2,13 @@ package com.zenz.kvstore.server.logging;
 
 import lombok.Getter;
 
-import java.io.Closeable;
-import java.io.File;
-import java.io.IOException;
+import java.io.*;
 import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
 import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
+import java.util.ArrayList;
+import java.util.List;
 
 public class WALogger implements CommandLogger, Closeable {
 
@@ -23,13 +23,13 @@ public class WALogger implements CommandLogger, Closeable {
         openChannel(path);
     }
 
-    public WALogger(Path path) throws IOException {
+    public WALogger(final Path path) throws IOException {
         openChannel(path);
         this.path = path;
     }
 
     private void openChannel(final Path fpath) throws IOException {
-        File file = fpath.toFile();
+        final File file = fpath.toFile();
         if (!file.exists() && !file.createNewFile()) {
             throw new IOException("Failed to create file " + file.getPath());
         }
@@ -57,6 +57,25 @@ public class WALogger implements CommandLogger, Closeable {
     @Override
     public void close() throws IOException {
         channel.close();
+    }
+
+    @Override
+    public <L extends LogEntry> List<L> loadLogs(final Path path, final Deserializer<L> deserializer) throws IOException {
+        final List<L> entries = new ArrayList<>();
+
+        try (final InputStream is = new FileInputStream(path.toFile())) {
+            while (true) {
+                byte[] bytes = is.readNBytes(4);
+                if (bytes.length != 4) {
+                    break;
+                }
+
+                final int len = ByteBuffer.wrap(bytes).getInt();
+                entries.add(deserializer.deserialize(ByteBuffer.wrap(is.readNBytes(len))));
+            }
+        }
+
+        return entries;
     }
 
     @Override
