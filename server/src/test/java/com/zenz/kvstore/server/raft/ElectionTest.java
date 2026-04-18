@@ -32,7 +32,7 @@ import java.util.stream.Stream;
 import static org.junit.jupiter.api.Assertions.*;
 
 @Slf4j
-public class BootstrapTest {
+public class ElectionTest {
 
     private Path logsDir;
     private Path snapshotDir;
