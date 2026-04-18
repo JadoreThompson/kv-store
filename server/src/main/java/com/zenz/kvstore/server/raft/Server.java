@@ -240,7 +240,7 @@ public class Server implements AutoCloseable {
         return new RequestVoteResponse(requestVote.term(), true);
     }
 
-    private Message handleAppendEntry(final AppendEntry appendEntry) throws IOException {
+    Message handleAppendEntry(final AppendEntry appendEntry) {
         if (appendEntry.term() < stateObject.getCurrentTerm()) {
             return new AppendEntryResponse(
                     stateObject.getCurrentTerm(),
@@ -254,7 +254,7 @@ public class Server implements AutoCloseable {
         lastAppendEntryTs = System.currentTimeMillis();
         stateObject.setCurrentTerm(appendEntry.term());
 
-        if (!appendEntry.leaderId().equals(stateObject.leaderId)) {
+        if (!appendEntry.leaderId().equals(stateObject.getLeaderId())) {
             manager.setLeader(appendEntry.leaderId());
             prevLogId = logHandler.getSeedEntry().id;
             prevLogTerm = logHandler.getSeedEntry().term;
@@ -262,21 +262,6 @@ public class Server implements AutoCloseable {
 
         long prevLogId = this.prevLogId;
         long prevLogTerm = this.prevLogTerm;
-        manager.setLeader(appendEntry.leaderId());
-
-        if (prevLogId == -1 || prevLogTerm == -1) {
-            final RaftLogEntry firstEntry = logHandler.getFirstEntry();
-            if (firstEntry != null) {
-                log.info("Assigning log id and log term to first entry");
-                prevLogId = firstEntry.id;
-                prevLogTerm = firstEntry.term;
-            } else {
-                log.info("Assigning log id and log term to seed entry");
-                final RaftLogEntry seedEntry = logHandler.getSeedEntry();
-                prevLogId = seedEntry.id;
-                prevLogTerm = seedEntry.term;
-            }
-        }
 
         if (appendEntry.prevLogId() != prevLogId || appendEntry.prevLogTerm() != prevLogTerm) {
             return new AppendEntryResponse(
@@ -294,7 +279,7 @@ public class Server implements AutoCloseable {
 
         for (RaftLogEntry entry : appendEntry.entries()) {
             ++prevLogIndex;
-            if (!logHandler.getEntries().isEmpty()) {
+            if (!logHandler.getEntries().isEmpty() && prevLogIndex < logHandler.getEntries().size()) {
                 final RaftLogEntry existingEntry = logHandler.getEntries().get(prevLogIndex);
                 if (existingEntry.id != entry.id) {
                     logHandler.setEntries(logHandler.getEntries().subList(0, prevLogIndex));

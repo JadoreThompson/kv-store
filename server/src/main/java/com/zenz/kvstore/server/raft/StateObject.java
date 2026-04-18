@@ -2,19 +2,34 @@ package com.zenz.kvstore.server.raft;
 
 import com.zenz.kvstore.server.logging.RaftLogEntry;
 import lombok.Getter;
+import lombok.Setter;
 
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Future;
 
 public class StateObject {
 
+    @Getter
+    @Setter
     public volatile State state = State.FOLLOWER;
 
     @Getter
     private volatile long currentTerm;
+
+    @Getter
+    @Setter
     public volatile long votedTerm;
+
+    @Getter
+    @Setter
     public volatile ReplicateTask replicateTask;
+
+    @Getter
+    @Setter
     public volatile Election election;
+
+    @Getter
+    @Setter
     public volatile String leaderId;
 
     private final Object currentTermLock = new Object();

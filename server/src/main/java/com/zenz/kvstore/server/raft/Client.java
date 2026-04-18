@@ -236,7 +236,7 @@ public class Client implements Closeable {
         return null;
     }
 
-    private Message handleInstallSnapshotResponse(final InstallSnapshotResponse response) throws IOException {
+    private Message handleInstallSnapshotResponse(final InstallSnapshotResponse response) {
         if (response.term() > stateObject.getCurrentTerm()) {
             stateObject.state = State.FOLLOWER;
             return null;

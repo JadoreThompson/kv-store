@@ -40,6 +40,14 @@ public class RaftLogHandler implements BaseLogHandler<
 
     private RaftLogEntry seedEntry = new RaftLogEntry(0L, 0L, new GetCommand("\0"));
 
+    public RaftLogHandler() throws IOException {
+        logger = new WALogger();
+        snapshotter = new KVStoreSnapshotter<>(
+                RaftSnapshotHeader.class,
+                RaftSnapshotBody.class,
+                RaftSnapshotFooter.class);
+    }
+
     public RaftLogHandler(
             final CommandLogger logger,
             final KVStoreSnapshotter<RaftSnapshotHeader, RaftSnapshotBody, RaftSnapshotFooter> snapshotter
