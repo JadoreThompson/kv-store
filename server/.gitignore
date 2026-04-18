@@ -30,5 +30,5 @@ bin/
 .DS_Store
 
 ### User ###
-*.logEntry
 target
+.log

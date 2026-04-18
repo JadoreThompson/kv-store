@@ -186,4 +186,38 @@ public class AppendEntryTest {
         assertTrue(appendEntryResponse.isSuccess());
         assertNull(appendEntryResponse.failureReason());
     }
+
+    @Test
+    public void test_sameTermAsFollower_acceptsAppendEntry() {
+        final List<RaftLogEntry> entries = List.of(new RaftLogEntry(
+                1L,
+                1L,
+                new PutCommand("key", "value".getBytes(StandardCharsets.UTF_8))));
+        final AppendEntry appendEntry = new AppendEntry(
+                "leader",
+                1L,
+                0L,
+                0L,
+                entries);
+
+        when(mockManager.getNodeConfig()).thenReturn(new NodeConfig(
+                "follower",
+                new InetSocketAddress("localhost", 9999)));
+        doReturn(mockLogHandler).when(mockKvstore).getLogHandler();
+        doReturn(mockKvstore).when(mockManager).getKvstore();
+        when(mockStateObject.getCurrentTerm()).thenReturn(1L);
+        when(mockStateObject.getLeaderId()).thenReturn(null);
+        when(mockLogHandler.getSeedEntry()).thenReturn(new RaftLogEntry(
+                0L,
+                0L,
+                new PutCommand("seed", "value".getBytes(StandardCharsets.UTF_8))));
+        server.setManager(mockManager);
+        server.setStateObject(mockStateObject);
+
+        final Message response = server.handleAppendEntry(appendEntry);
+        assertInstanceOf(AppendEntryResponse.class, response);
+
+        final AppendEntryResponse appendEntryResponse = (AppendEntryResponse) response;
+        assertTrue(appendEntryResponse.isSuccess());
+    }
 }
