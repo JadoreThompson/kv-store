@@ -57,8 +57,7 @@ public class KVServer {
             while (keys.hasNext()) {
                 SelectionKey key = keys.next();
                 keys.remove();
-
-
+                
                 try {
                     if (!key.isValid()) {
                         cleanup(key);

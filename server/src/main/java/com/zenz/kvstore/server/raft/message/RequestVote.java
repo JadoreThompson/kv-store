@@ -20,19 +20,19 @@ public record RequestVote(
 
         final int size =
                 4 + // type
-                        8 + // term
                         4 + leaderBytes.length +
+                        8 + // term
                         8 + // lastLogId
                         8;  // lastLogTerm
 
         final ByteBuffer buffer = ByteBuffer.allocate(size);
 
         buffer.putInt(type.getValue());
-        buffer.putLong(term);
 
         buffer.putInt(leaderBytes.length);
         buffer.put(leaderBytes);
 
+        buffer.putLong(term);
         buffer.putLong(lastLogId);
         buffer.putLong(lastLogTerm);
 
@@ -56,5 +56,16 @@ public record RequestVote(
                 lastLogId,
                 lastLogTerm
         );
+    }
+
+    @Override
+    public String toString() {
+        return "RequestVote{" +
+                "type=" + type +
+                ", leaderId='" + leaderId + '\'' +
+                ", term=" + term +
+                ", lastLogId=" + lastLogId +
+                ", lastLogTerm=" + lastLogTerm +
+                '}';
     }
 }

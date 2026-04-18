@@ -6,6 +6,8 @@ import com.zenz.kvstore.server.raft.message.*;
 import com.zenz.kvstore.server.snapshot.RaftSnapshotBody;
 import lombok.Getter;
 import lombok.Setter;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.Closeable;
 import java.io.IOException;
@@ -16,10 +18,7 @@ import java.nio.channels.SelectionKey;
 import java.nio.channels.Selector;
 import java.nio.channels.SocketChannel;
 import java.nio.file.Path;
-import java.util.Collections;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Queue;
+import java.util.*;
 
 public class Client implements Closeable {
 
@@ -33,16 +32,16 @@ public class Client implements Closeable {
 
     @Getter
     @Setter
-    private StateObject stateObject;
+    private volatile StateObject stateObject;
 
     @Getter
     public long lastMessageTs;
 
     @Getter
-    private boolean isOpen;
+    private volatile boolean isOpen;
 
     @Getter
-    private boolean isConnected;
+    private volatile boolean isConnected;
 
     private Selector selector;
     private SocketChannel socketChannel;
@@ -53,11 +52,20 @@ public class Client implements Closeable {
     private long electionTerm;
 
     private int prevLogIndex = -1;
-    private RaftLogEntry prevLogEntry;
+    private long prevLogId = -1;
+    private long prevLogTerm = -1;
     private SnapshotContext snapshotContext;
+
+    @Getter
+    @Setter
+    private ClientObserver observer;
+
+    private String DEBUG_PREFIX = "";
+    private Logger log;
 
     public Client(final InetSocketAddress remoteAddress) {
         this.remoteAddress = remoteAddress;
+        log = LoggerFactory.getLogger(this.getClass());
     }
 
     public void open() throws IOException {
@@ -75,15 +83,15 @@ public class Client implements Closeable {
                 case LEADER -> handleLeaderState();
             }
 
-            final int readyCount = selector.select(100);
+            final int readyCount = selector.select(10);
             if (readyCount == 0) {
                 continue;
             }
 
-            for (SelectionKey key : selector.keys()) {
-                if (!key.isValid()) {
-                    continue;
-                }
+            final Iterator<SelectionKey> it = selector.selectedKeys().iterator();
+            while (it.hasNext()) {
+                final SelectionKey key = it.next();
+                it.remove();
 
                 try {
                     if (key.isConnectable()) {
@@ -109,7 +117,21 @@ public class Client implements Closeable {
     }
 
     private void handleConnect(final SelectionKey key) throws IOException {
-        isConnected = true;
+        final SocketChannel channel = (SocketChannel) key.channel();
+        if (isConnected) {
+            return;
+        }
+
+        try {
+            if (channel.finishConnect()) {
+                isConnected = true;
+                key.interestOps(SelectionKey.OP_READ);
+                return;
+            }
+        } catch (IOException _) {
+        }
+        closeSocket();
+        openSocketChannel();
     }
 
     private void handleRead(final SelectionKey key) throws IOException {
@@ -120,7 +142,7 @@ public class Client implements Closeable {
         do {
             if (readBuffer.position() == readBuffer.limit()) {
                 final ByteBuffer buffer = ByteBuffer.allocate(readBuffer.capacity() * 2);
-                buffer.put(readBuffer);
+                buffer.put(readBuffer.array());
                 buffer.flip();
                 buffer.limit(buffer.capacity());
                 buffer.position(readBuffer.position());
@@ -149,8 +171,8 @@ public class Client implements Closeable {
             readBuffer = ByteBuffer.allocate(1024);
         } else {
             readBuffer.flip();
-            readBuffer.position(prevPosition);
             readBuffer.limit(readBuffer.capacity());
+            readBuffer.position(prevPosition);
         }
     }
 
@@ -158,58 +180,55 @@ public class Client implements Closeable {
         Message message;
         try {
             message = Message.deserialize(readBuffer);
+            observer.onReceive(remoteAddress, message);
         } catch (BufferUnderflowException | InvalidMessageException e) {
             return false;
         }
 
-        ByteBuffer responseBuffer = null;
+        Message responseMessage = null;
         switch (message.type()) {
             case REQUEST_VOTE_RESPONSE -> {
                 manager.handleRequestVoteResponse((RequestVoteResponse) message);
             }
             case APPEND_ENTRY_RESPONSE -> {
-                responseBuffer = handleAppendEntryResponse((AppendEntryResponse) message);
+                responseMessage = handleAppendEntryResponse((AppendEntryResponse) message);
             }
             case INSTALL_SNAPSHOT -> {
-                responseBuffer = handleInstallSnapshotResponse((InstallSnapshotResponse) message);
+                responseMessage = handleInstallSnapshotResponse((InstallSnapshotResponse) message);
             }
         }
 
-        if (responseBuffer != null) {
-            queueWrite(responseBuffer);
+        if (responseMessage != null) {
+            observer.onSend(remoteAddress, responseMessage);
+            queueWrite(ByteBuffer.wrap(responseMessage.serialize()));
         }
 
         return true;
     }
 
     private void queueWrite(final ByteBuffer buffer) {
-        if (pendingWrites.isEmpty()) {
-            return;
-        }
-
         pendingWrites.offer(buffer.duplicate());
-
         final SelectionKey key = socketChannel.keyFor(selector);
-        if (key.isValid()) {
+        if (key != null && key.isValid()) {
             key.interestOps(key.interestOps() | SelectionKey.OP_WRITE);
-            selector.wakeup();
         }
     }
 
-    private ByteBuffer handleAppendEntryResponse(final AppendEntryResponse response) throws IOException {
+    private Message handleAppendEntryResponse(final AppendEntryResponse response) throws IOException {
         if (response.isSuccess()) {
-            return ByteBuffer.wrap(createAppendEntryRequest().serialize());
+            return createAppendEntryRequest();
         }
 
         switch (response.failureReason()) {
-            case TERM -> stateObject.state = State.FOLLOWER;
-            case PREV_LOG -> {
+            case GREATER_TERM -> stateObject.state = State.FOLLOWER;
+            case PREV_LOG_MISMATCH -> {
+                log.info("Handle Append Entry Response {}", response);
                 if (prevLogIndex - BATCH_SIZE < 0) {
                     final Path snapshotPath = logHandler.getSnapshotter().findSnapshot(response.prevLogId());
                     final RaftSnapshotBody body = logHandler.getSnapshotter().getBody(snapshotPath);
                     snapshotContext = new SnapshotContext(snapshotPath, body.getEntries());
                     final InstallSnapshot installSnapshot = createInstallSnapshot();
-                    return ByteBuffer.wrap(installSnapshot.serialize());
+                    return installSnapshot;
                 }
             }
         }
@@ -217,7 +236,7 @@ public class Client implements Closeable {
         return null;
     }
 
-    private ByteBuffer handleInstallSnapshotResponse(final InstallSnapshotResponse response) throws IOException {
+    private Message handleInstallSnapshotResponse(final InstallSnapshotResponse response) throws IOException {
         if (response.term() > stateObject.getCurrentTerm()) {
             stateObject.state = State.FOLLOWER;
             return null;
@@ -229,10 +248,10 @@ public class Client implements Closeable {
 
         if (snapshotContext.index >= snapshotContext.entries.size()) {
             snapshotContext = null;
-            return ByteBuffer.wrap(createAppendEntryRequest().serialize());
+            return createAppendEntryRequest();
         }
 
-        return ByteBuffer.wrap(createInstallSnapshot().serialize());
+        return createInstallSnapshot();
     }
 
     private void handleCandidateState() {
@@ -245,52 +264,93 @@ public class Client implements Closeable {
             election = manager.startElection();
         }
 
-        if (electionTerm != election.term && !election.isDone()) {
-            queueWrite(ByteBuffer.wrap(new RequestVote(
-                    manager.getNodeConfig().id(),
-                    election.term,
-                    logHandler.getLastEntry().getId(),
-                    logHandler.getLastEntry().getTerm()).serialize()));
-            electionTerm = election.term;
+        final long electionTerm = election.term;
+        if (this.electionTerm != electionTerm && !election.isDone()) {
+            try {
+                queueWrite(ByteBuffer.wrap(new RequestVote(
+                        manager.getNodeConfig().id(),
+                        electionTerm,
+                        logHandler.getLogId(),
+                        logHandler.getTerm()).serialize()));
+            } catch (Exception e) {
+                e.printStackTrace();
+                System.exit(-2);
+            }
+            this.electionTerm = election.term;
         }
     }
 
     private void handleLeaderState() {
-        if (prevLogEntry.id == logHandler.getLogId()) {
+        if (prevLogId != -1 && prevLogId == logHandler.getLogId()) {
             if (System.currentTimeMillis() - lastMessageTs > 100) {
                 queueWrite(ByteBuffer.wrap(new AppendEntry(
                         manager.getNodeConfig().id(),
                         stateObject.getCurrentTerm(),
-                        logHandler.getLastEntry().id,
-                        logHandler.getLastEntry().term,
+                        prevLogId,
+                        prevLogTerm,
                         Collections.emptyList()).serialize()));
                 lastMessageTs = System.currentTimeMillis();
             }
         } else {
-            queueWrite(ByteBuffer.wrap(createAppendEntryRequest().serialize()));
+            try {
+                queueWrite(ByteBuffer.wrap(createAppendEntryRequest().serialize()));
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
         }
     }
 
     private AppendEntry createAppendEntryRequest() {
+        if (prevLogId != -1 && prevLogId == logHandler.getLogId()) {
+            return new AppendEntry(
+                    manager.getNodeConfig().id(),
+                    stateObject.getCurrentTerm(),
+                    prevLogId,
+                    prevLogTerm,
+                    Collections.emptyList());
+        }
+
+        if (prevLogId == -1 && prevLogTerm == -1) {
+            prevLogId = logHandler.getSeedEntry().id;
+            prevLogTerm = logHandler.getSeedEntry().term;
+        }
+
         // We suspect a snapshot occurred
         if (
-                prevLogIndex >= logHandler.getEntries().size() ||
-                        logHandler.getEntries().get(prevLogIndex) != prevLogEntry) {
+                prevLogIndex >= 0 &&
+                        (prevLogIndex >= logHandler.getEntries().size() ||
+                                logHandler.getEntries().get(prevLogIndex).id != prevLogId)) {
             prevLogIndex = -1;
-            prevLogEntry = logHandler.getSeedEntry();
+            final RaftLogEntry seedLogEntry = logHandler.getSeedEntry();
+            prevLogId = seedLogEntry.id;
+            prevLogTerm = seedLogEntry.term;
         }
 
         final int nextLogIndex = prevLogIndex + 1;
-        final List<RaftLogEntry> entries = logHandler.getEntries().subList(nextLogIndex, nextLogIndex + BATCH_SIZE);
-        final RaftLogEntry prevLogEntry = this.prevLogEntry;
-        this.prevLogEntry = entries.getLast();
-        prevLogIndex = prevLogIndex + entries.size();
+        long prevLogId;
+        long prevLogTerm;
+        List<RaftLogEntry> entries;
+        if (logHandler.getEntries().isEmpty()) {
+            final RaftLogEntry seed = logHandler.getSeedEntry();
+            prevLogId = seed.id;
+            prevLogTerm = seed.term;
+            entries = Collections.emptyList();
+        } else {
+            entries = logHandler.getEntries().subList(
+                    nextLogIndex,
+                    Math.min(logHandler.getEntries().size(), nextLogIndex + BATCH_SIZE));
+            prevLogId = this.prevLogId;
+            prevLogTerm = this.prevLogTerm;
+            prevLogIndex = prevLogIndex + entries.size();
+            this.prevLogId = entries.getLast().id;
+            this.prevLogTerm = entries.getLast().term;
+        }
 
         return new AppendEntry(
                 manager.getNodeConfig().id(),
                 stateObject.getCurrentTerm(),
-                prevLogEntry.id,
-                prevLogEntry.term,
+                prevLogId,
+                prevLogTerm,
                 entries);
     }
 
@@ -355,15 +415,21 @@ public class Client implements Closeable {
         }
 
         isOpen = false;
+        closeSocket();
         isConnected = false;
+        manager.handleClientClose(this);
+    }
+
+    private void closeSocket() throws IOException {
         socketChannel.close();
         selector.close();
-        manager.handleClientClose(this);
     }
 
     public void setManager(final Manager manager) {
         this.manager = manager;
         logHandler = (RaftLogHandler) manager.getKvstore().getLogHandler();
+        DEBUG_PREFIX = String.format("[%s][Client]", manager.getNodeConfig().id());
+        log = LoggerFactory.getLogger(DEBUG_PREFIX);
     }
 
     private static class SnapshotContext {

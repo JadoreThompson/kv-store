@@ -31,12 +31,22 @@ public class Manager implements Closeable {
 
     private final ExecutorService executorService = Executors.newCachedThreadPool();
     private Server server;
+    @Getter
     private final List<Client> clients = new ArrayList<>();
     private final Map<Client, NodeConfig> clientNodeConfigMap = new HashMap<>();
     private Client leaderClient;
+    @Getter
     private final StateObject stateObject = new StateObject();
     @Getter
     private boolean isOpen;
+
+    @Getter
+    @Setter
+    private ClientObserver clientObserver = new RaftClientObserver();
+
+    @Getter
+    @Setter
+    private ServerObserver serverObserver = new RaftServerObserver();
 
     // Debug
     private final Logger log;
@@ -51,15 +61,17 @@ public class Manager implements Closeable {
     }
 
     public void open() throws InterruptedException {
-        final String debugPrefix = DEBUG_PREFIX + "[open] ";
-
         server = new Server(nodeConfig.address());
+        server.setManager(this);
+        server.setStateObject(stateObject);
+        server.setObserver(serverObserver);
         executorService.submit(runnableWrapper(server::open));
 
-        while (!server.getManager().isOpen()) {
+        while (!server.isRunning()) {
             log.info("Waiting for server to start");
             Thread.sleep(1000);
         }
+
         log.info("Server started");
         isOpen = true;
 
@@ -67,10 +79,12 @@ public class Manager implements Closeable {
             final Client client = new Client(config.address());
             client.setManager(this);
             client.setStateObject(stateObject);
+            client.setObserver(clientObserver);
             clientNodeConfigMap.put(client, config);
             executorService.submit(runnableWrapper(client::open));
             clients.add(client);
         }
+        log.info("Started " + peerConfigs.size() + " peer clients");
 
         final Set<Client> connectedClients = new HashSet<>();
         while (connectedClients.size() < peerConfigs.size()) {
@@ -82,7 +96,7 @@ public class Manager implements Closeable {
                 }
             }
 
-            log.info("Connected to " + connectedClients.size() + " clients");
+            log.info("Connected to " + connectedClients.size() + "/" + peerConfigs.size() + " clients");
             Thread.sleep(1000);
         }
 
@@ -91,19 +105,28 @@ public class Manager implements Closeable {
 
     private void watch() throws InterruptedException {
         final Random random = new Random();
+        boolean electionStarted = false;
 
         while (isOpen) {
-            final int sleepTime = random.nextInt(500, 1500);
+            final int sleepTime = random.nextInt(1000, 1500);
             Thread.sleep(sleepTime);
             if (stateObject.state != State.FOLLOWER) {
                 continue;
             }
 
             if (leaderClient == null) {
-                startElection();
-            } else if (System.currentTimeMillis() - leaderClient.getLastMessageTs() > sleepTime) {
+                String message = "Leader client is null.";
+                if (!electionStarted) {
+                    message += " Starting election";
+                    electionStarted = true;
+                    startElection();
+                }
+                log.info(message);
+            } else if (System.currentTimeMillis() - server.getLastAppendEntryTs() > sleepTime) {
+                log.info("Leader client message timed out");
                 startElection();
                 leaderClient = null;
+                electionStarted = false;
             }
         }
     }
@@ -113,15 +136,16 @@ public class Manager implements Closeable {
             try {
                 runnable.run();
             } catch (IOException e) {
+                e.printStackTrace();
                 throw new RuntimeException(e);
             }
         };
     }
 
     public StateObject.Election startElection() {
-        final int majority = (1 + peerConfigs.size()) / 2;
+        final int majority = 1 + (1 + peerConfigs.size() / 2);
         final long term = stateObject.setCurrentTerm(stateObject.getCurrentTerm() + 1);
-        stateObject.election = new StateObject.Election(term, majority, System.currentTimeMillis() + 1500);
+        stateObject.election = new StateObject.Election(term, majority, System.currentTimeMillis() + 15000);
         stateObject.state = State.CANDIDATE;
         stateObject.votedTerm = term;
         handleRequestVoteResponse(new RequestVoteResponse(term, true));
@@ -139,6 +163,7 @@ public class Manager implements Closeable {
                 ++election.voteCount;
                 if (election.isDone()) {
                     stateObject.state = State.LEADER;
+                    stateObject.leaderId = nodeConfig.id();
                 }
             }
         }
@@ -148,10 +173,17 @@ public class Manager implements Closeable {
         return null;
     }
 
-    public void handleClientClose(final Client client) {
-        clients.remove(client);
-        final NodeConfig config = clientNodeConfigMap.remove(client);
-        peerConfigs.remove(config);
+    void handleClientClose(final Client client) {
+        log.info("Closing client {}", client);
+        synchronized (clients) {
+            clients.remove(client);
+        }
+        synchronized (clientNodeConfigMap) {
+            final NodeConfig config = clientNodeConfigMap.remove(client);
+            synchronized (peerConfigs) {
+                peerConfigs.remove(config);
+            }
+        }
         final StateObject.Election election = stateObject.election;
         if (election != null && !election.isDone() && !election.isExpired()) {
             synchronized (election) {
@@ -169,6 +201,7 @@ public class Manager implements Closeable {
         }
 
         isOpen = false;
+        final List<Client> clients = new ArrayList<>(this.clients);
         for (Client client : clients) {
             client.close();
         }
@@ -177,6 +210,8 @@ public class Manager implements Closeable {
     }
 
     public void setLeader(final String leaderId) {
+        stateObject.state = State.FOLLOWER;
+        stateObject.leaderId = leaderId;
         for (Map.Entry<Client, NodeConfig> entry : clientNodeConfigMap.entrySet()) {
             if (entry.getValue().id().equals(leaderId)) {
                 leaderClient = entry.getKey();

@@ -34,7 +34,9 @@ public record AppendEntryResponse(
                         8 + // term
                         4 + // failureReason
                         8 + // prevLogId
-                        8   // prevLogTerm
+                        8 +  // prevLogTerm
+                        8 + // lastLogId
+                        8 // lastLogTerm
         );
 
         buffer.putInt(type.getValue());
@@ -76,13 +78,13 @@ public record AppendEntryResponse(
         /**
          * Local term is greater than the term within the {@link AppendEntry} message
          */
-        TERM(1),
+        GREATER_TERM(1),
 
         /**
          * Previous logs doesn't contain a log entry with prevLogId and prevLogTerm. The local
          * prevLogId and prevLogTerm will be provided in the response for the leader to failureReason with.
          */
-        PREV_LOG(2);
+        PREV_LOG_MISMATCH(2);
 
         @Getter
         private final int value;

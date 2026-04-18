@@ -4,14 +4,21 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="f2a63f83-7187-4a54-8703-b4d1ce6944cf" name="Changes" comment="saving - Created restorer tests">
+    <list default="true" id="f2a63f83-7187-4a54-8703-b4d1ce6944cf" name="Changes" comment=" saving - Created bootstrap tests">
+      <change afterPath="$PROJECT_DIR$/server/src/main/java/com/zenz/kvstore/server/raft/ClientObserver.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/server/src/main/java/com/zenz/kvstore/server/raft/RaftClientObserver.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/server/src/main/java/com/zenz/kvstore/server/raft/RaftServerObserver.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/server/src/main/java/com/zenz/kvstore/server/raft/ServerObserver.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/server/src/main/java/com/zenz/kvstore/server/KVStore.java" beforeDir="false" afterPath="$PROJECT_DIR$/server/src/main/java/com/zenz/kvstore/server/KVStore.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/server/src/main/java/com/zenz/kvstore/server/logging/LogEntryDeserializer.java" beforeDir="false" afterPath="$PROJECT_DIR$/server/src/main/java/com/zenz/kvstore/server/logging/LogEntryDeserializer.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/server/src/main/java/com/zenz/kvstore/server/logging/WALogger.java" beforeDir="false" afterPath="$PROJECT_DIR$/server/src/main/java/com/zenz/kvstore/server/logging/WALogger.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/server/src/main/java/com/zenz/kvstore/server/restore/KVStoreRestorer.java" beforeDir="false" afterPath="$PROJECT_DIR$/server/src/main/java/com/zenz/kvstore/server/restore/KVStoreRestorer.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/server/src/main/java/com/zenz/kvstore/server/restore/RaftKVStoreRestorer.java" beforeDir="false" afterPath="$PROJECT_DIR$/server/src/main/java/com/zenz/kvstore/server/restore/RaftKVStoreRestorer.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/server/src/test/java/com/zenz/kvstore/server/restore/KVStoreRestorerTest.java" beforeDir="false" afterPath="$PROJECT_DIR$/server/src/test/java/com/zenz/kvstore/server/restore/KVStoreRestorerTest.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/client/target/client-1.0-SNAPSHOT.jar" beforeDir="false" afterPath="$PROJECT_DIR$/client/target/client-1.0-SNAPSHOT.jar" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/server/src/main/java/com/zenz/kvstore/server/logging/RaftLogHandler.java" beforeDir="false" afterPath="$PROJECT_DIR$/server/src/main/java/com/zenz/kvstore/server/logging/RaftLogHandler.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/server/src/main/java/com/zenz/kvstore/server/raft/Client.java" beforeDir="false" afterPath="$PROJECT_DIR$/server/src/main/java/com/zenz/kvstore/server/raft/Client.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/server/src/main/java/com/zenz/kvstore/server/raft/Manager.java" beforeDir="false" afterPath="$PROJECT_DIR$/server/src/main/java/com/zenz/kvstore/server/raft/Manager.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/server/src/main/java/com/zenz/kvstore/server/raft/Server.java" beforeDir="false" afterPath="$PROJECT_DIR$/server/src/main/java/com/zenz/kvstore/server/raft/Server.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/server/src/main/java/com/zenz/kvstore/server/raft/StateObject.java" beforeDir="false" afterPath="$PROJECT_DIR$/server/src/main/java/com/zenz/kvstore/server/raft/StateObject.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/server/src/main/java/com/zenz/kvstore/server/raft/message/AppendEntryResponse.java" beforeDir="false" afterPath="$PROJECT_DIR$/server/src/main/java/com/zenz/kvstore/server/raft/message/AppendEntryResponse.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/server/src/main/java/com/zenz/kvstore/server/raft/message/Message.java" beforeDir="false" afterPath="$PROJECT_DIR$/server/src/main/java/com/zenz/kvstore/server/raft/message/Message.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/server/src/test/java/com/zenz/kvstore/server/raft/BootstrapTest.java" beforeDir="false" afterPath="$PROJECT_DIR$/server/src/test/java/com/zenz/kvstore/server/raft/BootstrapTest.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -21,9 +28,9 @@
   <component name="FileTemplateManagerImpl">
     <option name="RECENT_TEMPLATES">
       <list>
-        <option value="Interface" />
         <option value="Record" />
         <option value="Exception" />
+        <option value="Interface" />
         <option value="Class" />
       </list>
     </option>
@@ -67,104 +74,110 @@
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent"><![CDATA[{
-  "keyToString": {
-    "JUnit.DiscoveryServiceTest$EdgeCaseTests.executor": "Run",
-    "JUnit.DiscoveryServiceTest$GetMemberTests.getMember_shouldReturnDeserializedNodeConfig.executor": "Run",
-    "JUnit.DiscoveryServiceTest$GetMembersTests.getMembers_shouldHandleIOException.executor": "Run",
-    "JUnit.DiscoveryServiceTest$IntegrationTests.fullWorkflow_shouldWorkCorrectly.executor": "Run",
-    "JUnit.DiscoveryServiceTest.executor": "Run",
-    "JUnit.KVMapSnapshotterTest.executor": "Run",
-    "JUnit.KVMapTest and 2 more.executor": "Run",
-    "JUnit.KVMapTest and 4 more.executor": "Run",
-    "JUnit.KVServerTest.executor": "Run",
-    "JUnit.KVServerTest.put_withSpacesInValue.executor": "Run",
-    "JUnit.KVStoreRestorerTest$RaftKVStoreRestorerTests.executor": "Run",
-    "JUnit.KVStoreRestorerTest$RaftKVStoreRestorerTests.restore_withMultipleTerms_restoresHighestTerm.executor": "Run",
-    "JUnit.KVStoreRestorerTest$SingleKVStoreRestorerTests.executor": "Run",
-    "JUnit.KVStoreRestorerTest$SingleKVStoreRestorerTests.restore_withLogsAfterSnapshot_restoresAllKeysAndLogs.executor": "Run",
-    "JUnit.KVStoreRestorerTest.executor": "Run",
-    "JUnit.KVStoreSnapshotterTest$RaftSnapshotTests.executor": "Run",
-    "JUnit.KVStoreSnapshotterTest$RaftSnapshotTests.findSnapshot_returnsFirstMatchingSnapshot.executor": "Run",
-    "JUnit.KVStoreSnapshotterTest$RaftSnapshotTests.findSnapshot_returnsPathForHigherLogId.executor": "Run",
-    "JUnit.KVStoreSnapshotterTest$RaftSnapshotTests.getHeader_returnsCorrectValues.executor": "Run",
-    "JUnit.KVStoreSnapshotterTest$RaftSnapshotTests.getSnapshot_returnsAllComponents.executor": "Run",
-    "JUnit.KVStoreSnapshotterTest.executor": "Run",
-    "JUnit.KVStoreSnapshotterTest.findSnapshot_returnsFirstMatchingSnapshot.executor": "Run",
-    "JUnit.KVStoreSnapshotterTest.getBody_entriesHaveCorrectCommands.executor": "Run",
-    "JUnit.KVStoreTest.executor": "Run",
-    "JUnit.KVStoreTest.search_afterRestoreFromSnapshotAndWAL_returnsCorrectResults.executor": "Run",
-    "JUnit.KVStoreTest.search_afterRestoreFromSnapshot_returnsCorrectResults.executor": "Run",
-    "JUnit.KVStoreTest.search_afterRestoreFromWALWithDeletes_returnsCorrectResults.executor": "Run",
-    "JUnit.KVStoreTest.search_afterRestoreFromWAL_returnsCorrectResults.executor": "Run",
-    "JUnit.KVStoreTest.search_afterRestoreWithDeletes_returnsCorrectResults.executor": "Run",
-    "JUnit.KVStoreTest.search_afterRestoreWithEmptyKey_handlesCorrectly.executor": "Run",
-    "JUnit.KVStoreTest.search_afterRestoreWithKeyDeletedInWAL_keyNotFound.executor": "Run",
-    "JUnit.KVStoreTest.search_afterRestoreWithOverlappingKeys_returnsCorrectResults.executor": "Run",
-    "JUnit.KVStoreTest.search_afterRestoreWithReaddedKey_keyFound.executor": "Run",
-    "JUnit.KVStoreTest.search_emptySnapshot_returnsEmptyList.executor": "Run",
-    "JUnit.KVStoreTest.search_largeDatasetAfterRestore_returnsCorrectResults.executor": "Run",
-    "JUnit.KVStoreTest.snapshotDuringOperations_triggersWhenThresholdReached.executor": "Run",
-    "JUnit.LeaderElectionNewTest.executor": "Run",
-    "JUnit.LeaderElectionNewTest.testBootstrapConcludes_withFreshNodes.executor": "Run",
-    "JUnit.LeaderElectionTest.brokerConnectionFailure_incrementsVoteCount_duringElection.executor": "Run",
-    "JUnit.LeaderElectionTest.brokerWithHigherLogTerm_initiatesOwnElection_onStaleVoteRequest.executor": "Run",
-    "JUnit.LeaderElectionTest.completeElectionCycle_fromInitiationToCompletion_with3Nodes.executor": "Run",
-    "JUnit.LeaderElectionTest.electionCompletes_withMultipleBrokerConnectionFailures.executor": "Run",
-    "JUnit.LeaderElectionTest.electionSucceeds_despiteInitialVoteDenial.executor": "Run",
-    "JUnit.LeaderElectionTest.executor": "Run",
-    "JUnit.LeaderElectionTest.multipleElections_withIncreasingTerms.executor": "Run",
-    "JUnit.LeaderElectionTest.nodeReceivingVoteRequest_withGreaterTermLowerLogId_initiatesElectionWithoutDuplicate.executor": "Run",
-    "JUnit.LeaderElectionTest.testBootstrapConcludes_withFreshNodes.executor": "Run",
-    "JUnit.LeaderElectionTest.voteResponseWithMismatchedTerm_isIgnored_duringElection.executor": "Run",
-    "JUnit.LogHandlerTest.executor": "Run",
-    "JUnit.RaftCommandHandlerNewTest.brokerState_returnsRedirectToController.executor": "Run",
-    "JUnit.RaftCommandHandlerNewTest.deleteCommand_candidateState_returnsInElectionError.executor": "Run",
-    "JUnit.RaftCommandHandlerNewTest.deleteCommand_minimumMajority_completesAtThreshold.executor": "Run",
-    "JUnit.RaftCommandHandlerNewTest.executor": "Run",
-    "JUnit.RaftCommandHandlerNewTest.handleCommand_fastNodes_majorityReached.executor": "Run",
-    "JUnit.RaftCommandHandlerNewTest.handleCommand_slowNodes_majorityReachedAfterDelay.executor": "Run",
-    "JUnit.RaftCommandHandlerTest.executor": "Run",
-    "JUnit.RaftCommandHandlerTest.handleCommand_fastNodes_majorityReached.executor": "Run",
-    "JUnit.RaftCommandHandlerTest.handleCommand_largeValue_processesCorrectly.executor": "Run",
-    "JUnit.RaftControllerTest.executor": "Run",
-    "JUnit.RaftControllerTest.findingNextLog_returnsCorrectNextLog.executor": "Run",
-    "JUnit.RaftControllerTest.followerUpToDate_sameLogIdAndTerm_returnsMostRecentLog.executor": "Run",
-    "JUnit.RaftControllerTest.freshFollower_bothNodesEmpty_returnsEmptyCommand.executor": "Run",
-    "JUnit.RaftControllerTest.freshFollower_noSnapshot_returnsFirstLog.executor": "Run",
-    "JUnit.RaftControllerTest.freshFollower_withSnapshot_returnsSnapshot.executor": "Run",
-    "JUnit.RaftControllerTest.largeSnapshot.executor": "Run",
-    "JUnit.RaftControllerTest.requestLogIdBeforeFirstLog_withSnapshot_returnsSnapshot.executor": "Run",
-    "JUnit.RaftControllerTest.sameLogIdDifferentTerm_returnsError.executor": "Run",
-    "JUnit.RaftLogHandlerTest.executor": "Run",
-    "JUnit.RestorerTest and 1 more.executor": "Run",
-    "JUnit.TrieTest$AddMethodTests.executor": "Run",
-    "JUnit.TrieTest$AddMethodTests.shouldHandleCaseSensitivity.executor": "Run",
-    "JUnit.TrieTest$ConstructorTests.executor": "Run",
-    "JUnit.TrieTest$EdgeCaseTests.executor": "Run",
-    "JUnit.TrieTest$GetCharacterMethodTests.executor": "Run",
-    "JUnit.TrieTest$IntegrationTests.executor": "Run",
-    "JUnit.TrieTest$RemoveMethodTests.executor": "Run",
-    "JUnit.TrieTest$SearchMethodTests.executor": "Run",
-    "JUnit.TrieTest.executor": "Run",
-    "JUnit.WALoggerTest and 1 more.executor": "Run",
-    "JUnit.raft in server.executor": "Run",
-    "JUnit.server in server.executor": "Run",
-    "RunOnceActivity.ShowReadmeOnStart": "true",
-    "RunOnceActivity.TerminalTabsStorage.copyFrom.TerminalArrangementManager.252": "true",
-    "RunOnceActivity.git.unshallow": "true",
-    "RunOnceActivity.typescript.service.memoryLimit.init": "true",
-    "SHARE_PROJECT_CONFIGURATION_FILES": "true",
-    "git-widget-placeholder": "refactor/raft",
-    "kotlin-language-version-configured": "true",
-    "last_opened_file_path": "C:/Users/ADMIN/MyProjects/kvstore/server/src/main/java/com/zenz/kvstore/server/logging",
-    "node.js.detected.package.eslint": "true",
-    "node.js.selected.package.eslint": "(autodetect)",
-    "nodejs_package_manager_path": "npm",
-    "settings.editor.selected.configurable": "preferences.lookFeel",
-    "vue.rearranger.settings.migration": "true"
+  <component name="PropertiesComponent">{
+  &quot;keyToString&quot;: {
+    &quot;JUnit.BootstrapTest.executor&quot;: &quot;Run&quot;,
+    &quot;JUnit.BootstrapTest.test_electionTimeout_electionConcludes.executor&quot;: &quot;Run&quot;,
+    &quot;JUnit.BootstrapTest.test_higherLogIdAndTermWinsElection.executor&quot;: &quot;Run&quot;,
+    &quot;JUnit.BootstrapTest.test_nodeWithLargerLogId_winsElection.executor&quot;: &quot;Run&quot;,
+    &quot;JUnit.BootstrapTests.executor&quot;: &quot;Run&quot;,
+    &quot;JUnit.BootstrapTests.test_electionTimeout_electionConcludes.executor&quot;: &quot;Run&quot;,
+    &quot;JUnit.DiscoveryServiceTest$EdgeCaseTests.executor&quot;: &quot;Run&quot;,
+    &quot;JUnit.DiscoveryServiceTest$GetMemberTests.getMember_shouldReturnDeserializedNodeConfig.executor&quot;: &quot;Run&quot;,
+    &quot;JUnit.DiscoveryServiceTest$GetMembersTests.getMembers_shouldHandleIOException.executor&quot;: &quot;Run&quot;,
+    &quot;JUnit.DiscoveryServiceTest$IntegrationTests.fullWorkflow_shouldWorkCorrectly.executor&quot;: &quot;Run&quot;,
+    &quot;JUnit.DiscoveryServiceTest.executor&quot;: &quot;Run&quot;,
+    &quot;JUnit.KVMapSnapshotterTest.executor&quot;: &quot;Run&quot;,
+    &quot;JUnit.KVMapTest and 2 more.executor&quot;: &quot;Run&quot;,
+    &quot;JUnit.KVMapTest and 4 more.executor&quot;: &quot;Run&quot;,
+    &quot;JUnit.KVServerTest.executor&quot;: &quot;Run&quot;,
+    &quot;JUnit.KVServerTest.put_withSpacesInValue.executor&quot;: &quot;Run&quot;,
+    &quot;JUnit.KVStoreRestorerTest$RaftKVStoreRestorerTests.executor&quot;: &quot;Run&quot;,
+    &quot;JUnit.KVStoreRestorerTest$RaftKVStoreRestorerTests.restore_withMultipleTerms_restoresHighestTerm.executor&quot;: &quot;Run&quot;,
+    &quot;JUnit.KVStoreRestorerTest$SingleKVStoreRestorerTests.executor&quot;: &quot;Run&quot;,
+    &quot;JUnit.KVStoreRestorerTest$SingleKVStoreRestorerTests.restore_withLogsAfterSnapshot_restoresAllKeysAndLogs.executor&quot;: &quot;Run&quot;,
+    &quot;JUnit.KVStoreRestorerTest.executor&quot;: &quot;Run&quot;,
+    &quot;JUnit.KVStoreSnapshotterTest$RaftSnapshotTests.executor&quot;: &quot;Run&quot;,
+    &quot;JUnit.KVStoreSnapshotterTest$RaftSnapshotTests.findSnapshot_returnsFirstMatchingSnapshot.executor&quot;: &quot;Run&quot;,
+    &quot;JUnit.KVStoreSnapshotterTest$RaftSnapshotTests.findSnapshot_returnsPathForHigherLogId.executor&quot;: &quot;Run&quot;,
+    &quot;JUnit.KVStoreSnapshotterTest$RaftSnapshotTests.getHeader_returnsCorrectValues.executor&quot;: &quot;Run&quot;,
+    &quot;JUnit.KVStoreSnapshotterTest$RaftSnapshotTests.getSnapshot_returnsAllComponents.executor&quot;: &quot;Run&quot;,
+    &quot;JUnit.KVStoreSnapshotterTest.executor&quot;: &quot;Run&quot;,
+    &quot;JUnit.KVStoreSnapshotterTest.findSnapshot_returnsFirstMatchingSnapshot.executor&quot;: &quot;Run&quot;,
+    &quot;JUnit.KVStoreSnapshotterTest.getBody_entriesHaveCorrectCommands.executor&quot;: &quot;Run&quot;,
+    &quot;JUnit.KVStoreTest.executor&quot;: &quot;Run&quot;,
+    &quot;JUnit.KVStoreTest.search_afterRestoreFromSnapshotAndWAL_returnsCorrectResults.executor&quot;: &quot;Run&quot;,
+    &quot;JUnit.KVStoreTest.search_afterRestoreFromSnapshot_returnsCorrectResults.executor&quot;: &quot;Run&quot;,
+    &quot;JUnit.KVStoreTest.search_afterRestoreFromWALWithDeletes_returnsCorrectResults.executor&quot;: &quot;Run&quot;,
+    &quot;JUnit.KVStoreTest.search_afterRestoreFromWAL_returnsCorrectResults.executor&quot;: &quot;Run&quot;,
+    &quot;JUnit.KVStoreTest.search_afterRestoreWithDeletes_returnsCorrectResults.executor&quot;: &quot;Run&quot;,
+    &quot;JUnit.KVStoreTest.search_afterRestoreWithEmptyKey_handlesCorrectly.executor&quot;: &quot;Run&quot;,
+    &quot;JUnit.KVStoreTest.search_afterRestoreWithKeyDeletedInWAL_keyNotFound.executor&quot;: &quot;Run&quot;,
+    &quot;JUnit.KVStoreTest.search_afterRestoreWithOverlappingKeys_returnsCorrectResults.executor&quot;: &quot;Run&quot;,
+    &quot;JUnit.KVStoreTest.search_afterRestoreWithReaddedKey_keyFound.executor&quot;: &quot;Run&quot;,
+    &quot;JUnit.KVStoreTest.search_emptySnapshot_returnsEmptyList.executor&quot;: &quot;Run&quot;,
+    &quot;JUnit.KVStoreTest.search_largeDatasetAfterRestore_returnsCorrectResults.executor&quot;: &quot;Run&quot;,
+    &quot;JUnit.KVStoreTest.snapshotDuringOperations_triggersWhenThresholdReached.executor&quot;: &quot;Run&quot;,
+    &quot;JUnit.LeaderElectionNewTest.executor&quot;: &quot;Run&quot;,
+    &quot;JUnit.LeaderElectionNewTest.testBootstrapConcludes_withFreshNodes.executor&quot;: &quot;Run&quot;,
+    &quot;JUnit.LeaderElectionTest.brokerConnectionFailure_incrementsVoteCount_duringElection.executor&quot;: &quot;Run&quot;,
+    &quot;JUnit.LeaderElectionTest.brokerWithHigherLogTerm_initiatesOwnElection_onStaleVoteRequest.executor&quot;: &quot;Run&quot;,
+    &quot;JUnit.LeaderElectionTest.completeElectionCycle_fromInitiationToCompletion_with3Nodes.executor&quot;: &quot;Run&quot;,
+    &quot;JUnit.LeaderElectionTest.electionCompletes_withMultipleBrokerConnectionFailures.executor&quot;: &quot;Run&quot;,
+    &quot;JUnit.LeaderElectionTest.electionSucceeds_despiteInitialVoteDenial.executor&quot;: &quot;Run&quot;,
+    &quot;JUnit.LeaderElectionTest.executor&quot;: &quot;Run&quot;,
+    &quot;JUnit.LeaderElectionTest.multipleElections_withIncreasingTerms.executor&quot;: &quot;Run&quot;,
+    &quot;JUnit.LeaderElectionTest.nodeReceivingVoteRequest_withGreaterTermLowerLogId_initiatesElectionWithoutDuplicate.executor&quot;: &quot;Run&quot;,
+    &quot;JUnit.LeaderElectionTest.testBootstrapConcludes_withFreshNodes.executor&quot;: &quot;Run&quot;,
+    &quot;JUnit.LeaderElectionTest.voteResponseWithMismatchedTerm_isIgnored_duringElection.executor&quot;: &quot;Run&quot;,
+    &quot;JUnit.LogHandlerTest.executor&quot;: &quot;Run&quot;,
+    &quot;JUnit.RaftCommandHandlerNewTest.brokerState_returnsRedirectToController.executor&quot;: &quot;Run&quot;,
+    &quot;JUnit.RaftCommandHandlerNewTest.deleteCommand_candidateState_returnsInElectionError.executor&quot;: &quot;Run&quot;,
+    &quot;JUnit.RaftCommandHandlerNewTest.deleteCommand_minimumMajority_completesAtThreshold.executor&quot;: &quot;Run&quot;,
+    &quot;JUnit.RaftCommandHandlerNewTest.executor&quot;: &quot;Run&quot;,
+    &quot;JUnit.RaftCommandHandlerNewTest.handleCommand_fastNodes_majorityReached.executor&quot;: &quot;Run&quot;,
+    &quot;JUnit.RaftCommandHandlerNewTest.handleCommand_slowNodes_majorityReachedAfterDelay.executor&quot;: &quot;Run&quot;,
+    &quot;JUnit.RaftCommandHandlerTest.executor&quot;: &quot;Run&quot;,
+    &quot;JUnit.RaftCommandHandlerTest.handleCommand_fastNodes_majorityReached.executor&quot;: &quot;Run&quot;,
+    &quot;JUnit.RaftCommandHandlerTest.handleCommand_largeValue_processesCorrectly.executor&quot;: &quot;Run&quot;,
+    &quot;JUnit.RaftControllerTest.executor&quot;: &quot;Run&quot;,
+    &quot;JUnit.RaftControllerTest.findingNextLog_returnsCorrectNextLog.executor&quot;: &quot;Run&quot;,
+    &quot;JUnit.RaftControllerTest.followerUpToDate_sameLogIdAndTerm_returnsMostRecentLog.executor&quot;: &quot;Run&quot;,
+    &quot;JUnit.RaftControllerTest.freshFollower_bothNodesEmpty_returnsEmptyCommand.executor&quot;: &quot;Run&quot;,
+    &quot;JUnit.RaftControllerTest.freshFollower_noSnapshot_returnsFirstLog.executor&quot;: &quot;Run&quot;,
+    &quot;JUnit.RaftControllerTest.freshFollower_withSnapshot_returnsSnapshot.executor&quot;: &quot;Run&quot;,
+    &quot;JUnit.RaftControllerTest.largeSnapshot.executor&quot;: &quot;Run&quot;,
+    &quot;JUnit.RaftControllerTest.requestLogIdBeforeFirstLog_withSnapshot_returnsSnapshot.executor&quot;: &quot;Run&quot;,
+    &quot;JUnit.RaftControllerTest.sameLogIdDifferentTerm_returnsError.executor&quot;: &quot;Run&quot;,
+    &quot;JUnit.RaftLogHandlerTest.executor&quot;: &quot;Run&quot;,
+    &quot;JUnit.RestorerTest and 1 more.executor&quot;: &quot;Run&quot;,
+    &quot;JUnit.TrieTest$AddMethodTests.executor&quot;: &quot;Run&quot;,
+    &quot;JUnit.TrieTest$AddMethodTests.shouldHandleCaseSensitivity.executor&quot;: &quot;Run&quot;,
+    &quot;JUnit.TrieTest$ConstructorTests.executor&quot;: &quot;Run&quot;,
+    &quot;JUnit.TrieTest$EdgeCaseTests.executor&quot;: &quot;Run&quot;,
+    &quot;JUnit.TrieTest$GetCharacterMethodTests.executor&quot;: &quot;Run&quot;,
+    &quot;JUnit.TrieTest$IntegrationTests.executor&quot;: &quot;Run&quot;,
+    &quot;JUnit.TrieTest$RemoveMethodTests.executor&quot;: &quot;Run&quot;,
+    &quot;JUnit.TrieTest$SearchMethodTests.executor&quot;: &quot;Run&quot;,
+    &quot;JUnit.TrieTest.executor&quot;: &quot;Run&quot;,
+    &quot;JUnit.WALoggerTest and 1 more.executor&quot;: &quot;Run&quot;,
+    &quot;JUnit.raft in server.executor&quot;: &quot;Run&quot;,
+    &quot;JUnit.server in server.executor&quot;: &quot;Run&quot;,
+    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.TerminalTabsStorage.copyFrom.TerminalArrangementManager.252&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.git.unshallow&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.typescript.service.memoryLimit.init&quot;: &quot;true&quot;,
+    &quot;SHARE_PROJECT_CONFIGURATION_FILES&quot;: &quot;true&quot;,
+    &quot;git-widget-placeholder&quot;: &quot;refactor/raft&quot;,
+    &quot;kotlin-language-version-configured&quot;: &quot;true&quot;,
+    &quot;last_opened_file_path&quot;: &quot;C:/Users/ADMIN/MyProjects/kvstore/server/src/main/java/com/zenz/kvstore/server/logging&quot;,
+    &quot;node.js.detected.package.eslint&quot;: &quot;true&quot;,
+    &quot;node.js.selected.package.eslint&quot;: &quot;(autodetect)&quot;,
+    &quot;nodejs_package_manager_path&quot;: &quot;npm&quot;,
+    &quot;settings.editor.selected.configurable&quot;: &quot;preferences.lookFeel&quot;,
+    &quot;vue.rearranger.settings.migration&quot;: &quot;true&quot;
   }
-}]]></component>
+}</component>
   <component name="RecentsManager">
     <key name="CopyFile.RECENT_KEYS">
       <recent name="C:\Users\ADMIN\MyProjects\kvstore\server\src\main\java\com\zenz\kvstore\server\logging" />
@@ -179,98 +192,97 @@
       <recent name="com.zenz.kvstore.server.snapshot" />
     </key>
     <key name="CopyClassDialog.RECENTS_KEY">
+      <recent name="com.zenz.kvstore.server.raft" />
       <recent name="com.zenz.kvstore.server.logging" />
       <recent name="com.zenz.kvstore.server" />
-      <recent name="com.zenz.kvstore.server.raft" />
     </key>
   </component>
-  <component name="RunManager" selected="JUnit.KVStoreRestorerTest$SingleKVStoreRestorerTests.restore_withLogsAfterSnapshot_restoresAllKeysAndLogs">
-    <configuration name="KVStoreRestorerTest$RaftKVStoreRestorerTests" type="JUnit" factoryName="JUnit" temporary="true" nameIsGenerated="true">
+  <component name="RunManager" selected="JUnit.BootstrapTest">
+    <configuration name="BootstrapTest" type="JUnit" factoryName="JUnit" temporary="true" nameIsGenerated="true">
       <module name="server" />
       <extension name="coverage">
         <pattern>
-          <option name="PATTERN" value="com.zenz.kvstore.server.restore.*" />
+          <option name="PATTERN" value="com.zenz.kvstore.server.raft.*" />
           <option name="ENABLED" value="true" />
         </pattern>
       </extension>
-      <option name="PACKAGE_NAME" value="com.zenz.kvstore.server.restore.KVStoreRestorerTest" />
-      <option name="MAIN_CLASS_NAME" value="com.zenz.kvstore.server.restore.KVStoreRestorerTest$RaftKVStoreRestorerTests" />
-      <option name="METHOD_NAME" value="restore_withMultipleTerms_restoresHighestTerm" />
+      <option name="PACKAGE_NAME" value="com.zenz.kvstore.server.raft" />
+      <option name="MAIN_CLASS_NAME" value="com.zenz.kvstore.server.raft.BootstrapTest" />
       <option name="TEST_OBJECT" value="class" />
       <method v="2">
         <option name="Make" enabled="true" />
       </method>
     </configuration>
-    <configuration name="KVStoreRestorerTest$RaftKVStoreRestorerTests.restore_withMultipleTerms_restoresHighestTerm" type="JUnit" factoryName="JUnit" temporary="true" nameIsGenerated="true">
+    <configuration name="BootstrapTest.test_electionTimeout_electionConcludes" type="JUnit" factoryName="JUnit" temporary="true" nameIsGenerated="true">
       <module name="server" />
       <extension name="coverage">
         <pattern>
-          <option name="PATTERN" value="com.zenz.kvstore.server.restore.*" />
+          <option name="PATTERN" value="com.zenz.kvstore.server.raft.*" />
           <option name="ENABLED" value="true" />
         </pattern>
       </extension>
-      <option name="PACKAGE_NAME" value="com.zenz.kvstore.server.restore.KVStoreRestorerTest" />
-      <option name="MAIN_CLASS_NAME" value="com.zenz.kvstore.server.restore.KVStoreRestorerTest$RaftKVStoreRestorerTests" />
-      <option name="METHOD_NAME" value="restore_withMultipleTerms_restoresHighestTerm" />
+      <option name="PACKAGE_NAME" value="com.zenz.kvstore.server.raft" />
+      <option name="MAIN_CLASS_NAME" value="com.zenz.kvstore.server.raft.BootstrapTest" />
+      <option name="METHOD_NAME" value="test_electionTimeout_electionConcludes" />
       <option name="TEST_OBJECT" value="method" />
       <method v="2">
         <option name="Make" enabled="true" />
       </method>
     </configuration>
-    <configuration name="KVStoreRestorerTest$SingleKVStoreRestorerTests" type="JUnit" factoryName="JUnit" temporary="true" nameIsGenerated="true">
+    <configuration name="BootstrapTest.test_higherLogIdAndTermWinsElection" type="JUnit" factoryName="JUnit" temporary="true" nameIsGenerated="true">
       <module name="server" />
       <extension name="coverage">
         <pattern>
-          <option name="PATTERN" value="com.zenz.kvstore.server.restore.*" />
+          <option name="PATTERN" value="com.zenz.kvstore.server.raft.*" />
           <option name="ENABLED" value="true" />
         </pattern>
       </extension>
-      <option name="PACKAGE_NAME" value="com.zenz.kvstore.server.restore.KVStoreRestorerTest" />
-      <option name="MAIN_CLASS_NAME" value="com.zenz.kvstore.server.restore.KVStoreRestorerTest$SingleKVStoreRestorerTests" />
+      <option name="PACKAGE_NAME" value="com.zenz.kvstore.server.raft" />
+      <option name="MAIN_CLASS_NAME" value="com.zenz.kvstore.server.raft.BootstrapTest" />
+      <option name="METHOD_NAME" value="test_higherLogIdAndTermWinsElection" />
+      <option name="TEST_OBJECT" value="method" />
+      <method v="2">
+        <option name="Make" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="BootstrapTest.test_nodeWithLargerLogId_winsElection" type="JUnit" factoryName="JUnit" temporary="true" nameIsGenerated="true">
+      <module name="server" />
+      <extension name="coverage">
+        <pattern>
+          <option name="PATTERN" value="com.zenz.kvstore.server.raft.*" />
+          <option name="ENABLED" value="true" />
+        </pattern>
+      </extension>
+      <option name="PACKAGE_NAME" value="com.zenz.kvstore.server.raft" />
+      <option name="MAIN_CLASS_NAME" value="com.zenz.kvstore.server.raft.BootstrapTest" />
+      <option name="METHOD_NAME" value="test_nodeWithLargerLogId_winsElection" />
+      <option name="TEST_OBJECT" value="method" />
+      <method v="2">
+        <option name="Make" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="BootstrapTests" type="JUnit" factoryName="JUnit" temporary="true" nameIsGenerated="true">
+      <module name="server" />
+      <extension name="coverage">
+        <pattern>
+          <option name="PATTERN" value="com.zenz.kvstore.server.raft.*" />
+          <option name="ENABLED" value="true" />
+        </pattern>
+      </extension>
+      <option name="PACKAGE_NAME" value="com.zenz.kvstore.server.raft" />
+      <option name="MAIN_CLASS_NAME" value="com.zenz.kvstore.server.raft.BootstrapTests" />
       <option name="TEST_OBJECT" value="class" />
-      <method v="2">
-        <option name="Make" enabled="true" />
-      </method>
-    </configuration>
-    <configuration name="KVStoreRestorerTest$SingleKVStoreRestorerTests.restore_withLogsAfterSnapshot_restoresAllKeysAndLogs" type="JUnit" factoryName="JUnit" temporary="true" nameIsGenerated="true">
-      <module name="server" />
-      <extension name="coverage">
-        <pattern>
-          <option name="PATTERN" value="com.zenz.kvstore.server.restore.*" />
-          <option name="ENABLED" value="true" />
-        </pattern>
-      </extension>
-      <option name="PACKAGE_NAME" value="com.zenz.kvstore.server.restore.KVStoreRestorerTest" />
-      <option name="MAIN_CLASS_NAME" value="com.zenz.kvstore.server.restore.KVStoreRestorerTest$SingleKVStoreRestorerTests" />
-      <option name="METHOD_NAME" value="restore_withLogsAfterSnapshot_restoresAllKeysAndLogs" />
-      <option name="TEST_OBJECT" value="method" />
-      <method v="2">
-        <option name="Make" enabled="true" />
-      </method>
-    </configuration>
-    <configuration name="KVStoreSnapshotterTest$RaftSnapshotTests.findSnapshot_returnsFirstMatchingSnapshot" type="JUnit" factoryName="JUnit" temporary="true" nameIsGenerated="true">
-      <module name="server" />
-      <extension name="coverage">
-        <pattern>
-          <option name="PATTERN" value="com.zenz.kvstore.server.snapshot.*" />
-          <option name="ENABLED" value="true" />
-        </pattern>
-      </extension>
-      <option name="PACKAGE_NAME" value="com.zenz.kvstore.server.snapshot.KVStoreSnapshotterTest" />
-      <option name="MAIN_CLASS_NAME" value="com.zenz.kvstore.server.snapshot.KVStoreSnapshotterTest$RaftSnapshotTests" />
-      <option name="METHOD_NAME" value="findSnapshot_returnsFirstMatchingSnapshot" />
-      <option name="TEST_OBJECT" value="method" />
       <method v="2">
         <option name="Make" enabled="true" />
       </method>
     </configuration>
     <recent_temporary>
       <list>
-        <item itemvalue="JUnit.KVStoreRestorerTest$SingleKVStoreRestorerTests.restore_withLogsAfterSnapshot_restoresAllKeysAndLogs" />
-        <item itemvalue="JUnit.KVStoreRestorerTest$SingleKVStoreRestorerTests" />
-        <item itemvalue="JUnit.KVStoreRestorerTest$RaftKVStoreRestorerTests" />
-        <item itemvalue="JUnit.KVStoreRestorerTest$RaftKVStoreRestorerTests.restore_withMultipleTerms_restoresHighestTerm" />
-        <item itemvalue="JUnit.KVStoreSnapshotterTest$RaftSnapshotTests.findSnapshot_returnsFirstMatchingSnapshot" />
+        <item itemvalue="JUnit.BootstrapTest" />
+        <item itemvalue="JUnit.BootstrapTest.test_nodeWithLargerLogId_winsElection" />
+        <item itemvalue="JUnit.BootstrapTest.test_higherLogIdAndTermWinsElection" />
+        <item itemvalue="JUnit.BootstrapTest.test_electionTimeout_electionConcludes" />
+        <item itemvalue="JUnit.BootstrapTests" />
       </list>
     </recent_temporary>
   </component>
@@ -339,7 +351,17 @@
       <workItem from="1776088561199" duration="450000" />
       <workItem from="1776089058333" duration="2536000" />
       <workItem from="1776116323408" duration="4049000" />
-      <workItem from="1776152564916" duration="5656000" />
+      <workItem from="1776152564916" duration="9308000" />
+      <workItem from="1776201178194" duration="7659000" />
+      <workItem from="1776242460905" duration="8427000" />
+      <workItem from="1776263342530" duration="201000" />
+      <workItem from="1776333909898" duration="881000" />
+      <workItem from="1776343622747" duration="10360000" />
+      <workItem from="1776442801932" duration="1212000" />
+      <workItem from="1776444054568" duration="14933000" />
+      <workItem from="1776504892953" duration="15000" />
+      <workItem from="1776516679140" duration="4614000" />
+      <workItem from="1776535782114" duration="3821000" />
     </task>
     <task id="LOCAL-00002" summary="Handling broker disconnect during election">
       <option name="closed" value="true" />
@@ -653,7 +675,63 @@
       <option name="project" value="LOCAL" />
       <updated>1776087981071</updated>
     </task>
-    <option name="localTasksCounter" value="41" />
+    <task id="LOCAL-00041" summary=" Created restorer tests">
+      <option name="closed" value="true" />
+      <created>1776161798207</created>
+      <option name="number" value="00041" />
+      <option name="presentableId" value="LOCAL-00041" />
+      <option name="project" value="LOCAL" />
+      <updated>1776161798207</updated>
+    </task>
+    <task id="LOCAL-00042" summary=" saving - Created bootstrap tests">
+      <option name="closed" value="true" />
+      <created>1776177247102</created>
+      <option name="number" value="00042" />
+      <option name="presentableId" value="LOCAL-00042" />
+      <option name="project" value="LOCAL" />
+      <updated>1776177247102</updated>
+    </task>
+    <task id="LOCAL-00043" summary=" saving - Created bootstrap tests">
+      <option name="closed" value="true" />
+      <created>1776177758284</created>
+      <option name="number" value="00043" />
+      <option name="presentableId" value="LOCAL-00043" />
+      <option name="project" value="LOCAL" />
+      <updated>1776177758284</updated>
+    </task>
+    <task id="LOCAL-00044" summary=" saving - Created bootstrap tests">
+      <option name="closed" value="true" />
+      <created>1776178185488</created>
+      <option name="number" value="00044" />
+      <option name="presentableId" value="LOCAL-00044" />
+      <option name="project" value="LOCAL" />
+      <updated>1776178185488</updated>
+    </task>
+    <task id="LOCAL-00045" summary=" saving - Created bootstrap tests">
+      <option name="closed" value="true" />
+      <created>1776247811108</created>
+      <option name="number" value="00045" />
+      <option name="presentableId" value="LOCAL-00045" />
+      <option name="project" value="LOCAL" />
+      <updated>1776247811108</updated>
+    </task>
+    <task id="LOCAL-00046" summary=" saving - Created bootstrap tests">
+      <option name="closed" value="true" />
+      <created>1776351832087</created>
+      <option name="number" value="00046" />
+      <option name="presentableId" value="LOCAL-00046" />
+      <option name="project" value="LOCAL" />
+      <updated>1776351832087</updated>
+    </task>
+    <task id="LOCAL-00047" summary=" saving - Created bootstrap tests">
+      <option name="closed" value="true" />
+      <created>1776351915459</created>
+      <option name="number" value="00047" />
+      <option name="presentableId" value="LOCAL-00047" />
+      <option name="project" value="LOCAL" />
+      <updated>1776351915459</updated>
+    </task>
+    <option name="localTasksCounter" value="48" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -671,8 +749,6 @@
     </option>
   </component>
   <component name="VcsManagerConfiguration">
-    <MESSAGE value="saving - Improved code quality in RaftControllerTest" />
-    <MESSAGE value="Improved code quality in RaftControllerTest ; Fixed compilation error in DiscoveryServiceTest" />
     <MESSAGE value="Replaced assertTrue with assertInstanceOf where applicable in KVServerTest" />
     <MESSAGE value="Removed multiline commands support in KVServer" />
     <MESSAGE value="Miscellaneous qol improvements ; Removed unused classes from raft package" />
@@ -696,6 +772,8 @@
     <MESSAGE value="saving" />
     <MESSAGE value="saving - Created KVStoreSnapshotter tests" />
     <MESSAGE value="saving - Created restorer tests" />
-    <option name="LAST_COMMIT_MESSAGE" value="saving - Created restorer tests" />
+    <MESSAGE value=" Created restorer tests" />
+    <MESSAGE value=" saving - Created bootstrap tests" />
+    <option name="LAST_COMMIT_MESSAGE" value=" saving - Created bootstrap tests" />
   </component>
 </project>

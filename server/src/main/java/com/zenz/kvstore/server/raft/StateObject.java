@@ -8,13 +8,14 @@ import java.util.concurrent.Future;
 
 public class StateObject {
 
-    volatile public State state;
+    public volatile State state = State.FOLLOWER;
 
     @Getter
-    volatile private long currentTerm;
-    volatile public long votedTerm;
-    volatile public ReplicateTask replicateTask;
-    volatile public Election election;
+    private volatile long currentTerm;
+    public volatile long votedTerm;
+    public volatile ReplicateTask replicateTask;
+    public volatile Election election;
+    public volatile String leaderId;
 
     private final Object currentTermLock = new Object();
 
@@ -47,7 +48,7 @@ public class StateObject {
         public final long term;
         public final long majority;
         public final long deadline;
-        public long voteCount;
+        public volatile long voteCount;
 
         public Election(final long term, final long majority, final long deadline) {
             this.term = term;
@@ -56,11 +57,21 @@ public class StateObject {
         }
 
         public boolean isExpired() {
-            return System.currentTimeMillis() > this.deadline;
+            return System.currentTimeMillis() >= this.deadline;
         }
 
         public boolean isDone() {
             return voteCount >= majority;
+        }
+
+        @Override
+        public String toString() {
+            return "Election{" +
+                    "term=" + term +
+                    ", majority=" + majority +
+                    ", deadline=" + deadline +
+                    ", voteCount=" + voteCount +
+                    '}';
         }
     }
 }

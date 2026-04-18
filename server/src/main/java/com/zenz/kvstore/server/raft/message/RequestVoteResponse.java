@@ -8,7 +8,7 @@ public record RequestVoteResponse(
         boolean voteGranted) implements Message {
 
     public RequestVoteResponse(long term, boolean voteGranted) {
-        this(RaftMessageType.REQUEST_VOTE, term, voteGranted);
+        this(RaftMessageType.REQUEST_VOTE_RESPONSE, term, voteGranted);
     }
 
     @Override

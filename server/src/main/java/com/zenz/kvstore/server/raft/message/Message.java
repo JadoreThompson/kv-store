@@ -8,6 +8,8 @@ public interface Message extends ByteArraySerializable {
 
     RaftMessageType type();
 
+    String toString();
+
     static Message deserialize(final ByteBuffer buffer) {
         final RaftMessageType messageType = RaftMessageType.fromValue(buffer.getInt());
         buffer.rewind();

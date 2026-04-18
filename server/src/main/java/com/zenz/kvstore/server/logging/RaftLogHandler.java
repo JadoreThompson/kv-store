@@ -35,9 +35,10 @@ public class RaftLogHandler implements BaseLogHandler<
     @Setter
     private KVStoreSnapshotter<RaftSnapshotHeader, RaftSnapshotBody, RaftSnapshotFooter> snapshotter;
 
+    @Setter
     private List<RaftLogEntry> entries = new ArrayList<>();
 
-    private RaftLogEntry seedEntry = new RaftLogEntry(0L, 0L, new GetCommand(""));
+    private RaftLogEntry seedEntry = new RaftLogEntry(0L, 0L, new GetCommand("\0"));
 
     public RaftLogHandler(
             final CommandLogger logger,
