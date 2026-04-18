@@ -19,12 +19,15 @@ import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Random;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Supplier;
+import java.util.stream.Stream;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -146,6 +149,135 @@ public class BootstrapTest {
         }
     }
 
+    @Test
+    public void test_splitVote_bothCandidatesNoMajority() throws IOException, InterruptedException {
+        final NodeConfig nodeAConfig = new NodeConfig(
+                "nodeA",
+                new InetSocketAddress("localhost", getRandomPort()));
+        final NodeConfig nodeBConfig = new NodeConfig(
+                "nodeB",
+                new InetSocketAddress("localhost", getRandomPort()));
+
+        final Manager nodeAManager = createManager(nodeAConfig, List.of(nodeBConfig));
+        final Manager nodeBManager = createManager(nodeBConfig, List.of(nodeAConfig));
+
+        final ExecutorService executor = Executors.newFixedThreadPool(2);
+
+        try (nodeAManager; nodeBManager) {
+            executor.submit(runnableWrapper(nodeAManager::open));
+            assertTrue(awaitWakeUpManager(nodeAManager), "Node A failed to start");
+
+            executor.submit(runnableWrapper(nodeBManager::open));
+            assertTrue(awaitWakeUpManager(nodeBManager), "Node B failed to start");
+
+            Thread.sleep(10_000);
+
+            final State stateA = nodeAManager.getStateObject().state;
+            final State stateB = nodeBManager.getStateObject().state;
+
+            // NOTE: Wrong
+            assertFalse(
+                    stateA == State.LEADER && stateB == State.LEADER,
+                    "Both nodes should not become leaders (split vote)");
+        }
+    }
+
+    @Test
+    public void test_threeNodes_majorityWinsElection() throws IOException, InterruptedException {
+        final NodeConfig node1Config = new NodeConfig(
+                "node1",
+                new InetSocketAddress("localhost", getRandomPort()));
+        final NodeConfig node2Config = new NodeConfig(
+                "node2",
+                new InetSocketAddress("localhost", getRandomPort()));
+        final NodeConfig node3Config = new NodeConfig(
+                "node3",
+                new InetSocketAddress("localhost", getRandomPort()));
+
+        final Manager node1Manager = createManager(node1Config, List.of(node2Config, node3Config));
+        final Manager node2Manager = createManager(node2Config, List.of(node1Config, node3Config));
+        final Manager node3Manager = createManager(node3Config, List.of(node1Config, node2Config));
+
+        final ExecutorService executor = Executors.newFixedThreadPool(3);
+
+        try (node1Manager; node2Manager; node3Manager) {
+            executor.submit(runnableWrapper(node1Manager::open));
+            assertTrue(awaitWakeUpManager(node1Manager), "Node 1 failed to start");
+
+            executor.submit(runnableWrapper(node2Manager::open));
+            assertTrue(awaitWakeUpManager(node2Manager), "Node 2 failed to start");
+
+            executor.submit(runnableWrapper(node3Manager::open));
+            assertTrue(awaitWakeUpManager(node3Manager), "Node 3 failed to start");
+
+            Thread.sleep(10_000);
+
+            final State state1 = node1Manager.getStateObject().state;
+            final State state2 = node2Manager.getStateObject().state;
+            final State state3 = node3Manager.getStateObject().state;
+
+            final long leaderCount = Stream.of(new State[]{state1, state2, state3})
+                    .filter(s -> s == State.LEADER)
+                    .count();
+
+            assertEquals(1, leaderCount, "Exactly one leader should be elected");
+        }
+    }
+
+    @Test
+    public void test_lowerLogNode_cannotWinElection() throws IOException, InterruptedException {
+        final NodeConfig leaderConfig = new NodeConfig(
+                "leader",
+                new InetSocketAddress("localhost", getRandomPort()));
+        final NodeConfig followerConfig = new NodeConfig(
+                "follower",
+                new InetSocketAddress("localhost", getRandomPort()));
+
+        final KVStore leaderKvstore = new KVStore(new RaftLogHandler(
+                new WALogger(logsDir.resolve(leaderConfig.id() + "'\'app.log")),
+                new KVStoreSnapshotter<>(
+                        RaftSnapshotHeader.class,
+                        RaftSnapshotBody.class,
+                        RaftSnapshotFooter.class)));
+        leaderKvstore.put("key1", "value1".getBytes(StandardCharsets.UTF_8));
+        leaderKvstore.put("key2", "value2".getBytes(StandardCharsets.UTF_8));
+
+        final KVStore followerKvstore = new KVStore(new RaftLogHandler(
+                new WALogger(logsDir.resolve(followerConfig.id() + "'\'app.log")),
+                new KVStoreSnapshotter<>(
+                        RaftSnapshotHeader.class,
+                        RaftSnapshotBody.class,
+                        RaftSnapshotFooter.class)));
+        followerKvstore.put("key1", "value1".getBytes(StandardCharsets.UTF_8));
+
+        final NodeConfig actualLeaderConfig = leaderConfig;
+        final NodeConfig actualFollowerConfig = followerConfig;
+
+        final Manager leaderManager = createManagerWithKvstore(leaderKvstore, actualLeaderConfig, List.of(actualFollowerConfig));
+        final Manager followerManager = createManagerWithKvstore(followerKvstore, actualFollowerConfig, List.of(actualLeaderConfig));
+
+        final ExecutorService executor = Executors.newFixedThreadPool(2);
+
+        try (leaderManager; followerManager) {
+            executor.submit(runnableWrapper(leaderManager::open));
+            assertTrue(awaitWakeUpManager(leaderManager), "Leader node failed to start");
+
+            executor.submit(runnableWrapper(followerManager::open));
+            assertTrue(awaitWakeUpManager(followerManager), "Follower node failed to start");
+
+            Thread.sleep(10_000);
+
+            assertEquals(
+                    State.LEADER,
+                    leaderManager.getStateObject().state,
+                    "Node with more log entries should become leader");
+            assertEquals(
+                    State.FOLLOWER,
+                    followerManager.getStateObject().state,
+                    "Node with fewer log entries should become follower");
+        }
+    }
+
     private int getRandomPort() {
         return new Random().nextInt(1000, 9999);
     }
@@ -205,35 +337,21 @@ public class BootstrapTest {
         void run() throws IOException, InterruptedException;
     }
 
-    private static class TestClientObserver implements ClientObserver {
+    private Manager createManagerWithKvstore(
+            final KVStore kvStore,
+            final NodeConfig nodeConfig,
+            final List<NodeConfig> peerConfigs) {
+        final Manager manager = new Manager(
+                kvStore,
+                nodeConfig,
+                peerConfigs);
 
-        public final Map<InetSocketAddress, List<Message>> sentMessages = new HashMap<>();
-        public final Map<InetSocketAddress, List<Message>> receivedMessages = new HashMap<>();
+        final ClientObserver clientObserver = new TestClientObserver();
+        final ServerObserver serverObserver = new TestServerObserver();
 
-        @Override
-        public void onSend(final InetSocketAddress to, final Message message) {
-            sentMessages.computeIfAbsent(to, k -> new ArrayList<>()).add(message);
-        }
+        manager.setClientObserver(clientObserver);
+        manager.setServerObserver(serverObserver);
 
-        @Override
-        public void onReceive(final InetSocketAddress from, final Message message) {
-            receivedMessages.computeIfAbsent(from, k -> new ArrayList<>()).add(message);
-        }
-    }
-
-    private static class TestServerObserver implements ServerObserver {
-
-        public final List<Message> sentMessages = new ArrayList<>();
-        public final List<Message> receivedMessages = new ArrayList<>();
-
-        @Override
-        public void onSend(final Message message) {
-            sentMessages.add(message);
-        }
-
-        @Override
-        public void onReceive(final Message message) {
-            receivedMessages.add(message);
-        }
+        return manager;
     }
 }

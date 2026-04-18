@@ -4,20 +4,9 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="f2a63f83-7187-4a54-8703-b4d1ce6944cf" name="Changes" comment=" saving - Created bootstrap tests">
-      <change afterPath="$PROJECT_DIR$/server/src/main/java/com/zenz/kvstore/server/raft/ClientObserver.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/server/src/main/java/com/zenz/kvstore/server/raft/RaftClientObserver.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/server/src/main/java/com/zenz/kvstore/server/raft/RaftServerObserver.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/server/src/main/java/com/zenz/kvstore/server/raft/ServerObserver.java" afterDir="false" />
+    <list default="true" id="f2a63f83-7187-4a54-8703-b4d1ce6944cf" name="Changes" comment="Created bootstrap tests">
+      <change afterPath="$PROJECT_DIR$/server/src/test/java/com/zenz/kvstore/server/raft/TestClientObserver.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/client/target/client-1.0-SNAPSHOT.jar" beforeDir="false" afterPath="$PROJECT_DIR$/client/target/client-1.0-SNAPSHOT.jar" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/server/src/main/java/com/zenz/kvstore/server/logging/RaftLogHandler.java" beforeDir="false" afterPath="$PROJECT_DIR$/server/src/main/java/com/zenz/kvstore/server/logging/RaftLogHandler.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/server/src/main/java/com/zenz/kvstore/server/raft/Client.java" beforeDir="false" afterPath="$PROJECT_DIR$/server/src/main/java/com/zenz/kvstore/server/raft/Client.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/server/src/main/java/com/zenz/kvstore/server/raft/Manager.java" beforeDir="false" afterPath="$PROJECT_DIR$/server/src/main/java/com/zenz/kvstore/server/raft/Manager.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/server/src/main/java/com/zenz/kvstore/server/raft/Server.java" beforeDir="false" afterPath="$PROJECT_DIR$/server/src/main/java/com/zenz/kvstore/server/raft/Server.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/server/src/main/java/com/zenz/kvstore/server/raft/StateObject.java" beforeDir="false" afterPath="$PROJECT_DIR$/server/src/main/java/com/zenz/kvstore/server/raft/StateObject.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/server/src/main/java/com/zenz/kvstore/server/raft/message/AppendEntryResponse.java" beforeDir="false" afterPath="$PROJECT_DIR$/server/src/main/java/com/zenz/kvstore/server/raft/message/AppendEntryResponse.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/server/src/main/java/com/zenz/kvstore/server/raft/message/Message.java" beforeDir="false" afterPath="$PROJECT_DIR$/server/src/main/java/com/zenz/kvstore/server/raft/message/Message.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/server/src/test/java/com/zenz/kvstore/server/raft/BootstrapTest.java" beforeDir="false" afterPath="$PROJECT_DIR$/server/src/test/java/com/zenz/kvstore/server/raft/BootstrapTest.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
@@ -361,7 +350,7 @@
       <workItem from="1776444054568" duration="14933000" />
       <workItem from="1776504892953" duration="15000" />
       <workItem from="1776516679140" duration="4614000" />
-      <workItem from="1776535782114" duration="3821000" />
+      <workItem from="1776535782114" duration="5035000" />
     </task>
     <task id="LOCAL-00002" summary="Handling broker disconnect during election">
       <option name="closed" value="true" />
@@ -731,7 +720,23 @@
       <option name="project" value="LOCAL" />
       <updated>1776351915459</updated>
     </task>
-    <option name="localTasksCounter" value="48" />
+    <task id="LOCAL-00048" summary="Created bootstrap tests">
+      <option name="closed" value="true" />
+      <created>1776539981214</created>
+      <option name="number" value="00048" />
+      <option name="presentableId" value="LOCAL-00048" />
+      <option name="project" value="LOCAL" />
+      <updated>1776539981214</updated>
+    </task>
+    <task id="LOCAL-00049" summary="Created bootstrap tests">
+      <option name="closed" value="true" />
+      <created>1776539996779</created>
+      <option name="number" value="00049" />
+      <option name="presentableId" value="LOCAL-00049" />
+      <option name="project" value="LOCAL" />
+      <updated>1776539996779</updated>
+    </task>
+    <option name="localTasksCounter" value="50" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -749,7 +754,6 @@
     </option>
   </component>
   <component name="VcsManagerConfiguration">
-    <MESSAGE value="Replaced assertTrue with assertInstanceOf where applicable in KVServerTest" />
     <MESSAGE value="Removed multiline commands support in KVServer" />
     <MESSAGE value="Miscellaneous qol improvements ; Removed unused classes from raft package" />
     <MESSAGE value="Fixed: NodeList incrementing size in NodeList.remove" />
@@ -774,6 +778,7 @@
     <MESSAGE value="saving - Created restorer tests" />
     <MESSAGE value=" Created restorer tests" />
     <MESSAGE value=" saving - Created bootstrap tests" />
-    <option name="LAST_COMMIT_MESSAGE" value=" saving - Created bootstrap tests" />
+    <MESSAGE value="Created bootstrap tests" />
+    <option name="LAST_COMMIT_MESSAGE" value="Created bootstrap tests" />
   </component>
 </project>
