@@ -4,9 +4,8 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="f2a63f83-7187-4a54-8703-b4d1ce6944cf" name="Changes" comment="Added tests to BootstrapTest">
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/server/src/test/java/com/zenz/kvstore/server/raft/BootstrapTest.java" beforeDir="false" afterPath="$PROJECT_DIR$/server/src/test/java/com/zenz/kvstore/server/raft/ElectionTest.java" afterDir="false" />
+    <list default="true" id="f2a63f83-7187-4a54-8703-b4d1ce6944cf" name="Changes" comment="saving -">
+      <change beforePath="$PROJECT_DIR$/server/src/test/java/com/zenz/kvstore/server/raft/ElectionTest.java" beforeDir="false" afterPath="$PROJECT_DIR$/server/src/test/java/com/zenz/kvstore/server/raft/ElectionTest.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -186,22 +185,7 @@
       <recent name="com.zenz.kvstore.server" />
     </key>
   </component>
-  <component name="RunManager" selected="JUnit.ElectionTest">
-    <configuration name="BootstrapTests" type="JUnit" factoryName="JUnit" temporary="true" nameIsGenerated="true">
-      <module name="server" />
-      <extension name="coverage">
-        <pattern>
-          <option name="PATTERN" value="com.zenz.kvstore.server.raft.*" />
-          <option name="ENABLED" value="true" />
-        </pattern>
-      </extension>
-      <option name="PACKAGE_NAME" value="com.zenz.kvstore.server.raft" />
-      <option name="MAIN_CLASS_NAME" value="com.zenz.kvstore.server.raft.BootstrapTests" />
-      <option name="TEST_OBJECT" value="class" />
-      <method v="2">
-        <option name="Make" enabled="true" />
-      </method>
-    </configuration>
+  <component name="RunManager" selected="JUnit.ElectionTest.test_sameLogId_differentTerms_higherTermWins">
     <configuration name="ElectionTest" type="JUnit" factoryName="JUnit" temporary="true" nameIsGenerated="true">
       <module name="server" />
       <extension name="coverage">
@@ -217,22 +201,6 @@
         <option name="Make" enabled="true" />
       </method>
     </configuration>
-    <configuration name="ElectionTest.test_electionTimeout_electionConcludes" type="JUnit" factoryName="JUnit" temporary="true" nameIsGenerated="true">
-      <module name="server" />
-      <extension name="coverage">
-        <pattern>
-          <option name="PATTERN" value="com.zenz.kvstore.server.raft.*" />
-          <option name="ENABLED" value="true" />
-        </pattern>
-      </extension>
-      <option name="PACKAGE_NAME" value="com.zenz.kvstore.server.raft" />
-      <option name="MAIN_CLASS_NAME" value="com.zenz.kvstore.server.raft.ElectionTest" />
-      <option name="METHOD_NAME" value="test_electionTimeout_electionConcludes" />
-      <option name="TEST_OBJECT" value="method" />
-      <method v="2">
-        <option name="Make" enabled="true" />
-      </method>
-    </configuration>
     <configuration name="ElectionTest.test_higherLogIdAndTermWinsElection" type="JUnit" factoryName="JUnit" temporary="true" nameIsGenerated="true">
       <module name="server" />
       <extension name="coverage">
@@ -244,6 +212,22 @@
       <option name="PACKAGE_NAME" value="com.zenz.kvstore.server.raft" />
       <option name="MAIN_CLASS_NAME" value="com.zenz.kvstore.server.raft.ElectionTest" />
       <option name="METHOD_NAME" value="test_higherLogIdAndTermWinsElection" />
+      <option name="TEST_OBJECT" value="method" />
+      <method v="2">
+        <option name="Make" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="ElectionTest.test_lowerLogNode_cannotWinElection" type="JUnit" factoryName="JUnit" temporary="true" nameIsGenerated="true">
+      <module name="server" />
+      <extension name="coverage">
+        <pattern>
+          <option name="PATTERN" value="com.zenz.kvstore.server.raft.*" />
+          <option name="ENABLED" value="true" />
+        </pattern>
+      </extension>
+      <option name="PACKAGE_NAME" value="com.zenz.kvstore.server.raft" />
+      <option name="MAIN_CLASS_NAME" value="com.zenz.kvstore.server.raft.ElectionTest" />
+      <option name="METHOD_NAME" value="test_lowerLogNode_cannotWinElection" />
       <option name="TEST_OBJECT" value="method" />
       <method v="2">
         <option name="Make" enabled="true" />
@@ -265,13 +249,29 @@
         <option name="Make" enabled="true" />
       </method>
     </configuration>
+    <configuration name="ElectionTest.test_sameLogId_differentTerms_higherTermWins" type="JUnit" factoryName="JUnit" temporary="true" nameIsGenerated="true">
+      <module name="server" />
+      <extension name="coverage">
+        <pattern>
+          <option name="PATTERN" value="com.zenz.kvstore.server.raft.*" />
+          <option name="ENABLED" value="true" />
+        </pattern>
+      </extension>
+      <option name="PACKAGE_NAME" value="com.zenz.kvstore.server.raft" />
+      <option name="MAIN_CLASS_NAME" value="com.zenz.kvstore.server.raft.ElectionTest" />
+      <option name="METHOD_NAME" value="test_sameLogId_differentTerms_higherTermWins" />
+      <option name="TEST_OBJECT" value="method" />
+      <method v="2">
+        <option name="Make" enabled="true" />
+      </method>
+    </configuration>
     <recent_temporary>
       <list>
+        <item itemvalue="JUnit.ElectionTest.test_sameLogId_differentTerms_higherTermWins" />
+        <item itemvalue="JUnit.ElectionTest.test_lowerLogNode_cannotWinElection" />
         <item itemvalue="JUnit.ElectionTest" />
         <item itemvalue="JUnit.ElectionTest.test_nodeWithLargerLogId_winsElection" />
         <item itemvalue="JUnit.ElectionTest.test_higherLogIdAndTermWinsElection" />
-        <item itemvalue="JUnit.ElectionTest.test_electionTimeout_electionConcludes" />
-        <item itemvalue="JUnit.BootstrapTests" />
       </list>
     </recent_temporary>
   </component>
@@ -342,15 +342,7 @@
       <workItem from="1776444054568" duration="14933000" />
       <workItem from="1776504892953" duration="15000" />
       <workItem from="1776516679140" duration="4614000" />
-      <workItem from="1776535782114" duration="5643000" />
-    </task>
-    <task id="LOCAL-00002" summary="Handling broker disconnect during election">
-      <option name="closed" value="true" />
-      <created>1774011184264</created>
-      <option name="number" value="00002" />
-      <option name="presentableId" value="LOCAL-00002" />
-      <option name="project" value="LOCAL" />
-      <updated>1774011184265</updated>
+      <workItem from="1776535782114" duration="5875000" />
     </task>
     <task id="LOCAL-00003" summary="Added broker failure tests within LeaderElectionTest">
       <option name="closed" value="true" />
@@ -736,7 +728,15 @@
       <option name="project" value="LOCAL" />
       <updated>1776541011476</updated>
     </task>
-    <option name="localTasksCounter" value="51" />
+    <task id="LOCAL-00051" summary="saving -">
+      <option name="closed" value="true" />
+      <created>1776541493229</created>
+      <option name="number" value="00051" />
+      <option name="presentableId" value="LOCAL-00051" />
+      <option name="project" value="LOCAL" />
+      <updated>1776541493229</updated>
+    </task>
+    <option name="localTasksCounter" value="52" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -754,7 +754,6 @@
     </option>
   </component>
   <component name="VcsManagerConfiguration">
-    <MESSAGE value="Miscellaneous qol improvements ; Removed unused classes from raft package" />
     <MESSAGE value="Fixed: NodeList incrementing size in NodeList.remove" />
     <MESSAGE value="Fixed: NodeList.iterator pointless loop" />
     <MESSAGE value="Fixed: NPE in RaftCommandHandler.handleCommand when handling GET command" />
@@ -779,6 +778,7 @@
     <MESSAGE value=" saving - Created bootstrap tests" />
     <MESSAGE value="Created bootstrap tests" />
     <MESSAGE value="Added tests to BootstrapTest" />
-    <option name="LAST_COMMIT_MESSAGE" value="Added tests to BootstrapTest" />
+    <MESSAGE value="saving -" />
+    <option name="LAST_COMMIT_MESSAGE" value="saving -" />
   </component>
 </project>

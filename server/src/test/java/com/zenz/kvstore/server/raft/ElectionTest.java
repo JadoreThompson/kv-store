@@ -278,6 +278,63 @@ public class ElectionTest {
         }
     }
 
+    @Test
+    public void test_sameLogId_differentTerms_higherTermWins() throws IOException, InterruptedException {
+        final NodeConfig nodeLowerConfig = new NodeConfig(
+                "lowerTerm",
+                new InetSocketAddress("localhost", getRandomPort()));
+        final NodeConfig nodeHigherConfig = new NodeConfig(
+                "higherTerm",
+                new InetSocketAddress("localhost", getRandomPort()));
+
+        final RaftLogHandler lowerTermLogHandler = new RaftLogHandler(
+                new WALogger(logsDir.resolve(nodeLowerConfig.id() + "'\'app.log")),
+                new KVStoreSnapshotter<>(
+                        RaftSnapshotHeader.class,
+                        RaftSnapshotBody.class,
+                        RaftSnapshotFooter.class));
+        lowerTermLogHandler.setTerm(1L);
+        final KVStore lowerTermKvstore = new KVStore(lowerTermLogHandler);
+        lowerTermKvstore.put("key", "value".getBytes(StandardCharsets.UTF_8));
+
+        final RaftLogHandler higherTermLogHandler = new RaftLogHandler(
+                new WALogger(logsDir.resolve(nodeHigherConfig.id() + "'\'app.log")),
+                new KVStoreSnapshotter<>(
+                        RaftSnapshotHeader.class,
+                        RaftSnapshotBody.class,
+                        RaftSnapshotFooter.class));
+        higherTermLogHandler.setTerm(2L);
+        final KVStore higherTermKvstore = new KVStore(higherTermLogHandler);
+        higherTermKvstore.put("key", "value".getBytes(StandardCharsets.UTF_8));
+
+        final Manager lowerTermManager = createManagerWithKvstore(lowerTermKvstore, nodeLowerConfig, List.of(nodeHigherConfig));
+        final Manager higherTermManager = createManagerWithKvstore(higherTermKvstore, nodeHigherConfig, List.of(nodeLowerConfig));
+
+        final ExecutorService executor = Executors.newFixedThreadPool(2);
+
+        try (lowerTermManager; higherTermManager) {
+            executor.submit(runnableWrapper(lowerTermManager::open));
+            assertTrue(awaitWakeUpManager(lowerTermManager), "Lower term node failed to start");
+
+            executor.submit(runnableWrapper(higherTermManager::open));
+            assertTrue(awaitWakeUpManager(higherTermManager), "Higher term node failed to start");
+
+            Thread.sleep(10_000);
+
+            final State stateLower = lowerTermManager.getStateObject().state;
+            final State stateHigher = higherTermManager.getStateObject().state;
+
+            assertEquals(
+                    State.LEADER,
+                    stateHigher,
+                    "Node with higher term should become leader");
+            assertEquals(
+                    State.FOLLOWER,
+                    stateLower,
+                    "Node with lower term should become follower");
+        }
+    }
+
     private int getRandomPort() {
         return new Random().nextInt(1000, 9999);
     }
