@@ -4,9 +4,7 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="f2a63f83-7187-4a54-8703-b4d1ce6944cf" name="Changes" comment="Created AppendEntry tests">
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/client/target/client-1.0-SNAPSHOT.jar" beforeDir="false" afterPath="$PROJECT_DIR$/client/target/client-1.0-SNAPSHOT.jar" afterDir="false" />
+    <list default="true" id="f2a63f83-7187-4a54-8703-b4d1ce6944cf" name="Changes" comment="Added stale term test to AppendEntryTest">
       <change beforePath="$PROJECT_DIR$/server/src/test/java/com/zenz/kvstore/server/raft/AppendEntryTest.java" beforeDir="false" afterPath="$PROJECT_DIR$/server/src/test/java/com/zenz/kvstore/server/raft/AppendEntryTest.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
@@ -348,15 +346,7 @@
       <workItem from="1776444054568" duration="14933000" />
       <workItem from="1776504892953" duration="15000" />
       <workItem from="1776516679140" duration="4614000" />
-      <workItem from="1776535782114" duration="10732000" />
-    </task>
-    <task id="LOCAL-00005" summary="Updated .gitignore">
-      <option name="closed" value="true" />
-      <created>1774863788011</created>
-      <option name="number" value="00005" />
-      <option name="presentableId" value="LOCAL-00005" />
-      <option name="project" value="LOCAL" />
-      <updated>1774863788011</updated>
+      <workItem from="1776535782114" duration="10920000" />
     </task>
     <task id="LOCAL-00006" summary="Updated .gitignore">
       <option name="closed" value="true" />
@@ -742,7 +732,15 @@
       <option name="project" value="LOCAL" />
       <updated>1776545930190</updated>
     </task>
-    <option name="localTasksCounter" value="54" />
+    <task id="LOCAL-00054" summary="Added stale term test to AppendEntryTest">
+      <option name="closed" value="true" />
+      <created>1776546806530</created>
+      <option name="number" value="00054" />
+      <option name="presentableId" value="LOCAL-00054" />
+      <option name="project" value="LOCAL" />
+      <updated>1776546806530</updated>
+    </task>
+    <option name="localTasksCounter" value="55" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -760,7 +758,6 @@
     </option>
   </component>
   <component name="VcsManagerConfiguration">
-    <MESSAGE value="Fixed: NPE in RaftCommandHandler.handleCommand when handling GET command" />
     <MESSAGE value="Fixed: Potential memory allocation error during resizing in KVMap.isRehashing" />
     <MESSAGE value="Improved code consistency in KVMap" />
     <MESSAGE value="Improved code consistency in KVStore" />
@@ -785,6 +782,7 @@
     <MESSAGE value="saving -" />
     <MESSAGE value="Added same log id different term test to election tests" />
     <MESSAGE value="Created AppendEntry tests" />
-    <option name="LAST_COMMIT_MESSAGE" value="Created AppendEntry tests" />
+    <MESSAGE value="Added stale term test to AppendEntryTest" />
+    <option name="LAST_COMMIT_MESSAGE" value="Added stale term test to AppendEntryTest" />
   </component>
 </project>

@@ -120,4 +120,37 @@ public class AppendEntryTest {
                 AppendEntryResponse.FailureReason.GREATER_TERM,
                 appendEntryResponse.failureReason());
     }
+
+    @Test
+    public void test_prevLogMismatch_rejectsAppendEntry() {
+        final List<RaftLogEntry> entries = List.of(new RaftLogEntry(
+                2L,
+                1L,
+                new PutCommand("key", "value".getBytes(StandardCharsets.UTF_8))));
+        final AppendEntry appendEntry = new AppendEntry(
+                "leader",
+                2L,
+                1L,
+                1L,
+                entries);
+
+        when(mockManager.getNodeConfig()).thenReturn(new NodeConfig(
+                "follower",
+                new InetSocketAddress("localhost", 9999)));
+        doReturn(mockLogHandler).when(mockKvstore).getLogHandler();
+        doReturn(mockKvstore).when(mockManager).getKvstore();
+        when(mockStateObject.getCurrentTerm()).thenReturn(2L);
+        when(mockStateObject.getLeaderId()).thenReturn("leader");
+        server.setManager(mockManager);
+        server.setStateObject(mockStateObject);
+
+        final Message response = server.handleAppendEntry(appendEntry);
+        assertInstanceOf(AppendEntryResponse.class, response);
+
+        final AppendEntryResponse appendEntryResponse = (AppendEntryResponse) response;
+        assertFalse(appendEntryResponse.isSuccess());
+        assertEquals(
+                AppendEntryResponse.FailureReason.PREV_LOG_MISMATCH,
+                appendEntryResponse.failureReason());
+    }
 }
