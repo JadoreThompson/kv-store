@@ -88,4 +88,36 @@ public class AppendEntryTest {
         assertEquals(0L, appendEntryResponse.prevLogId());
         assertEquals(0L, appendEntryResponse.prevLogTerm());
     }
+
+    @Test
+    public void test_staleTerm_rejectsAppendEntry() {
+        final List<RaftLogEntry> entries = List.of(new RaftLogEntry(
+                1L,
+                1L,
+                new PutCommand("key", "value".getBytes(StandardCharsets.UTF_8))));
+        final AppendEntry appendEntry = new AppendEntry(
+                "leader",
+                1L,
+                0L,
+                0L,
+                entries);
+
+        when(mockManager.getNodeConfig()).thenReturn(new NodeConfig(
+                "follower",
+                new InetSocketAddress("localhost", 9999)));
+        doReturn(mockLogHandler).when(mockKvstore).getLogHandler();
+        doReturn(mockKvstore).when(mockManager).getKvstore();
+        when(mockStateObject.getCurrentTerm()).thenReturn(2L);
+        server.setManager(mockManager);
+        server.setStateObject(mockStateObject);
+
+        final Message response = server.handleAppendEntry(appendEntry);
+        assertInstanceOf(AppendEntryResponse.class, response);
+
+        final AppendEntryResponse appendEntryResponse = (AppendEntryResponse) response;
+        assertFalse(appendEntryResponse.isSuccess());
+        assertEquals(
+                AppendEntryResponse.FailureReason.GREATER_TERM,
+                appendEntryResponse.failureReason());
+    }
 }

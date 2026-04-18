@@ -4,13 +4,10 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="f2a63f83-7187-4a54-8703-b4d1ce6944cf" name="Changes" comment="Added same log id different term test to election tests">
-      <change afterPath="$PROJECT_DIR$/server/src/test/java/com/zenz/kvstore/server/raft/AppendEntryTest.java" afterDir="false" />
+    <list default="true" id="f2a63f83-7187-4a54-8703-b4d1ce6944cf" name="Changes" comment="Created AppendEntry tests">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/server/src/main/java/com/zenz/kvstore/server/logging/RaftLogHandler.java" beforeDir="false" afterPath="$PROJECT_DIR$/server/src/main/java/com/zenz/kvstore/server/logging/RaftLogHandler.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/server/src/main/java/com/zenz/kvstore/server/raft/Client.java" beforeDir="false" afterPath="$PROJECT_DIR$/server/src/main/java/com/zenz/kvstore/server/raft/Client.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/server/src/main/java/com/zenz/kvstore/server/raft/Server.java" beforeDir="false" afterPath="$PROJECT_DIR$/server/src/main/java/com/zenz/kvstore/server/raft/Server.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/server/src/main/java/com/zenz/kvstore/server/raft/StateObject.java" beforeDir="false" afterPath="$PROJECT_DIR$/server/src/main/java/com/zenz/kvstore/server/raft/StateObject.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/client/target/client-1.0-SNAPSHOT.jar" beforeDir="false" afterPath="$PROJECT_DIR$/client/target/client-1.0-SNAPSHOT.jar" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/server/src/test/java/com/zenz/kvstore/server/raft/AppendEntryTest.java" beforeDir="false" afterPath="$PROJECT_DIR$/server/src/test/java/com/zenz/kvstore/server/raft/AppendEntryTest.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -68,6 +65,7 @@
   </component>
   <component name="PropertiesComponent"><![CDATA[{
   "keyToString": {
+    "JUnit.AppendEntryTest.executor": "Run",
     "JUnit.AppendEntryTest.testSamePrevLogId_andPrevLogTerm.executor": "Run",
     "JUnit.BootstrapTest.executor": "Run",
     "JUnit.BootstrapTest.test_electionTimeout_electionConcludes.executor": "Run",
@@ -194,7 +192,22 @@
       <recent name="com.zenz.kvstore.server" />
     </key>
   </component>
-  <component name="RunManager" selected="JUnit.AppendEntryTest.testSamePrevLogId_andPrevLogTerm">
+  <component name="RunManager" selected="JUnit.AppendEntryTest">
+    <configuration name="AppendEntryTest" type="JUnit" factoryName="JUnit" temporary="true" nameIsGenerated="true">
+      <module name="server" />
+      <extension name="coverage">
+        <pattern>
+          <option name="PATTERN" value="com.zenz.kvstore.server.raft.*" />
+          <option name="ENABLED" value="true" />
+        </pattern>
+      </extension>
+      <option name="PACKAGE_NAME" value="com.zenz.kvstore.server.raft" />
+      <option name="MAIN_CLASS_NAME" value="com.zenz.kvstore.server.raft.AppendEntryTest" />
+      <option name="TEST_OBJECT" value="class" />
+      <method v="2">
+        <option name="Make" enabled="true" />
+      </method>
+    </configuration>
     <configuration name="AppendEntryTest.testSamePrevLogId_andPrevLogTerm" type="JUnit" factoryName="JUnit" temporary="true" nameIsGenerated="true">
       <module name="server" />
       <extension name="coverage">
@@ -242,22 +255,6 @@
         <option name="Make" enabled="true" />
       </method>
     </configuration>
-    <configuration name="ElectionTest.test_nodeWithLargerLogId_winsElection" type="JUnit" factoryName="JUnit" temporary="true" nameIsGenerated="true">
-      <module name="server" />
-      <extension name="coverage">
-        <pattern>
-          <option name="PATTERN" value="com.zenz.kvstore.server.raft.*" />
-          <option name="ENABLED" value="true" />
-        </pattern>
-      </extension>
-      <option name="PACKAGE_NAME" value="com.zenz.kvstore.server.raft" />
-      <option name="MAIN_CLASS_NAME" value="com.zenz.kvstore.server.raft.ElectionTest" />
-      <option name="METHOD_NAME" value="test_nodeWithLargerLogId_winsElection" />
-      <option name="TEST_OBJECT" value="method" />
-      <method v="2">
-        <option name="Make" enabled="true" />
-      </method>
-    </configuration>
     <configuration name="ElectionTest.test_sameLogId_differentTerms_higherTermWins" type="JUnit" factoryName="JUnit" temporary="true" nameIsGenerated="true">
       <module name="server" />
       <extension name="coverage">
@@ -276,11 +273,11 @@
     </configuration>
     <recent_temporary>
       <list>
+        <item itemvalue="JUnit.AppendEntryTest" />
         <item itemvalue="JUnit.AppendEntryTest.testSamePrevLogId_andPrevLogTerm" />
         <item itemvalue="JUnit.ElectionTest" />
         <item itemvalue="JUnit.ElectionTest.test_sameLogId_differentTerms_higherTermWins" />
         <item itemvalue="JUnit.ElectionTest.test_lowerLogNode_cannotWinElection" />
-        <item itemvalue="JUnit.ElectionTest.test_nodeWithLargerLogId_winsElection" />
       </list>
     </recent_temporary>
   </component>
@@ -351,15 +348,7 @@
       <workItem from="1776444054568" duration="14933000" />
       <workItem from="1776504892953" duration="15000" />
       <workItem from="1776516679140" duration="4614000" />
-      <workItem from="1776535782114" duration="9861000" />
-    </task>
-    <task id="LOCAL-00004" summary="Renamed NodeState to NodeRole ; Created RedirectMessage and RegisterMessage ; Created NodeConfig ; Implemented RegisterMessage on connect in RaftBrokerClient ; Created RegisterMessage handler in RaftManager and added support for new NodeConfig class ; Created RaftServer class merging RaftBrokerServerHandler and RaftCommandHandler">
-      <option name="closed" value="true" />
-      <created>1774104152135</created>
-      <option name="number" value="00004" />
-      <option name="presentableId" value="LOCAL-00004" />
-      <option name="project" value="LOCAL" />
-      <updated>1774104152135</updated>
+      <workItem from="1776535782114" duration="10732000" />
     </task>
     <task id="LOCAL-00005" summary="Updated .gitignore">
       <option name="closed" value="true" />
@@ -745,7 +734,15 @@
       <option name="project" value="LOCAL" />
       <updated>1776542033654</updated>
     </task>
-    <option name="localTasksCounter" value="53" />
+    <task id="LOCAL-00053" summary="Created AppendEntry tests">
+      <option name="closed" value="true" />
+      <created>1776545930190</created>
+      <option name="number" value="00053" />
+      <option name="presentableId" value="LOCAL-00053" />
+      <option name="project" value="LOCAL" />
+      <updated>1776545930190</updated>
+    </task>
+    <option name="localTasksCounter" value="54" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -763,7 +760,6 @@
     </option>
   </component>
   <component name="VcsManagerConfiguration">
-    <MESSAGE value="Fixed: NodeList.iterator pointless loop" />
     <MESSAGE value="Fixed: NPE in RaftCommandHandler.handleCommand when handling GET command" />
     <MESSAGE value="Fixed: Potential memory allocation error during resizing in KVMap.isRehashing" />
     <MESSAGE value="Improved code consistency in KVMap" />
@@ -788,6 +784,7 @@
     <MESSAGE value="Added tests to BootstrapTest" />
     <MESSAGE value="saving -" />
     <MESSAGE value="Added same log id different term test to election tests" />
-    <option name="LAST_COMMIT_MESSAGE" value="Added same log id different term test to election tests" />
+    <MESSAGE value="Created AppendEntry tests" />
+    <option name="LAST_COMMIT_MESSAGE" value="Created AppendEntry tests" />
   </component>
 </project>
