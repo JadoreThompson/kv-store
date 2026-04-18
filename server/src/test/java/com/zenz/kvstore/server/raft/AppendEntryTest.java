@@ -153,4 +153,37 @@ public class AppendEntryTest {
                 AppendEntryResponse.FailureReason.PREV_LOG_MISMATCH,
                 appendEntryResponse.failureReason());
     }
+
+    @Test
+    public void test_emptyEntries_heartbeat_succeeds() {
+        final AppendEntry appendEntry = new AppendEntry(
+                "leader",
+                1L,
+                0L,
+                0L,
+                new ArrayList<>());
+
+        when(mockManager.getNodeConfig()).thenReturn(new NodeConfig(
+                "follower",
+                new InetSocketAddress("localhost", 9999)));
+        doReturn(mockLogHandler).when(mockKvstore).getLogHandler();
+        doReturn(mockKvstore).when(mockManager).getKvstore();
+        when(mockStateObject.getCurrentTerm()).thenReturn(1L);
+        when(mockStateObject.getLeaderId()).thenReturn(null);
+        when(mockLogHandler.getSeedEntry()).thenReturn(new RaftLogEntry(
+                0L,
+                0L,
+                new PutCommand("seed", "value".getBytes(StandardCharsets.UTF_8))));
+        when(mockLogHandler.getLogId()).thenReturn(0L);
+        when(mockLogHandler.getTerm()).thenReturn(0L);
+        server.setManager(mockManager);
+        server.setStateObject(mockStateObject);
+
+        final Message response = server.handleAppendEntry(appendEntry);
+        assertInstanceOf(AppendEntryResponse.class, response);
+
+        final AppendEntryResponse appendEntryResponse = (AppendEntryResponse) response;
+        assertTrue(appendEntryResponse.isSuccess());
+        assertNull(appendEntryResponse.failureReason());
+    }
 }
