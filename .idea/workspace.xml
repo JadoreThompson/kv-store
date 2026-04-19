@@ -5,6 +5,8 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="f2a63f83-7187-4a54-8703-b4d1ce6944cf" name="Changes" comment="Added stale term test to AppendEntryTest">
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/client/target/client-1.0-SNAPSHOT.jar" beforeDir="false" afterPath="$PROJECT_DIR$/client/target/client-1.0-SNAPSHOT.jar" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/server/src/test/java/com/zenz/kvstore/server/raft/AppendEntryTest.java" beforeDir="false" afterPath="$PROJECT_DIR$/server/src/test/java/com/zenz/kvstore/server/raft/AppendEntryTest.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
@@ -65,6 +67,7 @@
   "keyToString": {
     "JUnit.AppendEntryTest.executor": "Run",
     "JUnit.AppendEntryTest.testSamePrevLogId_andPrevLogTerm.executor": "Run",
+    "JUnit.AppendEntryTest.test_logEntryWithDifferentTerm.executor": "Run",
     "JUnit.BootstrapTest.executor": "Run",
     "JUnit.BootstrapTest.test_electionTimeout_electionConcludes.executor": "Run",
     "JUnit.BootstrapTest.test_higherLogIdAndTermWinsElection.executor": "Run",
@@ -190,7 +193,7 @@
       <recent name="com.zenz.kvstore.server" />
     </key>
   </component>
-  <component name="RunManager" selected="JUnit.AppendEntryTest">
+  <component name="RunManager" selected="JUnit.AppendEntryTest.testSamePrevLogId_andPrevLogTerm">
     <configuration name="AppendEntryTest" type="JUnit" factoryName="JUnit" temporary="true" nameIsGenerated="true">
       <module name="server" />
       <extension name="coverage">
@@ -222,6 +225,22 @@
         <option name="Make" enabled="true" />
       </method>
     </configuration>
+    <configuration name="AppendEntryTest.test_logEntryWithDifferentTerm" type="JUnit" factoryName="JUnit" temporary="true" nameIsGenerated="true">
+      <module name="server" />
+      <extension name="coverage">
+        <pattern>
+          <option name="PATTERN" value="com.zenz.kvstore.server.raft.*" />
+          <option name="ENABLED" value="true" />
+        </pattern>
+      </extension>
+      <option name="PACKAGE_NAME" value="com.zenz.kvstore.server.raft" />
+      <option name="MAIN_CLASS_NAME" value="com.zenz.kvstore.server.raft.AppendEntryTest" />
+      <option name="METHOD_NAME" value="test_logEntryWithDifferentTerm" />
+      <option name="TEST_OBJECT" value="method" />
+      <method v="2">
+        <option name="Make" enabled="true" />
+      </method>
+    </configuration>
     <configuration name="ElectionTest" type="JUnit" factoryName="JUnit" temporary="true" nameIsGenerated="true">
       <module name="server" />
       <extension name="coverage">
@@ -233,22 +252,6 @@
       <option name="PACKAGE_NAME" value="com.zenz.kvstore.server.raft" />
       <option name="MAIN_CLASS_NAME" value="com.zenz.kvstore.server.raft.ElectionTest" />
       <option name="TEST_OBJECT" value="class" />
-      <method v="2">
-        <option name="Make" enabled="true" />
-      </method>
-    </configuration>
-    <configuration name="ElectionTest.test_lowerLogNode_cannotWinElection" type="JUnit" factoryName="JUnit" temporary="true" nameIsGenerated="true">
-      <module name="server" />
-      <extension name="coverage">
-        <pattern>
-          <option name="PATTERN" value="com.zenz.kvstore.server.raft.*" />
-          <option name="ENABLED" value="true" />
-        </pattern>
-      </extension>
-      <option name="PACKAGE_NAME" value="com.zenz.kvstore.server.raft" />
-      <option name="MAIN_CLASS_NAME" value="com.zenz.kvstore.server.raft.ElectionTest" />
-      <option name="METHOD_NAME" value="test_lowerLogNode_cannotWinElection" />
-      <option name="TEST_OBJECT" value="method" />
       <method v="2">
         <option name="Make" enabled="true" />
       </method>
@@ -271,11 +274,11 @@
     </configuration>
     <recent_temporary>
       <list>
-        <item itemvalue="JUnit.AppendEntryTest" />
         <item itemvalue="JUnit.AppendEntryTest.testSamePrevLogId_andPrevLogTerm" />
+        <item itemvalue="JUnit.AppendEntryTest.test_logEntryWithDifferentTerm" />
+        <item itemvalue="JUnit.AppendEntryTest" />
         <item itemvalue="JUnit.ElectionTest" />
         <item itemvalue="JUnit.ElectionTest.test_sameLogId_differentTerms_higherTermWins" />
-        <item itemvalue="JUnit.ElectionTest.test_lowerLogNode_cannotWinElection" />
       </list>
     </recent_temporary>
   </component>
@@ -347,6 +350,7 @@
       <workItem from="1776504892953" duration="15000" />
       <workItem from="1776516679140" duration="4614000" />
       <workItem from="1776535782114" duration="10920000" />
+      <workItem from="1776586262546" duration="2484000" />
     </task>
     <task id="LOCAL-00006" summary="Updated .gitignore">
       <option name="closed" value="true" />

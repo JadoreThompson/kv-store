@@ -9,6 +9,7 @@ import com.zenz.kvstore.server.raft.message.AppendEntryResponse;
 import com.zenz.kvstore.server.raft.message.Message;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
@@ -49,13 +50,7 @@ public class AppendEntryTest {
 
     @Test
     public void testSamePrevLogId_andPrevLogTerm() {
-        final List<RaftLogEntry> entries = new ArrayList<>();
-        for (int i = 0; i < 10; i++) {
-            entries.add(new RaftLogEntry(
-                    i + 1,
-                    1,
-                    new PutCommand("key-" + (i + 1), "value".getBytes(StandardCharsets.UTF_8))));
-        }
+        final List<RaftLogEntry> entries = createLogEntries(1, 10, 1);
         final AppendEntry appendEntry = new AppendEntry(
                 "leader",
                 1L,
@@ -219,5 +214,56 @@ public class AppendEntryTest {
 
         final AppendEntryResponse appendEntryResponse = (AppendEntryResponse) response;
         assertTrue(appendEntryResponse.isSuccess());
+    }
+
+    @Test
+    @DisplayName("Remote log overrides conflicting local entries")
+    public void test_logEntryWithDifferentTerm() {
+        final List<RaftLogEntry> localEntries = createLogEntries(0, 5, 1);
+        final List<RaftLogEntry> leaderEntries = createLogEntries(0, 2, 1);
+        leaderEntries.addAll(createLogEntries(3, 7, 2));
+
+        final AppendEntry appendEntry = new AppendEntry(
+                "leader",
+                2L,
+                0L,
+                0L,
+                leaderEntries);
+
+        when(mockManager.getNodeConfig()).thenReturn(new NodeConfig(
+                "follower",
+                new InetSocketAddress("localhost", 9999)));
+        doReturn(mockLogHandler).when(mockKvstore).getLogHandler();
+        doReturn(mockKvstore).when(mockManager).getKvstore();
+        when(mockStateObject.getCurrentTerm()).thenReturn(2L);
+        when(mockLogHandler.getSeedEntry()).thenReturn(new RaftLogEntry(
+                0L,
+                0L,
+                new PutCommand("seed", "value".getBytes(StandardCharsets.UTF_8))));
+        when(mockLogHandler.getEntries()).thenReturn(localEntries);
+        mockLogHandler.setLogId(2L);
+        mockLogHandler.setTerm(1L);
+        server.setManager(mockManager);
+        server.setStateObject(mockStateObject);
+
+        final Message response = server.handleAppendEntry(appendEntry);
+        assertInstanceOf(AppendEntryResponse.class, response);
+
+        final AppendEntryResponse appendEntryResponse = (AppendEntryResponse) response;
+        assertTrue(appendEntryResponse.isSuccess(), "Append entry should succeed after truncating conflicting entries");
+        assertEquals(7L, appendEntryResponse.lastLogId(), "Last log ID should match the leader's last entry");
+        assertEquals(2L, appendEntryResponse.lastLogTerm(), "Last log term should match the leader's term");
+    }
+
+    private List<RaftLogEntry> createLogEntries(final int startId, final int endId, final long term) {
+        final List<RaftLogEntry> entries = new ArrayList<>();
+        for (int i = startId; i < endId; i++) {
+            entries.add(new RaftLogEntry(
+                    i + 1,
+                    term,
+                    new PutCommand("key-" + i, ("value-" + i).getBytes(StandardCharsets.UTF_8))
+            ));
+        }
+        return entries;
     }
 }
