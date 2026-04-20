@@ -40,6 +40,9 @@ public class RaftLogHandler implements BaseLogHandler<
 
     private RaftLogEntry seedEntry = new RaftLogEntry(0L, 0L, new GetCommand("\0"));
 
+    /**
+     * Default constructor for Mockito mocking
+     */
     public RaftLogHandler() throws IOException {
         logger = new WALogger();
         snapshotter = new KVStoreSnapshotter<>(

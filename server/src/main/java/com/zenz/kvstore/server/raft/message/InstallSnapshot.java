@@ -2,6 +2,7 @@ package com.zenz.kvstore.server.raft.message;
 
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
+import java.util.Arrays;
 
 public record InstallSnapshot(
         RaftMessageType type,
@@ -85,5 +86,22 @@ public record InstallSnapshot(
                 data,
                 done
         );
+    }
+
+    @Override
+    public String toString() {
+        return "InstallSnapshot{" +
+                "type=" + type +
+                ", leaderId='" + leaderId + '\'' +
+                ", term=" + term +
+                ", lastIncludedId=" + lastIncludedId +
+                ", lastIncludedTerm=" + lastIncludedTerm +
+                ", offset=" + offset +
+                ", data=" +
+                "[length=" + data.length +
+                ", data=" + Arrays.toString(data) +
+                "]" +
+                ", done=" + done +
+                '}';
     }
 }

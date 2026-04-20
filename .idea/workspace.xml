@@ -4,10 +4,14 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="f2a63f83-7187-4a54-8703-b4d1ce6944cf" name="Changes" comment="Added stale term test to AppendEntryTest">
+    <list default="true" id="f2a63f83-7187-4a54-8703-b4d1ce6944cf" name="Changes" comment="saving - Created InstallSnapshot tests">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/client/target/client-1.0-SNAPSHOT.jar" beforeDir="false" afterPath="$PROJECT_DIR$/client/target/client-1.0-SNAPSHOT.jar" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/server/src/test/java/com/zenz/kvstore/server/raft/AppendEntryTest.java" beforeDir="false" afterPath="$PROJECT_DIR$/server/src/test/java/com/zenz/kvstore/server/raft/AppendEntryTest.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/server/src/main/java/com/zenz/kvstore/server/logging/RaftLogHandler.java" beforeDir="false" afterPath="$PROJECT_DIR$/server/src/main/java/com/zenz/kvstore/server/logging/RaftLogHandler.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/server/src/main/java/com/zenz/kvstore/server/restore/KVStoreRestorer.java" beforeDir="false" afterPath="$PROJECT_DIR$/server/src/main/java/com/zenz/kvstore/server/restore/KVStoreRestorer.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/server/src/main/java/com/zenz/kvstore/server/restore/RaftKVStoreRestorer.java" beforeDir="false" afterPath="$PROJECT_DIR$/server/src/main/java/com/zenz/kvstore/server/restore/RaftKVStoreRestorer.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/server/src/test/java/com/zenz/kvstore/server/raft/InstallSnapshotTest.java" beforeDir="false" afterPath="$PROJECT_DIR$/server/src/test/java/com/zenz/kvstore/server/raft/InstallSnapshotTest.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/server/src/test/java/com/zenz/kvstore/server/restore/KVStoreRestorerTest.java" beforeDir="false" afterPath="$PROJECT_DIR$/server/src/test/java/com/zenz/kvstore/server/restore/KVStoreRestorerTest.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -82,6 +86,12 @@
     "JUnit.ElectionTest.executor": "Run",
     "JUnit.ElectionTest.test_lowerLogNode_cannotWinElection.executor": "Run",
     "JUnit.ElectionTest.test_sameLogId_differentTerms_higherTermWins.executor": "Run",
+    "JUnit.InstallSnapshotTest.executor": "Run",
+    "JUnit.InstallSnapshotTest.test_installSnapshot_createsFileAndLoadsData.executor": "Run",
+    "JUnit.InstallSnapshotTest.test_installSnapshot_leaderSwitch_restartsPersist.executor": "Run",
+    "JUnit.InstallSnapshotTest.test_installSnapshot_multipleSnapshots_containsLastEntries.executor": "Run",
+    "JUnit.InstallSnapshotTest.test_installSnapshot_preservesExistingSnapshots.executor": "Run",
+    "JUnit.InstallSnapshotTest.test_installSnapshot_restoresKvStoreAndUpdatesLogHandler.executor": "Run",
     "JUnit.KVMapSnapshotterTest.executor": "Run",
     "JUnit.KVMapTest and 2 more.executor": "Run",
     "JUnit.KVMapTest and 4 more.executor": "Run",
@@ -90,6 +100,7 @@
     "JUnit.KVStoreRestorerTest$RaftKVStoreRestorerTests.executor": "Run",
     "JUnit.KVStoreRestorerTest$RaftKVStoreRestorerTests.restore_withMultipleTerms_restoresHighestTerm.executor": "Run",
     "JUnit.KVStoreRestorerTest$SingleKVStoreRestorerTests.executor": "Run",
+    "JUnit.KVStoreRestorerTest$SingleKVStoreRestorerTests.restore_afterSnapshot_logEntriesShouldBeEmpty.executor": "Run",
     "JUnit.KVStoreRestorerTest$SingleKVStoreRestorerTests.restore_withLogsAfterSnapshot_restoresAllKeysAndLogs.executor": "Run",
     "JUnit.KVStoreRestorerTest.executor": "Run",
     "JUnit.KVStoreSnapshotterTest$RaftSnapshotTests.executor": "Run",
@@ -193,8 +204,8 @@
       <recent name="com.zenz.kvstore.server" />
     </key>
   </component>
-  <component name="RunManager" selected="JUnit.AppendEntryTest.testSamePrevLogId_andPrevLogTerm">
-    <configuration name="AppendEntryTest" type="JUnit" factoryName="JUnit" temporary="true" nameIsGenerated="true">
+  <component name="RunManager" selected="JUnit.KVStoreRestorerTest">
+    <configuration name="InstallSnapshotTest" type="JUnit" factoryName="JUnit" temporary="true" nameIsGenerated="true">
       <module name="server" />
       <extension name="coverage">
         <pattern>
@@ -203,13 +214,13 @@
         </pattern>
       </extension>
       <option name="PACKAGE_NAME" value="com.zenz.kvstore.server.raft" />
-      <option name="MAIN_CLASS_NAME" value="com.zenz.kvstore.server.raft.AppendEntryTest" />
+      <option name="MAIN_CLASS_NAME" value="com.zenz.kvstore.server.raft.InstallSnapshotTest" />
       <option name="TEST_OBJECT" value="class" />
       <method v="2">
         <option name="Make" enabled="true" />
       </method>
     </configuration>
-    <configuration name="AppendEntryTest.testSamePrevLogId_andPrevLogTerm" type="JUnit" factoryName="JUnit" temporary="true" nameIsGenerated="true">
+    <configuration name="InstallSnapshotTest.test_installSnapshot_multipleSnapshots_containsLastEntries" type="JUnit" factoryName="JUnit" temporary="true" nameIsGenerated="true">
       <module name="server" />
       <extension name="coverage">
         <pattern>
@@ -218,67 +229,67 @@
         </pattern>
       </extension>
       <option name="PACKAGE_NAME" value="com.zenz.kvstore.server.raft" />
-      <option name="MAIN_CLASS_NAME" value="com.zenz.kvstore.server.raft.AppendEntryTest" />
-      <option name="METHOD_NAME" value="testSamePrevLogId_andPrevLogTerm" />
+      <option name="MAIN_CLASS_NAME" value="com.zenz.kvstore.server.raft.InstallSnapshotTest" />
+      <option name="METHOD_NAME" value="test_installSnapshot_multipleSnapshots_containsLastEntries" />
       <option name="TEST_OBJECT" value="method" />
       <method v="2">
         <option name="Make" enabled="true" />
       </method>
     </configuration>
-    <configuration name="AppendEntryTest.test_logEntryWithDifferentTerm" type="JUnit" factoryName="JUnit" temporary="true" nameIsGenerated="true">
+    <configuration name="KVStoreRestorerTest$RaftKVStoreRestorerTests.restore_afterSnapshot_logEntriesShouldBeEmpty" type="JUnit" factoryName="JUnit" temporary="true" nameIsGenerated="true">
       <module name="server" />
       <extension name="coverage">
         <pattern>
-          <option name="PATTERN" value="com.zenz.kvstore.server.raft.*" />
+          <option name="PATTERN" value="com.zenz.kvstore.server.restore.*" />
           <option name="ENABLED" value="true" />
         </pattern>
       </extension>
-      <option name="PACKAGE_NAME" value="com.zenz.kvstore.server.raft" />
-      <option name="MAIN_CLASS_NAME" value="com.zenz.kvstore.server.raft.AppendEntryTest" />
-      <option name="METHOD_NAME" value="test_logEntryWithDifferentTerm" />
+      <option name="PACKAGE_NAME" value="com.zenz.kvstore.server.restore.KVStoreRestorerTest" />
+      <option name="MAIN_CLASS_NAME" value="com.zenz.kvstore.server.restore.KVStoreRestorerTest$RaftKVStoreRestorerTests" />
+      <option name="METHOD_NAME" value="restore_afterSnapshot_logEntriesShouldBeEmpty" />
       <option name="TEST_OBJECT" value="method" />
       <method v="2">
         <option name="Make" enabled="true" />
       </method>
     </configuration>
-    <configuration name="ElectionTest" type="JUnit" factoryName="JUnit" temporary="true" nameIsGenerated="true">
+    <configuration name="KVStoreRestorerTest$SingleKVStoreRestorerTests.restore_afterSnapshot_logEntriesShouldBeEmpty" type="JUnit" factoryName="JUnit" temporary="true" nameIsGenerated="true">
       <module name="server" />
       <extension name="coverage">
         <pattern>
-          <option name="PATTERN" value="com.zenz.kvstore.server.raft.*" />
+          <option name="PATTERN" value="com.zenz.kvstore.server.restore.*" />
           <option name="ENABLED" value="true" />
         </pattern>
       </extension>
-      <option name="PACKAGE_NAME" value="com.zenz.kvstore.server.raft" />
-      <option name="MAIN_CLASS_NAME" value="com.zenz.kvstore.server.raft.ElectionTest" />
+      <option name="PACKAGE_NAME" value="com.zenz.kvstore.server.restore.KVStoreRestorerTest" />
+      <option name="MAIN_CLASS_NAME" value="com.zenz.kvstore.server.restore.KVStoreRestorerTest$SingleKVStoreRestorerTests" />
+      <option name="METHOD_NAME" value="restore_afterSnapshot_logEntriesShouldBeEmpty" />
+      <option name="TEST_OBJECT" value="method" />
+      <method v="2">
+        <option name="Make" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="KVStoreRestorerTest" type="JUnit" factoryName="JUnit" temporary="true" nameIsGenerated="true">
+      <module name="server" />
+      <extension name="coverage">
+        <pattern>
+          <option name="PATTERN" value="com.zenz.kvstore.server.restore.*" />
+          <option name="ENABLED" value="true" />
+        </pattern>
+      </extension>
+      <option name="PACKAGE_NAME" value="com.zenz.kvstore.server.restore" />
+      <option name="MAIN_CLASS_NAME" value="com.zenz.kvstore.server.restore.KVStoreRestorerTest" />
       <option name="TEST_OBJECT" value="class" />
-      <method v="2">
-        <option name="Make" enabled="true" />
-      </method>
-    </configuration>
-    <configuration name="ElectionTest.test_sameLogId_differentTerms_higherTermWins" type="JUnit" factoryName="JUnit" temporary="true" nameIsGenerated="true">
-      <module name="server" />
-      <extension name="coverage">
-        <pattern>
-          <option name="PATTERN" value="com.zenz.kvstore.server.raft.*" />
-          <option name="ENABLED" value="true" />
-        </pattern>
-      </extension>
-      <option name="PACKAGE_NAME" value="com.zenz.kvstore.server.raft" />
-      <option name="MAIN_CLASS_NAME" value="com.zenz.kvstore.server.raft.ElectionTest" />
-      <option name="METHOD_NAME" value="test_sameLogId_differentTerms_higherTermWins" />
-      <option name="TEST_OBJECT" value="method" />
       <method v="2">
         <option name="Make" enabled="true" />
       </method>
     </configuration>
     <recent_temporary>
       <list>
-        <item itemvalue="JUnit.AppendEntryTest.testSamePrevLogId_andPrevLogTerm" />
-        <item itemvalue="JUnit.AppendEntryTest.test_logEntryWithDifferentTerm" />
-        <item itemvalue="JUnit.AppendEntryTest" />
-        <item itemvalue="JUnit.ElectionTest" />
-        <item itemvalue="JUnit.ElectionTest.test_sameLogId_differentTerms_higherTermWins" />
+        <item itemvalue="JUnit.KVStoreRestorerTest" />
+        <item itemvalue="JUnit.KVStoreRestorerTest$RaftKVStoreRestorerTests.restore_afterSnapshot_logEntriesShouldBeEmpty" />
+        <item itemvalue="JUnit.KVStoreRestorerTest$SingleKVStoreRestorerTests.restore_afterSnapshot_logEntriesShouldBeEmpty" />
+        <item itemvalue="JUnit.InstallSnapshotTest" />
+        <item itemvalue="JUnit.InstallSnapshotTest.test_installSnapshot_multipleSnapshots_containsLastEntries" />
       </list>
     </recent_temporary>
   </component>
@@ -350,55 +361,8 @@
       <workItem from="1776504892953" duration="15000" />
       <workItem from="1776516679140" duration="4614000" />
       <workItem from="1776535782114" duration="10920000" />
-      <workItem from="1776586262546" duration="2484000" />
-    </task>
-    <task id="LOCAL-00006" summary="Updated .gitignore">
-      <option name="closed" value="true" />
-      <created>1774863891928</created>
-      <option name="number" value="00006" />
-      <option name="presentableId" value="LOCAL-00006" />
-      <option name="project" value="LOCAL" />
-      <updated>1774863891928</updated>
-    </task>
-    <task id="LOCAL-00007" summary="Renamed raft.handlers and raft.messages packages to raft.handler and raft.message ; Renamed BaseMessage to Message">
-      <option name="closed" value="true" />
-      <created>1775301857429</created>
-      <option name="number" value="00007" />
-      <option name="presentableId" value="LOCAL-00007" />
-      <option name="project" value="LOCAL" />
-      <updated>1775301857429</updated>
-    </task>
-    <task id="LOCAL-00008" summary="Created BrokerClient">
-      <option name="closed" value="true" />
-      <created>1775302796783</created>
-      <option name="number" value="00008" />
-      <option name="presentableId" value="LOCAL-00008" />
-      <option name="project" value="LOCAL" />
-      <updated>1775302796783</updated>
-    </task>
-    <task id="LOCAL-00009" summary="saving - Implemented client utils in raft test package">
-      <option name="closed" value="true" />
-      <created>1775493052724</created>
-      <option name="number" value="00009" />
-      <option name="presentableId" value="LOCAL-00009" />
-      <option name="project" value="LOCAL" />
-      <updated>1775493052724</updated>
-    </task>
-    <task id="LOCAL-00010" summary="Removed unused properties in RaftCommandHandlerTest">
-      <option name="closed" value="true" />
-      <created>1775557195619</created>
-      <option name="number" value="00010" />
-      <option name="presentableId" value="LOCAL-00010" />
-      <option name="project" value="LOCAL" />
-      <updated>1775557195619</updated>
-    </task>
-    <task id="LOCAL-00011" summary="saving - Improved code quality in RaftControllerTest">
-      <option name="closed" value="true" />
-      <created>1775558277754</created>
-      <option name="number" value="00011" />
-      <option name="presentableId" value="LOCAL-00011" />
-      <option name="project" value="LOCAL" />
-      <updated>1775558277754</updated>
+      <workItem from="1776586262546" duration="13991000" />
+      <workItem from="1776677088907" duration="1844000" />
     </task>
     <task id="LOCAL-00012" summary="Improved code quality in RaftControllerTest ; Fixed compilation error in DiscoveryServiceTest">
       <option name="closed" value="true" />
@@ -744,7 +708,55 @@
       <option name="project" value="LOCAL" />
       <updated>1776546806530</updated>
     </task>
-    <option name="localTasksCounter" value="55" />
+    <task id="LOCAL-00055" summary="Added inconsistent log entry test in AppendEntryTest">
+      <option name="closed" value="true" />
+      <created>1776589370941</created>
+      <option name="number" value="00055" />
+      <option name="presentableId" value="LOCAL-00055" />
+      <option name="project" value="LOCAL" />
+      <updated>1776589370942</updated>
+    </task>
+    <task id="LOCAL-00056" summary="saving - Created InstallSnapshot tests">
+      <option name="closed" value="true" />
+      <created>1776592086750</created>
+      <option name="number" value="00056" />
+      <option name="presentableId" value="LOCAL-00056" />
+      <option name="project" value="LOCAL" />
+      <updated>1776592086750</updated>
+    </task>
+    <task id="LOCAL-00057" summary="saving - Created InstallSnapshot tests">
+      <option name="closed" value="true" />
+      <created>1776592653479</created>
+      <option name="number" value="00057" />
+      <option name="presentableId" value="LOCAL-00057" />
+      <option name="project" value="LOCAL" />
+      <updated>1776592653479</updated>
+    </task>
+    <task id="LOCAL-00058" summary="saving - Created InstallSnapshot tests">
+      <option name="closed" value="true" />
+      <created>1776592951416</created>
+      <option name="number" value="00058" />
+      <option name="presentableId" value="LOCAL-00058" />
+      <option name="project" value="LOCAL" />
+      <updated>1776592951416</updated>
+    </task>
+    <task id="LOCAL-00059" summary="saving - Created InstallSnapshot tests">
+      <option name="closed" value="true" />
+      <created>1776593916348</created>
+      <option name="number" value="00059" />
+      <option name="presentableId" value="LOCAL-00059" />
+      <option name="project" value="LOCAL" />
+      <updated>1776593916348</updated>
+    </task>
+    <task id="LOCAL-00060" summary="saving - Created InstallSnapshot tests">
+      <option name="closed" value="true" />
+      <created>1776595814435</created>
+      <option name="number" value="00060" />
+      <option name="presentableId" value="LOCAL-00060" />
+      <option name="project" value="LOCAL" />
+      <updated>1776595814435</updated>
+    </task>
+    <option name="localTasksCounter" value="61" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -762,8 +774,6 @@
     </option>
   </component>
   <component name="VcsManagerConfiguration">
-    <MESSAGE value="Fixed: Potential memory allocation error during resizing in KVMap.isRehashing" />
-    <MESSAGE value="Improved code consistency in KVMap" />
     <MESSAGE value="Improved code consistency in KVStore" />
     <MESSAGE value="Removed KVStore.Builder, snapshot, redundant getters and setters" />
     <MESSAGE value="Refactored logging ; Created new snapshotter implementation" />
@@ -787,6 +797,8 @@
     <MESSAGE value="Added same log id different term test to election tests" />
     <MESSAGE value="Created AppendEntry tests" />
     <MESSAGE value="Added stale term test to AppendEntryTest" />
-    <option name="LAST_COMMIT_MESSAGE" value="Added stale term test to AppendEntryTest" />
+    <MESSAGE value="Added inconsistent log entry test in AppendEntryTest" />
+    <MESSAGE value="saving - Created InstallSnapshot tests" />
+    <option name="LAST_COMMIT_MESSAGE" value="saving - Created InstallSnapshot tests" />
   </component>
 </project>

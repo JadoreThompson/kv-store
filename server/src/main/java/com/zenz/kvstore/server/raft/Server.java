@@ -254,7 +254,7 @@ public class Server implements AutoCloseable {
         lastAppendEntryTs = System.currentTimeMillis();
         stateObject.setCurrentTerm(appendEntry.term());
 
-        if (!appendEntry.leaderId().equals(stateObject.getLeaderId())) {
+        if (stateObject.getLeaderId() == null || !stateObject.getLeaderId().equals(appendEntry.leaderId())) {
             manager.setLeader(appendEntry.leaderId());
             prevLogId = logHandler.getSeedEntry().id;
             prevLogTerm = logHandler.getSeedEntry().term;
@@ -304,7 +304,7 @@ public class Server implements AutoCloseable {
                 this.prevLogTerm);
     }
 
-    private Message handleInstallSnapshot(final InstallSnapshot installSnapshot) throws IOException {
+    Message handleInstallSnapshot(final InstallSnapshot installSnapshot) throws IOException {
         final long currentTerm = stateObject.getCurrentTerm();
 
         if (installSnapshot.term() < currentTerm) {
@@ -312,28 +312,32 @@ public class Server implements AutoCloseable {
         }
 
         stateObject.setCurrentTerm(installSnapshot.term());
+        if (stateObject.getLeaderId() == null || !stateObject.getLeaderId().equals(installSnapshot.leaderId())) {
+            manager.setLeader(installSnapshot.leaderId());
+        }
 
         if (installSnapshot.offset() == 0) {
-            closeFileChannel();
-            if (!snapshotPath.toFile().delete()) {
-                throw new IOException("Unable to delete snapshot file");
+            if (snapshotPath != null) {
+                closeFileChannel();
+                if (!snapshotPath.toFile().delete()) {
+                    throw new IOException("Unable to delete snapshot file");
+                }
             }
             snapshotPath = logHandler.getSnapshotter().getFpath(List.of(new RaftLogEntry(
-                    installSnapshot.lastIncludedId(), installSnapshot.lastIncludedTerm(), null)));
+                    installSnapshot.lastIncludedId(),
+                    installSnapshot.lastIncludedTerm(),
+                    null)));
             fileChannel = FileChannel.open(snapshotPath, StandardOpenOption.CREATE, StandardOpenOption.WRITE);
         }
 
-        fileChannel.write(
-                new ByteBuffer[]{ByteBuffer.wrap(installSnapshot.data())},
-                installSnapshot.offset(),
-                installSnapshot.data().length);
+        fileChannel.write(ByteBuffer.wrap(installSnapshot.data()), installSnapshot.offset());
 
         if (installSnapshot.done()) {
             fileChannel.force(true);
             closeFileChannel();
 
             logHandler = new RaftLogHandler(logHandler.getLogger(), logHandler.getSnapshotter());
-            logHandler.setLogId(installSnapshot.lastIncludedId() - 1);
+            logHandler.setLogId(installSnapshot.lastIncludedId());
             logHandler.setTerm(installSnapshot.lastIncludedTerm());
 
             final RaftKVStoreRestorer restorer = new RaftKVStoreRestorer();

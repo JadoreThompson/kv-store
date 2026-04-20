@@ -210,8 +210,8 @@ public class Manager implements Closeable {
     }
 
     public void setLeader(final String leaderId) {
-        stateObject.state = State.FOLLOWER;
-        stateObject.leaderId = leaderId;
+        stateObject.setState(State.FOLLOWER);
+        stateObject.setLeaderId(leaderId);
         for (Map.Entry<Client, NodeConfig> entry : clientNodeConfigMap.entrySet()) {
             if (entry.getValue().id().equals(leaderId)) {
                 leaderClient = entry.getKey();

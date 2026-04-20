@@ -1,15 +1,16 @@
 package com.zenz.kvstore.server.restore;
 
+import com.zenz.kvstore.common.command.Command;
 import com.zenz.kvstore.common.command.DeleteCommand;
 import com.zenz.kvstore.common.command.PutCommand;
 import com.zenz.kvstore.server.KVStore;
 import com.zenz.kvstore.server.logging.*;
-import com.zenz.kvstore.server.snapshot.*;
+import com.zenz.kvstore.server.snapshot.KVStoreSnapshotter;
+import com.zenz.kvstore.server.snapshot.SnapshotBody;
 import lombok.extern.slf4j.Slf4j;
 
 import java.io.File;
 import java.io.IOException;
-import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
 
@@ -22,59 +23,42 @@ public class KVStoreRestorer {
         return kvStore;
     }
 
-    protected KVStore createStore() throws IOException {
-        final KVStoreSnapshotter<SingleSnapshotHeader, SingleSnapshotBody, SingleSnapshotFooter> snapshotter =
-                new KVStoreSnapshotter<>(SingleSnapshotHeader.class, SingleSnapshotBody.class, SingleSnapshotFooter.class);
-        final LogHandler logHandler = new LogHandler(
-                new WALogger(Files.createTempFile("temp-logs", ".log")), snapshotter);
-        return new KVStore(logHandler);
-    }
-
     protected void applySnapshots(final KVStore kvStore) throws IOException {
-        final BaseLogHandler<?, ?> logHandler = kvStore.getLogHandler();
-        final KVStoreSnapshotter<?, ?, ?> snapshotter = logHandler.getSnapshotter();
+        final KVStoreSnapshotter<?, ?, ?> snapshotter = kvStore.getLogHandler().getSnapshotter();
         final Path snapshotDir = snapshotter.getDir();
-
         final File[] snapshotFiles = snapshotDir.toFile().listFiles();
 
-        final CommandLogger prevLogger = logHandler.getLogger();
-        logHandler.setLogger(new NoOpLogger());
+        final BaseLogHandler<?, ?> prevLogHandler = kvStore.getLogHandler();
+        kvStore.setLogHandler(new NoOpLogHandler<>());
 
         if (snapshotFiles != null) {
-            final Path prevDir = kvStore.getLogHandler().getSnapshotter().getDir();
-            kvStore.getLogHandler().getSnapshotter().setDir(Files.createTempDirectory("temp-snapshots-"));
             for (File snapshotFile : snapshotFiles) {
                 final SnapshotBody body = snapshotter.getBody(snapshotFile.toPath());
                 for (LogEntry logEntry : body.getEntries()) {
-                    applyLogEntry(logEntry, kvStore, logHandler);
+                    applyLogEntry(logEntry, kvStore);
                 }
             }
-            kvStore.getLogHandler().getSnapshotter().setDir(prevDir);
         }
 
-        logHandler.setLogger(prevLogger);
+        kvStore.setLogHandler(prevLogHandler);
     }
 
     protected List<? extends LogEntry> applyLogEntries(final KVStore kvStore) throws IOException {
         final BaseLogHandler<?, ?> logHandler = kvStore.getLogHandler();
         final List<? extends LogEntry> logEntries = logHandler.loadLogs(kvStore.getLogHandler().getLogger().getPath());
-
         final CommandLogger prevLogger = logHandler.getLogger();
         logHandler.setLogger(new NoOpLogger());
 
         for (LogEntry logEntry : logEntries) {
-            applyLogEntry(logEntry, kvStore, logHandler);
+            applyLogEntry(logEntry, kvStore);
         }
 
         logHandler.setLogger(prevLogger);
         return logEntries;
     }
 
-    protected void applyLogEntry(
-            final LogEntry logEntry,
-            final KVStore kvStore,
-            final BaseLogHandler<?, ?> logHandler) throws IOException {
-        logHandler.setLogId(logEntry.id - 1);
+    protected void applyLogEntry(final LogEntry logEntry, final KVStore kvStore) throws IOException {
+        kvStore.getLogHandler().setLogId(logEntry.id - 1);
 
         switch (logEntry.command.type()) {
             case PUT -> {
@@ -113,6 +97,59 @@ public class KVStoreRestorer {
         @Override
         public <L extends LogEntry> List<L> loadLogs(Path path, Deserializer<L> deserializer) throws IOException {
             return List.of();
+        }
+    }
+
+    protected static class NoOpLogHandler<L extends LogEntry> implements BaseLogHandler<L, KVStoreSnapshotter<?, ?, ?>> {
+
+        @Override
+        public L log(Command command) throws IOException {
+            return null;
+        }
+
+        @Override
+        public CommandLogger getLogger() {
+            return null;
+        }
+
+        @Override
+        public void setLogger(CommandLogger logger) {
+
+        }
+
+        @Override
+        public KVStoreSnapshotter<?, ?, ?> getSnapshotter() {
+            return null;
+        }
+
+        @Override
+        public void setSnapshotter(KVStoreSnapshotter<?, ?, ?> snapshotter) {
+
+        }
+
+        @Override
+        public long getLogId() {
+            return 0;
+        }
+
+        @Override
+        public void setLogId(long logId) {
+
+        }
+
+        @Override
+        public List<L> loadLogs(Path fpath) throws IOException {
+            return List.of();
+        }
+
+        @Override
+        public void setLogsPerSnapshot(int logsPerSnapshot) {
+
+        }
+
+        @Override
+        public int getLogsPerSnapshot() {
+            return 0;
         }
     }
 }

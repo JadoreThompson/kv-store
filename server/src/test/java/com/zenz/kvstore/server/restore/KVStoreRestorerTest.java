@@ -171,6 +171,31 @@ class KVStoreRestorerTest {
             assertNotNull(restoredStore.getTrie().get("key2"));
             assertNotNull(restoredStore.getTrie().get("key3"));
         }
+
+        @Test
+        void restore_afterSnapshot_logEntriesShouldBeEmpty() throws Exception {
+            KVStoreSnapshotter<SingleSnapshotHeader, SingleSnapshotBody, SingleSnapshotFooter> snapshotter =
+                    createSingleSnapshotter();
+            snapshotter.setDir(snapshotDir);
+
+            // Create snapshot with entries
+            List<LogEntry> snapshotEntries = new ArrayList<>();
+            for (int i = 1; i <= 3; i++) {
+                snapshotEntries.add(new LogEntry(i,
+                        new PutCommand("key" + i, ("value" + i).getBytes())));
+            }
+            snapshotter.snapshot(snapshotEntries);
+
+            KVStoreRestorer restorer = new KVStoreRestorer();
+            KVStore restoredStore = restorer.restore(
+                    new KVStore(new LogHandler(new WALogger(), snapshotter))
+            );
+
+            LogHandler restoredLogHandler = (LogHandler) restoredStore.getLogHandler();
+
+            assertTrue(restoredLogHandler.getEntries().isEmpty(),
+                    "Log entries should be empty after restoring from snapshot");
+        }
     }
 
     @Nested
@@ -324,9 +349,40 @@ class KVStoreRestorerTest {
             RaftLogHandler restoredLogHandler = (RaftLogHandler) restoredStore.getLogHandler();
             assertEquals(0, restoredLogHandler.getTerm(), "Term should be 0 for empty log");
         }
+
+        @Test
+        void restore_afterSnapshot_logEntriesShouldBeEmpty() throws Exception {
+            KVStoreSnapshotter<RaftSnapshotHeader, RaftSnapshotBody, RaftSnapshotFooter> snapshotter =
+                    createRaftSnapshotter();
+            snapshotter.setDir(snapshotDir);
+
+            // Create snapshot with entries
+            List<RaftLogEntry> entries = new ArrayList<>();
+            entries.add(new RaftLogEntry(1, 1, new PutCommand("key1", "value1".getBytes())));
+            entries.add(new RaftLogEntry(2, 1, new PutCommand("key2", "value2".getBytes())));
+            snapshotter.snapshot(entries);
+
+            // No logs after snapshot
+            Path logFile = logDir.resolve("empty.log");
+            Files.createFile(logFile);
+
+            RaftKVStoreRestorer restorer = new RaftKVStoreRestorer();
+            KVStore restoredStore = restorer.restore(
+                    new KVStore(new RaftLogHandler(new WALogger(logFile), snapshotter))
+            );
+
+            RaftLogHandler restoredLogHandler =
+                    (RaftLogHandler) restoredStore.getLogHandler();
+
+            assertTrue(restoredLogHandler.getEntries().isEmpty(),
+                    "Raft log entries should be empty after restoring from snapshot");
+        }
     }
 
-    private KVStoreSnapshotter<SingleSnapshotHeader, SingleSnapshotBody, SingleSnapshotFooter> createSingleSnapshotter() {
+    private KVStoreSnapshotter<
+            SingleSnapshotHeader,
+            SingleSnapshotBody,
+            SingleSnapshotFooter> createSingleSnapshotter() {
         return new KVStoreSnapshotter<>(
                 SingleSnapshotHeader.class, SingleSnapshotBody.class, SingleSnapshotFooter.class);
     }
