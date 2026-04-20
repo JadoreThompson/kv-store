@@ -25,6 +25,10 @@ public class Client implements Closeable {
     private static final int BATCH_SIZE = 10;
 
     @Getter
+    @Setter
+    private int batchSize = BATCH_SIZE;
+
+    @Getter
     private final InetSocketAddress remoteAddress;
 
     @Getter
@@ -214,22 +218,18 @@ public class Client implements Closeable {
         }
     }
 
-    private Message handleAppendEntryResponse(final AppendEntryResponse response) throws IOException {
+    Message handleAppendEntryResponse(final AppendEntryResponse response) throws IOException {
         if (response.isSuccess()) {
             return createAppendEntryRequest();
         }
 
         switch (response.failureReason()) {
-            case GREATER_TERM -> stateObject.state = State.FOLLOWER;
+            case GREATER_TERM -> stateObject.setState(State.FOLLOWER);
             case PREV_LOG_MISMATCH -> {
-                log.info("Handle Append Entry Response {}", response);
-                if (prevLogIndex - BATCH_SIZE < 0) {
-                    final Path snapshotPath = logHandler.getSnapshotter().findSnapshot(response.prevLogId());
-                    final RaftSnapshotBody body = logHandler.getSnapshotter().getBody(snapshotPath);
-                    snapshotContext = new SnapshotContext(snapshotPath, body.getEntries());
-                    final InstallSnapshot installSnapshot = createInstallSnapshot();
-                    return installSnapshot;
-                }
+                final Path snapshotPath = logHandler.getSnapshotter().findSnapshot(response.prevLogId());
+                final RaftSnapshotBody body = logHandler.getSnapshotter().getBody(snapshotPath);
+                snapshotContext = new SnapshotContext(snapshotPath, body.getEntries());
+                return createInstallSnapshot();
             }
         }
 
@@ -300,7 +300,7 @@ public class Client implements Closeable {
         }
     }
 
-    private AppendEntry createAppendEntryRequest() {
+    AppendEntry createAppendEntryRequest() {
         if (prevLogId != -1 && prevLogId == logHandler.getLogId()) {
             return new AppendEntry(
                     manager.getNodeConfig().id(),
@@ -338,7 +338,7 @@ public class Client implements Closeable {
         } else {
             entries = logHandler.getEntries().subList(
                     nextLogIndex,
-                    Math.min(logHandler.getEntries().size(), nextLogIndex + BATCH_SIZE));
+                    Math.min(logHandler.getEntries().size(), nextLogIndex + batchSize));
             prevLogId = this.prevLogId;
             prevLogTerm = this.prevLogTerm;
             prevLogIndex = prevLogIndex + entries.size();
@@ -359,8 +359,9 @@ public class Client implements Closeable {
             throw new RuntimeException("Snapshot context must be set before creating InstallSnapshot");
         }
 
-        final List<RaftLogEntry> entries =
-                snapshotContext.entries.subList(snapshotContext.index, snapshotContext.index + BATCH_SIZE);
+        final List<RaftLogEntry> entries = snapshotContext.entries.subList(
+                snapshotContext.index,
+                Math.min(snapshotContext.entries.size(), snapshotContext.index + batchSize));
         ByteBuffer buffer = ByteBuffer.allocate(1024);
         for (RaftLogEntry entry : entries) {
             final byte[] entryBytes = entry.serialize();
@@ -375,7 +376,7 @@ public class Client implements Closeable {
             buffer.put(entryBytes);
         }
 
-        snapshotContext.index += BATCH_SIZE;
+        snapshotContext.index += batchSize;
         snapshotContext.offset += buffer.capacity();
 
         return new InstallSnapshot(
