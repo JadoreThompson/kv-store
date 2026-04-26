@@ -4,11 +4,10 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="f2a63f83-7187-4a54-8703-b4d1ce6944cf" name="Changes" comment="saving - Added leader side tests to AppendEntryTest">
+    <list default="true" id="f2a63f83-7187-4a54-8703-b4d1ce6944cf" name="Changes" comment="Added leader side tests to AppendEntryTest">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/client/target/client-1.0-SNAPSHOT.jar" beforeDir="false" afterPath="$PROJECT_DIR$/client/target/client-1.0-SNAPSHOT.jar" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/server/src/main/java/com/zenz/kvstore/server/raft/Client.java" beforeDir="false" afterPath="$PROJECT_DIR$/server/src/main/java/com/zenz/kvstore/server/raft/Client.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/server/src/test/java/com/zenz/kvstore/server/raft/AppendEntryTest.java" beforeDir="false" afterPath="$PROJECT_DIR$/server/src/test/java/com/zenz/kvstore/server/raft/AppendEntryTest.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/server/src/test/java/com/zenz/kvstore/server/raft/InstallSnapshotTest.java" beforeDir="false" afterPath="$PROJECT_DIR$/server/src/test/java/com/zenz/kvstore/server/raft/InstallSnapshotTest.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -87,6 +86,9 @@
     "JUnit.ElectionTest.executor": "Run",
     "JUnit.ElectionTest.test_lowerLogNode_cannotWinElection.executor": "Run",
     "JUnit.ElectionTest.test_sameLogId_differentTerms_higherTermWins.executor": "Run",
+    "JUnit.InstallSnapshotTest$Leader.executor": "Run",
+    "JUnit.InstallSnapshotTest$Leader.test_installSnapshotResponse_higherTerm_stepsDown.executor": "Run",
+    "JUnit.InstallSnapshotTest$Leader.test_installSnapshotResponse_success_sendsAppendEntry.executor": "Run",
     "JUnit.InstallSnapshotTest.executor": "Run",
     "JUnit.InstallSnapshotTest.test_installSnapshot_createsFileAndLoadsData.executor": "Run",
     "JUnit.InstallSnapshotTest.test_installSnapshot_leaderSwitch_restartsPersist.executor": "Run",
@@ -206,7 +208,7 @@
       <recent name="com.zenz.kvstore.server" />
     </key>
   </component>
-  <component name="RunManager" selected="JUnit.AppendEntryTest$Leader">
+  <component name="RunManager" selected="JUnit.InstallSnapshotTest">
     <configuration name="AppendEntryTest$Leader" type="JUnit" factoryName="JUnit" temporary="true" nameIsGenerated="true">
       <module name="server" />
       <extension name="coverage">
@@ -223,7 +225,7 @@
         <option name="Make" enabled="true" />
       </method>
     </configuration>
-    <configuration name="AppendEntryTest$Leader.test_highTermResponse_setsStateToFollower" type="JUnit" factoryName="JUnit" temporary="true" nameIsGenerated="true">
+    <configuration name="InstallSnapshotTest$Leader" type="JUnit" factoryName="JUnit" temporary="true" nameIsGenerated="true">
       <module name="server" />
       <extension name="coverage">
         <pattern>
@@ -231,15 +233,14 @@
           <option name="ENABLED" value="true" />
         </pattern>
       </extension>
-      <option name="PACKAGE_NAME" value="com.zenz.kvstore.server.raft.AppendEntryTest" />
-      <option name="MAIN_CLASS_NAME" value="com.zenz.kvstore.server.raft.AppendEntryTest$Leader" />
-      <option name="METHOD_NAME" value="test_highTermResponse_setsStateToFollower" />
-      <option name="TEST_OBJECT" value="method" />
+      <option name="PACKAGE_NAME" value="com.zenz.kvstore.server.raft.InstallSnapshotTest" />
+      <option name="MAIN_CLASS_NAME" value="com.zenz.kvstore.server.raft.InstallSnapshotTest$Leader" />
+      <option name="TEST_OBJECT" value="class" />
       <method v="2">
         <option name="Make" enabled="true" />
       </method>
     </configuration>
-    <configuration name="AppendEntryTest$Leader.test_prevLogMismatch_sendsInstallSnapshot" type="JUnit" factoryName="JUnit" temporary="true" nameIsGenerated="true">
+    <configuration name="InstallSnapshotTest$Leader.test_finalInstallSnapshotResponse_returnsAppendEntry" type="JUnit" factoryName="JUnit" temporary="true" nameIsGenerated="true">
       <module name="server" />
       <extension name="coverage">
         <pattern>
@@ -247,15 +248,15 @@
           <option name="ENABLED" value="true" />
         </pattern>
       </extension>
-      <option name="PACKAGE_NAME" value="com.zenz.kvstore.server.raft.AppendEntryTest" />
-      <option name="MAIN_CLASS_NAME" value="com.zenz.kvstore.server.raft.AppendEntryTest$Leader" />
-      <option name="METHOD_NAME" value="test_prevLogMismatch_sendsInstallSnapshot" />
+      <option name="PACKAGE_NAME" value="com.zenz.kvstore.server.raft.InstallSnapshotTest" />
+      <option name="MAIN_CLASS_NAME" value="com.zenz.kvstore.server.raft.InstallSnapshotTest$Leader" />
+      <option name="METHOD_NAME" value="test_finalInstallSnapshotResponse_returnsAppendEntry" />
       <option name="TEST_OBJECT" value="method" />
       <method v="2">
         <option name="Make" enabled="true" />
       </method>
     </configuration>
-    <configuration name="AppendEntryTest$Leader.test_successResponse_updatesLogState" type="JUnit" factoryName="JUnit" temporary="true" nameIsGenerated="true">
+    <configuration name="InstallSnapshotTest$Leader.test_installSnapshotResponse_higherTerm_stepsDown" type="JUnit" factoryName="JUnit" temporary="true" nameIsGenerated="true">
       <module name="server" />
       <extension name="coverage">
         <pattern>
@@ -263,15 +264,15 @@
           <option name="ENABLED" value="true" />
         </pattern>
       </extension>
-      <option name="PACKAGE_NAME" value="com.zenz.kvstore.server.raft.AppendEntryTest" />
-      <option name="MAIN_CLASS_NAME" value="com.zenz.kvstore.server.raft.AppendEntryTest$Leader" />
-      <option name="METHOD_NAME" value="test_successResponse_updatesLogState" />
+      <option name="PACKAGE_NAME" value="com.zenz.kvstore.server.raft.InstallSnapshotTest" />
+      <option name="MAIN_CLASS_NAME" value="com.zenz.kvstore.server.raft.InstallSnapshotTest$Leader" />
+      <option name="METHOD_NAME" value="test_installSnapshotResponse_higherTerm_stepsDown" />
       <option name="TEST_OBJECT" value="method" />
       <method v="2">
         <option name="Make" enabled="true" />
       </method>
     </configuration>
-    <configuration name="AppendEntryTest" type="JUnit" factoryName="JUnit" temporary="true" nameIsGenerated="true">
+    <configuration name="InstallSnapshotTest" type="JUnit" factoryName="JUnit" temporary="true" nameIsGenerated="true">
       <module name="server" />
       <extension name="coverage">
         <pattern>
@@ -280,7 +281,7 @@
         </pattern>
       </extension>
       <option name="PACKAGE_NAME" value="com.zenz.kvstore.server.raft" />
-      <option name="MAIN_CLASS_NAME" value="com.zenz.kvstore.server.raft.AppendEntryTest" />
+      <option name="MAIN_CLASS_NAME" value="com.zenz.kvstore.server.raft.InstallSnapshotTest" />
       <option name="TEST_OBJECT" value="class" />
       <method v="2">
         <option name="Make" enabled="true" />
@@ -288,11 +289,11 @@
     </configuration>
     <recent_temporary>
       <list>
+        <item itemvalue="JUnit.InstallSnapshotTest" />
+        <item itemvalue="JUnit.InstallSnapshotTest$Leader" />
+        <item itemvalue="JUnit.InstallSnapshotTest$Leader.test_finalInstallSnapshotResponse_returnsAppendEntry" />
+        <item itemvalue="JUnit.InstallSnapshotTest$Leader.test_installSnapshotResponse_higherTerm_stepsDown" />
         <item itemvalue="JUnit.AppendEntryTest$Leader" />
-        <item itemvalue="JUnit.AppendEntryTest$Leader.test_successResponse_updatesLogState" />
-        <item itemvalue="JUnit.AppendEntryTest$Leader.test_prevLogMismatch_sendsInstallSnapshot" />
-        <item itemvalue="JUnit.AppendEntryTest$Leader.test_highTermResponse_setsStateToFollower" />
-        <item itemvalue="JUnit.AppendEntryTest" />
       </list>
     </recent_temporary>
   </component>
@@ -365,15 +366,9 @@
       <workItem from="1776516679140" duration="4614000" />
       <workItem from="1776535782114" duration="10920000" />
       <workItem from="1776586262546" duration="13991000" />
-      <workItem from="1776677088907" duration="8190000" />
-    </task>
-    <task id="LOCAL-00014" summary="Removed multiline commands support in KVServer">
-      <option name="closed" value="true" />
-      <created>1775573862137</created>
-      <option name="number" value="00014" />
-      <option name="presentableId" value="LOCAL-00014" />
-      <option name="project" value="LOCAL" />
-      <updated>1775573862137</updated>
+      <workItem from="1776677088907" duration="8579000" />
+      <workItem from="1777195276235" duration="20000" />
+      <workItem from="1777228185712" duration="3044000" />
     </task>
     <task id="LOCAL-00015" summary="Miscellaneous qol improvements ; Removed unused classes from raft package">
       <option name="closed" value="true" />
@@ -759,7 +754,15 @@
       <option name="project" value="LOCAL" />
       <updated>1776704296148</updated>
     </task>
-    <option name="localTasksCounter" value="63" />
+    <task id="LOCAL-00063" summary="Added leader side tests to AppendEntryTest">
+      <option name="closed" value="true" />
+      <created>1776708791910</created>
+      <option name="number" value="00063" />
+      <option name="presentableId" value="LOCAL-00063" />
+      <option name="project" value="LOCAL" />
+      <updated>1776708791910</updated>
+    </task>
+    <option name="localTasksCounter" value="64" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -777,7 +780,6 @@
     </option>
   </component>
   <component name="VcsManagerConfiguration">
-    <MESSAGE value="Refactored logging ; Created new snapshotter implementation" />
     <MESSAGE value="Created KVMapSnapshotter for non-raft mode" />
     <MESSAGE value="Removed redundant LogHandler interface methods ; Updated Logger interface to receive LogEntry record" />
     <MESSAGE value="Refactored raft messages" />
@@ -802,6 +804,7 @@
     <MESSAGE value="saving - Created InstallSnapshot tests" />
     <MESSAGE value="Created InstallSnapshot tests" />
     <MESSAGE value="saving - Added leader side tests to AppendEntryTest" />
-    <option name="LAST_COMMIT_MESSAGE" value="saving - Added leader side tests to AppendEntryTest" />
+    <MESSAGE value="Added leader side tests to AppendEntryTest" />
+    <option name="LAST_COMMIT_MESSAGE" value="Added leader side tests to AppendEntryTest" />
   </component>
 </project>

@@ -236,13 +236,13 @@ public class Client implements Closeable {
         return null;
     }
 
-    private Message handleInstallSnapshotResponse(final InstallSnapshotResponse response) {
-        if (response.term() > stateObject.getCurrentTerm()) {
-            stateObject.state = State.FOLLOWER;
-            return null;
+    Message handleInstallSnapshotResponse(final InstallSnapshotResponse response) {
+        if (snapshotContext == null) {
+            throw new RaftClientException("Snapshot context is not set");
         }
 
-        if (snapshotContext == null) {
+        if (response.term() > stateObject.getCurrentTerm()) {
+            stateObject.setState(State.FOLLOWER);
             return null;
         }
 
@@ -354,7 +354,7 @@ public class Client implements Closeable {
                 entries);
     }
 
-    private InstallSnapshot createInstallSnapshot() {
+    InstallSnapshot createInstallSnapshot() {
         if (snapshotContext == null) {
             throw new RuntimeException("Snapshot context must be set before creating InstallSnapshot");
         }
@@ -435,14 +435,21 @@ public class Client implements Closeable {
 
     private static class SnapshotContext {
 
-        private final Path snapshotPath;
-        private final List<RaftLogEntry> entries;
-        private int index;
-        private int offset;
+        public final Path snapshotPath;
+        public final List<RaftLogEntry> entries;
+        public int index;
+        public int offset;
 
         public SnapshotContext(final Path snapshotPath, final List<RaftLogEntry> entries) {
             this.snapshotPath = snapshotPath;
             this.entries = entries;
+        }
+    }
+
+    private static class RaftClientException extends RuntimeException {
+
+        public RaftClientException(final String message) {
+            super(message);
         }
     }
 }
