@@ -15,11 +15,15 @@ public class TestClientObserver implements ClientObserver {
 
     @Override
     public void onSend(final InetSocketAddress to, final Message message) {
-        sentMessages.computeIfAbsent(to, k -> new ArrayList<Message>()).add(message);
+        synchronized (sentMessages) {
+            sentMessages.computeIfAbsent(to, k -> new ArrayList<Message>()).add(message);
+        }
     }
 
     @Override
     public void onReceive(final InetSocketAddress from, final Message message) {
-        receivedMessages.computeIfAbsent(from, k -> new ArrayList<Message>()).add(message);
+        synchronized (receivedMessages) {
+            receivedMessages.computeIfAbsent(from, k -> new ArrayList<Message>()).add(message);
+        }
     }
 }

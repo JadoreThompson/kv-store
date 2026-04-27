@@ -27,8 +27,6 @@ public class Server implements AutoCloseable {
     @Getter
     public Manager manager;
 
-    private RaftLogHandler logHandler;
-
     @Getter
     @Setter
     public StateObject stateObject;
@@ -230,9 +228,9 @@ public class Server implements AutoCloseable {
         if (
                 requestVote.term() <= currentTerm ||
                         requestVote.term() <= stateObject.votedTerm ||
-                        requestVote.lastLogId() < logHandler.getLogId() ||
-                        (requestVote.lastLogId() == logHandler.getLogId()
-                                && requestVote.lastLogTerm() < logHandler.getTerm())) {
+                        requestVote.lastLogId() < stateObject.getLogHandler().getLogId() ||
+                        (requestVote.lastLogId() == stateObject.getLogHandler().getLogId()
+                                && requestVote.lastLogTerm() < stateObject.getLogHandler().getTerm())) {
             return new RequestVoteResponse(requestVote.term(), false);
         }
 
@@ -255,15 +253,18 @@ public class Server implements AutoCloseable {
         stateObject.setCurrentTerm(appendEntry.term());
 
         if (stateObject.getLeaderId() == null || !stateObject.getLeaderId().equals(appendEntry.leaderId())) {
+            log.info("Leader mismatch. Setting leader to {}", appendEntry.leaderId());
             manager.setLeader(appendEntry.leaderId());
-            prevLogId = logHandler.getSeedEntry().id;
-            prevLogTerm = logHandler.getSeedEntry().term;
+            prevLogId = stateObject.getLogHandler().getSeedEntry().id;
+            prevLogTerm = stateObject.getLogHandler().getSeedEntry().term;
         }
 
         long prevLogId = this.prevLogId;
         long prevLogTerm = this.prevLogTerm;
 
         if (appendEntry.prevLogId() != prevLogId || appendEntry.prevLogTerm() != prevLogTerm) {
+            log.info("Sending prev log mismatch prevLogId={}, prevLogTerm={}, appendEntry={}", prevLogId, prevLogTerm, appendEntry);
+            System.exit(-100);
             return new AppendEntryResponse(
                     stateObject.getCurrentTerm(),
                     AppendEntryResponse.FailureReason.PREV_LOG_MISMATCH,
@@ -273,28 +274,28 @@ public class Server implements AutoCloseable {
                     -1);
         }
 
-        if (prevLogIndex >= logHandler.getEntries().size()) {
+        if (prevLogIndex >= stateObject.getLogHandler().getEntries().size()) {
             prevLogIndex = -1;
         }
 
         for (RaftLogEntry entry : appendEntry.entries()) {
             ++prevLogIndex;
-            if (!logHandler.getEntries().isEmpty() && prevLogIndex < logHandler.getEntries().size()) {
-                final RaftLogEntry existingEntry = logHandler.getEntries().get(prevLogIndex);
+            if (!stateObject.getLogHandler().getEntries().isEmpty() && prevLogIndex < stateObject.getLogHandler().getEntries().size()) {
+                final RaftLogEntry existingEntry = stateObject.getLogHandler().getEntries().get(prevLogIndex);
                 if (existingEntry.id != entry.id) {
-                    logHandler.setEntries(logHandler.getEntries().subList(0, prevLogIndex));
+                    stateObject.getLogHandler().setEntries(stateObject.getLogHandler().getEntries().subList(0, prevLogIndex));
                 }
             }
-            logHandler.getEntries().add(entry);
+            stateObject.getLogHandler().getEntries().add(entry);
         }
 
         if (!appendEntry.entries().isEmpty()) {
-            logHandler.setLogId(appendEntry.entries().getLast().id);
-            logHandler.setTerm(appendEntry.entries().getLast().term);
+            stateObject.getLogHandler().setLogId(appendEntry.entries().getLast().id);
+            stateObject.getLogHandler().setTerm(appendEntry.entries().getLast().term);
         }
 
-        this.prevLogId = logHandler.getLogId();
-        this.prevLogTerm = logHandler.getTerm();
+        this.prevLogId = stateObject.getLogHandler().getLogId();
+        this.prevLogTerm = stateObject.getLogHandler().getTerm();
         return new AppendEntryResponse(
                 stateObject.getCurrentTerm(),
                 null,
@@ -323,7 +324,7 @@ public class Server implements AutoCloseable {
                     throw new IOException("Unable to delete snapshot file");
                 }
             }
-            snapshotPath = logHandler.getSnapshotter().getFpath(List.of(new RaftLogEntry(
+            snapshotPath = stateObject.getLogHandler().getSnapshotter().getFpath(List.of(new RaftLogEntry(
                     installSnapshot.lastIncludedId(),
                     installSnapshot.lastIncludedTerm(),
                     null)));
@@ -336,12 +337,14 @@ public class Server implements AutoCloseable {
             fileChannel.force(true);
             closeFileChannel();
 
-            logHandler = new RaftLogHandler(logHandler.getLogger(), logHandler.getSnapshotter());
-            logHandler.setLogId(installSnapshot.lastIncludedId());
-            logHandler.setTerm(installSnapshot.lastIncludedTerm());
+            stateObject.setLogHandler(new RaftLogHandler(
+                    stateObject.getLogHandler().getLogger(),
+                    stateObject.getLogHandler().getSnapshotter()));
+            stateObject.getLogHandler().setLogId(installSnapshot.lastIncludedId());
+            stateObject.getLogHandler().setTerm(installSnapshot.lastIncludedTerm());
 
             final RaftKVStoreRestorer restorer = new RaftKVStoreRestorer();
-            final KVStore newKvstore = restorer.restore(new KVStore(logHandler));
+            final KVStore newKvstore = restorer.restore(new KVStore(stateObject.getLogHandler()));
             manager.setKvstore(newKvstore);
         }
 
@@ -391,7 +394,6 @@ public class Server implements AutoCloseable {
 
     public void setManager(final Manager manager) {
         this.manager = manager;
-        logHandler = (RaftLogHandler) manager.getKvstore().getLogHandler();
         log = LoggerFactory.getLogger(String.format("[%s][Server] ", manager.getNodeConfig().id()));
     }
 

@@ -64,8 +64,6 @@ public class AppendEntryTest {
             when(mockManager.getNodeConfig()).thenReturn(new NodeConfig(
                     "follower",
                     new InetSocketAddress("localhost", 9999)));
-            doReturn(spyLogHandler).when(mockKvstore).getLogHandler();
-            doReturn(mockKvstore).when(mockManager).getKvstore();
             when(mockStateObject.getCurrentTerm()).thenReturn(1L);
             when(mockStateObject.getLeaderId()).thenReturn(null);
             when(spyLogHandler.getSeedEntry()).thenReturn(new RaftLogEntry(
@@ -74,6 +72,7 @@ public class AppendEntryTest {
                     new PutCommand("seed", "value".getBytes(StandardCharsets.UTF_8))));
             server.setManager(mockManager);
             server.setStateObject(mockStateObject);
+            when(mockStateObject.getLogHandler()).thenReturn(spyLogHandler);
 
             final Message response = server.handleAppendEntry(appendEntry);
             assertInstanceOf(AppendEntryResponse.class, response);
@@ -103,8 +102,6 @@ public class AppendEntryTest {
             when(mockManager.getNodeConfig()).thenReturn(new NodeConfig(
                     "follower",
                     new InetSocketAddress("localhost", 9999)));
-            doReturn(spyLogHandler).when(mockKvstore).getLogHandler();
-            doReturn(mockKvstore).when(mockManager).getKvstore();
             when(mockStateObject.getCurrentTerm()).thenReturn(2L);
             server.setManager(mockManager);
             server.setStateObject(mockStateObject);
@@ -164,8 +161,6 @@ public class AppendEntryTest {
             when(mockManager.getNodeConfig()).thenReturn(new NodeConfig(
                     "follower",
                     new InetSocketAddress("localhost", 9999)));
-            doReturn(spyLogHandler).when(mockKvstore).getLogHandler();
-            doReturn(mockKvstore).when(mockManager).getKvstore();
             when(mockStateObject.getCurrentTerm()).thenReturn(1L);
             when(mockStateObject.getLeaderId()).thenReturn(null);
             when(spyLogHandler.getSeedEntry()).thenReturn(new RaftLogEntry(
@@ -176,6 +171,7 @@ public class AppendEntryTest {
             when(spyLogHandler.getTerm()).thenReturn(0L);
             server.setManager(mockManager);
             server.setStateObject(mockStateObject);
+            when(mockStateObject.getLogHandler()).thenReturn(spyLogHandler);
 
             final Message response = server.handleAppendEntry(appendEntry);
             assertInstanceOf(AppendEntryResponse.class, response);
@@ -201,8 +197,6 @@ public class AppendEntryTest {
             when(mockManager.getNodeConfig()).thenReturn(new NodeConfig(
                     "follower",
                     new InetSocketAddress("localhost", 9999)));
-            doReturn(spyLogHandler).when(mockKvstore).getLogHandler();
-            doReturn(mockKvstore).when(mockManager).getKvstore();
             when(mockStateObject.getCurrentTerm()).thenReturn(1L);
             when(mockStateObject.getLeaderId()).thenReturn(null);
             when(spyLogHandler.getSeedEntry()).thenReturn(new RaftLogEntry(
@@ -211,6 +205,7 @@ public class AppendEntryTest {
                     new PutCommand("seed", "value".getBytes(StandardCharsets.UTF_8))));
             server.setManager(mockManager);
             server.setStateObject(mockStateObject);
+            when(mockStateObject.getLogHandler()).thenReturn(spyLogHandler);
 
             final Message response = server.handleAppendEntry(appendEntry);
             assertInstanceOf(AppendEntryResponse.class, response);
@@ -301,11 +296,10 @@ public class AppendEntryTest {
             snapshotter.setDir(snapshotDir);
             snapshotter.snapshot(entries);
 
-            when(mockManager.getKvstore()).thenReturn(mockKvstore);
             when(mockManager.getNodeConfig()).thenReturn(new NodeConfig(
                     "leader",
                     new InetSocketAddress("localhost", 9999)));
-            doReturn(spyLogHandler).when(mockKvstore).getLogHandler();
+            when(mockStateObject.getLogHandler()).thenReturn(spyLogHandler);
 
             client.setStateObject(mockStateObject);
             client.setManager(mockManager);
@@ -331,12 +325,11 @@ public class AppendEntryTest {
         public void test_successResponse_returnsNextBatch_of_logEntries() throws IOException {
             final List<RaftLogEntry> entries = createLogEntries(0, 20, 1);
 
-            when(mockManager.getKvstore()).thenReturn(mockKvstore);
             when(mockManager.getNodeConfig()).thenReturn(new NodeConfig(
                     "leader",
                     new InetSocketAddress("localhost", 9999)));
-            doReturn(spyLogHandler).when(mockKvstore).getLogHandler();
             doReturn(entries).when(spyLogHandler).getEntries();
+            when(mockStateObject.getLogHandler()).thenReturn(spyLogHandler);
 
             client.setStateObject(mockStateObject);
             client.setManager(mockManager);
@@ -377,8 +370,6 @@ public class AppendEntryTest {
             when(mockManager.getNodeConfig()).thenReturn(new NodeConfig(
                     "leader",
                     new InetSocketAddress("localhost", 9999)));
-            when(mockManager.getKvstore()).thenReturn(mockKvstore);
-            doReturn(spyLogHandler).when(mockKvstore).getLogHandler();
 
             client.setStateObject(mockStateObject);
             client.setManager(mockManager);
@@ -391,13 +382,12 @@ public class AppendEntryTest {
 
         @Test
         public void test_heartbeat_emptyEntries() throws IOException {
-            when(mockManager.getKvstore()).thenReturn(mockKvstore);
             when(mockManager.getNodeConfig()).thenReturn(new NodeConfig(
                     "leader",
                     new InetSocketAddress("localhost", 9999)));
-            doReturn(spyLogHandler).when(mockKvstore).getLogHandler();
             when(spyLogHandler.getSeedEntry()).thenReturn(new RaftLogEntry(0L, 0L, new PutCommand("seed", "value".getBytes(StandardCharsets.UTF_8))));
             when(spyLogHandler.getEntries()).thenReturn(new ArrayList<>());
+            when(mockStateObject.getLogHandler()).thenReturn(spyLogHandler);
 
             client.setStateObject(mockStateObject);
             client.setManager(mockManager);
@@ -420,14 +410,13 @@ public class AppendEntryTest {
         @Test
         public void test_batchEntries_respectsBatchSize() throws IOException {
             final List<RaftLogEntry> manyEntries = createLogEntries(0, 25, 1);
-            when(mockManager.getKvstore()).thenReturn(mockKvstore);
             when(mockManager.getNodeConfig()).thenReturn(new NodeConfig(
                     "leader",
                     new InetSocketAddress("localhost", 9999)));
-            doReturn(spyLogHandler).when(mockKvstore).getLogHandler();
             RaftLogEntry seed = new RaftLogEntry(0L, 0L, new PutCommand("seed", "value".getBytes(StandardCharsets.UTF_8)));
             when(spyLogHandler.getSeedEntry()).thenReturn(seed);
             when(spyLogHandler.getEntries()).thenReturn(manyEntries);
+            when(mockStateObject.getLogHandler()).thenReturn(spyLogHandler);
 
             spyLogHandler.setLogId(0L);
             spyLogHandler.setTerm(1L);

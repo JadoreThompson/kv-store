@@ -3,6 +3,8 @@ package com.zenz.kvstore.server.raft;
 import com.zenz.kvstore.common.command.Command;
 import com.zenz.kvstore.server.KVStore;
 import com.zenz.kvstore.server.exception.ResourceNotFoundException;
+import com.zenz.kvstore.server.logging.NoOpLogHandler;
+import com.zenz.kvstore.server.logging.RaftLogHandler;
 import com.zenz.kvstore.server.raft.message.RequestVoteResponse;
 import lombok.Getter;
 import lombok.Setter;
@@ -12,9 +14,9 @@ import org.slf4j.LoggerFactory;
 import java.io.Closeable;
 import java.io.IOException;
 import java.util.*;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.concurrent.Future;
 
 
 public class Manager implements Closeable {
@@ -30,7 +32,10 @@ public class Manager implements Closeable {
     private final List<NodeConfig> peerConfigs = new ArrayList<>();
 
     private final ExecutorService executorService = Executors.newCachedThreadPool();
+
+    @Getter
     private Server server;
+
     @Getter
     private final List<Client> clients = new ArrayList<>();
     private final Map<Client, NodeConfig> clientNodeConfigMap = new HashMap<>();
@@ -50,14 +55,14 @@ public class Manager implements Closeable {
 
     // Debug
     private final Logger log;
-    private final String DEBUG_PREFIX;
 
     public Manager(final KVStore kvStore, final NodeConfig nodeConfig, final List<NodeConfig> peerConfigs) {
         this.kvstore = kvStore;
+        stateObject.setLogHandler((RaftLogHandler) kvstore.getLogHandler());
+        kvstore.setLogHandler(new NoOpLogHandler<>());
         this.nodeConfig = nodeConfig;
         this.peerConfigs.addAll(peerConfigs);
-        DEBUG_PREFIX = String.format("[%s][Manager]", nodeConfig.id());
-        log = LoggerFactory.getLogger(DEBUG_PREFIX);
+        log = LoggerFactory.getLogger(String.format("[%s][Manager]", nodeConfig.id()));
     }
 
     public void open() throws InterruptedException {
@@ -142,6 +147,25 @@ public class Manager implements Closeable {
         };
     }
 
+    /**
+     * Replicates the log entry derived from this command across follower nodes
+     *
+     * @return A future which completes when a majority of nodes have committed the entry to their logs
+     */
+    public CompletableFuture<Boolean> handleCommand(final Command command) throws IOException {
+        final long prevLogId = stateObject.getLogHandler().getLogId();
+        final long prevLogTerm = stateObject.getLogHandler().getTerm();
+        final StateObject.ReplicateTask replicateTask = new StateObject.ReplicateTask(
+                stateObject.getLogHandler().log(command),
+                prevLogId,
+                prevLogTerm,
+                new CompletableFuture<>(),
+                1 + (1 + peerConfigs.size() / 2)
+        );
+        stateObject.setReplicateTask(replicateTask);
+        return replicateTask.getFuture();
+    }
+
     public StateObject.Election startElection() {
         final int majority = 1 + (1 + peerConfigs.size() / 2);
         final long term = stateObject.setCurrentTerm(stateObject.getCurrentTerm() + 1);
@@ -153,7 +177,7 @@ public class Manager implements Closeable {
     }
 
     public void handleRequestVoteResponse(final RequestVoteResponse response) {
-        final StateObject.Election election = stateObject.election;
+        final StateObject.Election election = stateObject.getElection();
         if (election == null || election.isDone() || election.term < stateObject.getCurrentTerm()) {
             return;
         }
@@ -162,15 +186,11 @@ public class Manager implements Closeable {
             if (response.voteGranted()) {
                 ++election.voteCount;
                 if (election.isDone()) {
-                    stateObject.state = State.LEADER;
-                    stateObject.leaderId = nodeConfig.id();
+                    stateObject.setState(State.LEADER);
+                    stateObject.setLeaderId(nodeConfig.id());
                 }
             }
         }
-    }
-
-    public Future<Void> replicateCommand(final Command command) {
-        return null;
     }
 
     void handleClientClose(final Client client) {
@@ -184,24 +204,21 @@ public class Manager implements Closeable {
                 peerConfigs.remove(config);
             }
         }
+
         final StateObject.Election election = stateObject.election;
         if (election != null && !election.isDone() && !election.isExpired()) {
             synchronized (election) {
                 ++election.voteCount;
                 if (election.isDone()) {
-                    stateObject.state = State.LEADER;
+                    stateObject.setState(State.LEADER);
                 }
             }
         }
-    }
 
-    /**
-     * Replicates the log entry derived from this command across follower nodes
-     *
-     * @return A future which completes when a majority of nodes have committed the entry to their logs
-     */
-    public CompletableFuture<Boolean> handleCommand(final Command command) {
-        return null;
+        final StateObject.ReplicateTask replicateTask = stateObject.getReplicateTask();
+        if (replicateTask != null && !replicateTask.isDone()) {
+            replicateTask.incrementCount();
+        }
     }
 
     public void close() throws IOException {
@@ -220,6 +237,7 @@ public class Manager implements Closeable {
 
     public void setLeader(final String leaderId) {
         stateObject.setState(State.FOLLOWER);
+        stateObject.setReplicateTask(null);
         stateObject.setLeaderId(leaderId);
         for (Map.Entry<Client, NodeConfig> entry : clientNodeConfigMap.entrySet()) {
             if (entry.getValue().id().equals(leaderId)) {

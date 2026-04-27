@@ -1,5 +1,6 @@
 package com.zenz.kvstore.server.raft;
 
+import com.zenz.kvstore.common.command.PutCommand;
 import com.zenz.kvstore.server.KVStore;
 import com.zenz.kvstore.server.logging.RaftLogHandler;
 import com.zenz.kvstore.server.logging.WALogger;
@@ -118,8 +119,10 @@ public class ElectionTest {
 
         final Manager smallerManager = createManager(smallerNodeConfig, List.of(largerNodeConfig));
         final Manager largerManager = createManager(largerNodeConfig, List.of(smallerNodeConfig));
-        final KVStore largerKvstore = largerManager.getKvstore();
-        largerKvstore.put("key", "value".getBytes(StandardCharsets.UTF_8));
+        largerManager.getStateObject().getLogHandler().setTerm(1L);
+        largerManager.getStateObject().getLogHandler().log(new PutCommand(
+                "key",
+                "value".getBytes(StandardCharsets.UTF_8)));
 
         final ExecutorService executor = Executors.newFixedThreadPool(2);
 

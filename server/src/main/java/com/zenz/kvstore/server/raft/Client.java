@@ -1,7 +1,6 @@
 package com.zenz.kvstore.server.raft;
 
 import com.zenz.kvstore.server.logging.RaftLogEntry;
-import com.zenz.kvstore.server.logging.RaftLogHandler;
 import com.zenz.kvstore.server.raft.message.*;
 import com.zenz.kvstore.server.snapshot.RaftSnapshotBody;
 import lombok.Getter;
@@ -52,7 +51,6 @@ public class Client implements Closeable {
     private ByteBuffer readBuffer = ByteBuffer.allocate(1024);
     private final Queue<ByteBuffer> pendingWrites = new LinkedList<>();
 
-    private RaftLogHandler logHandler;
     private long electionTerm;
 
     private int prevLogIndex = -1;
@@ -149,7 +147,7 @@ public class Client implements Closeable {
                 buffer.put(readBuffer.array());
                 buffer.flip();
                 buffer.limit(buffer.capacity());
-                buffer.position(readBuffer.position());
+                buffer.position(readBuffer.capacity());
                 readBuffer = buffer;
             }
 
@@ -219,6 +217,10 @@ public class Client implements Closeable {
     }
 
     Message handleAppendEntryResponse(final AppendEntryResponse response) throws IOException {
+        final StateObject.ReplicateTask replicateTask = stateObject.getReplicateTask();
+        if (replicateTask != null && !replicateTask.isDone()) {
+            replicateTask.incrementCount();
+        }
         if (response.isSuccess()) {
             return createAppendEntryRequest();
         }
@@ -226,8 +228,11 @@ public class Client implements Closeable {
         switch (response.failureReason()) {
             case GREATER_TERM -> stateObject.setState(State.FOLLOWER);
             case PREV_LOG_MISMATCH -> {
-                final Path snapshotPath = logHandler.getSnapshotter().findSnapshot(response.prevLogId());
-                final RaftSnapshotBody body = logHandler.getSnapshotter().getBody(snapshotPath);
+                final Path snapshotPath = stateObject
+                        .getLogHandler()
+                        .getSnapshotter()
+                        .findSnapshot(response.prevLogId());
+                final RaftSnapshotBody body = stateObject.getLogHandler().getSnapshotter().getBody(snapshotPath);
                 snapshotContext = new SnapshotContext(snapshotPath, body.getEntries());
                 return createInstallSnapshot();
             }
@@ -270,8 +275,8 @@ public class Client implements Closeable {
                 queueWrite(ByteBuffer.wrap(new RequestVote(
                         manager.getNodeConfig().id(),
                         electionTerm,
-                        logHandler.getLogId(),
-                        logHandler.getTerm()).serialize()));
+                        stateObject.getLogHandler().getLogId(),
+                        stateObject.getLogHandler().getTerm()).serialize()));
             } catch (Exception e) {
                 e.printStackTrace();
                 System.exit(-2);
@@ -281,7 +286,21 @@ public class Client implements Closeable {
     }
 
     private void handleLeaderState() {
-        if (prevLogId != -1 && prevLogId == logHandler.getLogId()) {
+        final StateObject.ReplicateTask replicateTask = stateObject.getReplicateTask();
+        if (
+                replicateTask != null &&
+                        prevLogId == replicateTask.getLogEntry().id - 1 &&
+                        replicateTask.getLogEntry().id == stateObject.getLogHandler().getLogId()) {
+            queueWrite(ByteBuffer.wrap(new AppendEntry(
+                    manager.getNodeConfig().id(),
+                    stateObject.getCurrentTerm(),
+                    replicateTask.getPrevLogId(),
+                    replicateTask.getPrevLogTerm(),
+                    List.of(replicateTask.getLogEntry())).serialize()));
+            return;
+        }
+
+        if (prevLogId != -1 && prevLogId == stateObject.getLogHandler().getLogId()) {
             if (System.currentTimeMillis() - lastMessageTs > 100) {
                 queueWrite(ByteBuffer.wrap(new AppendEntry(
                         manager.getNodeConfig().id(),
@@ -292,16 +311,12 @@ public class Client implements Closeable {
                 lastMessageTs = System.currentTimeMillis();
             }
         } else {
-            try {
-                queueWrite(ByteBuffer.wrap(createAppendEntryRequest().serialize()));
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
+            queueWrite(ByteBuffer.wrap(createAppendEntryRequest().serialize()));
         }
     }
 
     AppendEntry createAppendEntryRequest() {
-        if (prevLogId != -1 && prevLogId == logHandler.getLogId()) {
+        if (prevLogId != -1 && prevLogId == stateObject.getLogHandler().getLogId()) {
             return new AppendEntry(
                     manager.getNodeConfig().id(),
                     stateObject.getCurrentTerm(),
@@ -311,17 +326,17 @@ public class Client implements Closeable {
         }
 
         if (prevLogId == -1 && prevLogTerm == -1) {
-            prevLogId = logHandler.getSeedEntry().id;
-            prevLogTerm = logHandler.getSeedEntry().term;
+            prevLogId = stateObject.getLogHandler().getSeedEntry().id;
+            prevLogTerm = stateObject.getLogHandler().getSeedEntry().term;
         }
 
         // We suspect a snapshot occurred
         if (
                 prevLogIndex >= 0 &&
-                        (prevLogIndex >= logHandler.getEntries().size() ||
-                                logHandler.getEntries().get(prevLogIndex).id != prevLogId)) {
+                        (prevLogIndex >= stateObject.getLogHandler().getEntries().size() ||
+                                stateObject.getLogHandler().getEntries().get(prevLogIndex).id != prevLogId)) {
             prevLogIndex = -1;
-            final RaftLogEntry seedLogEntry = logHandler.getSeedEntry();
+            final RaftLogEntry seedLogEntry = stateObject.getLogHandler().getSeedEntry();
             prevLogId = seedLogEntry.id;
             prevLogTerm = seedLogEntry.term;
         }
@@ -330,20 +345,28 @@ public class Client implements Closeable {
         long prevLogId;
         long prevLogTerm;
         List<RaftLogEntry> entries;
-        if (logHandler.getEntries().isEmpty()) {
-            final RaftLogEntry seed = logHandler.getSeedEntry();
+        if (stateObject.getLogHandler().getEntries().isEmpty()) {
+            final RaftLogEntry seed = stateObject.getLogHandler().getSeedEntry();
             prevLogId = seed.id;
             prevLogTerm = seed.term;
             entries = Collections.emptyList();
         } else {
-            entries = logHandler.getEntries().subList(
+            log.info(
+                    "prevLogId={}, prevLogTerm={}, logEntriesSize={}",
+                    this.prevLogId,
+                    this.prevLogTerm,
+                    stateObject.getLogHandler().getEntries().size());
+            entries = stateObject.getLogHandler().getEntries().subList(
                     nextLogIndex,
-                    Math.min(logHandler.getEntries().size(), nextLogIndex + batchSize));
+                    Math.min(stateObject.getLogHandler().getEntries().size(), nextLogIndex + batchSize));
             prevLogId = this.prevLogId;
             prevLogTerm = this.prevLogTerm;
             prevLogIndex = prevLogIndex + entries.size();
-            this.prevLogId = entries.getLast().id;
-            this.prevLogTerm = entries.getLast().term;
+
+            if (!entries.isEmpty()) {
+                this.prevLogId = entries.getLast().id;
+                this.prevLogTerm = entries.getLast().term;
+            }
         }
 
         return new AppendEntry(
@@ -428,7 +451,6 @@ public class Client implements Closeable {
 
     public void setManager(final Manager manager) {
         this.manager = manager;
-        logHandler = (RaftLogHandler) manager.getKvstore().getLogHandler();
         DEBUG_PREFIX = String.format("[%s][Client]", manager.getNodeConfig().id());
         log = LoggerFactory.getLogger(DEBUG_PREFIX);
     }

@@ -1,11 +1,11 @@
 package com.zenz.kvstore.server.raft;
 
 import com.zenz.kvstore.server.logging.RaftLogEntry;
+import com.zenz.kvstore.server.logging.RaftLogHandler;
 import lombok.Getter;
 import lombok.Setter;
 
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.Future;
 
 public class StateObject {
 
@@ -32,6 +32,10 @@ public class StateObject {
     @Setter
     public volatile String leaderId;
 
+    @Getter
+    @Setter
+    private RaftLogHandler logHandler;
+
     private final Object currentTermLock = new Object();
 
     public StateObject() {
@@ -46,15 +50,45 @@ public class StateObject {
 
     public static class ReplicateTask {
 
-        public final RaftLogEntry logEntry;
-        public final long prevLogTerm;
-        public final long prevLogId;
-        public final Future<Void> fut = new CompletableFuture<>();
+        @Getter
+        private final RaftLogEntry logEntry;
+        @Getter
+        private final long prevLogId;
+        @Getter
+        private final long prevLogTerm;
+        @Getter
+        private final CompletableFuture<Boolean> future;
+        @Getter
+        private final int majority;
 
-        public ReplicateTask(final RaftLogEntry logEntry, final long prevLogId, final long prevLogTerm) {
+        private int count = 0;
+        private final Object lock = new Object();
+
+        public ReplicateTask(
+                RaftLogEntry logEntry,
+                long prevLogId,
+                long prevLogTerm,
+                CompletableFuture<Boolean> future,
+                int majority
+        ) {
             this.logEntry = logEntry;
             this.prevLogId = prevLogId;
             this.prevLogTerm = prevLogTerm;
+            this.future = future;
+            this.majority = majority;
+        }
+
+        public void incrementCount() {
+            synchronized (lock) {
+                ++count;
+                if (count >= majority && !future.isDone()) {
+                    future.complete(true);
+                }
+            }
+        }
+
+        public boolean isDone() {
+            return future.isDone();
         }
     }
 
