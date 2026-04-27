@@ -15,7 +15,7 @@ public record RedirectResponse(
 ) implements BaseErrorResponse {
 
     public RedirectResponse(InetSocketAddress address) {
-        this(ResponseType.ERROR_RESPONSE, ErrorType.NOT_CONTROLLER, address);
+        this(ResponseType.ERROR_RESPONSE, ErrorType.NOT_LEADER, address);
     }
 
     @Override
@@ -46,7 +46,7 @@ public record RedirectResponse(
 
             int errorTypeValue = buffer.getInt();
             ErrorType errorType = ErrorType.fromValue(errorTypeValue);
-            if (!errorType.equals(ErrorType.NOT_CONTROLLER)) {
+            if (!errorType.equals(ErrorType.NOT_LEADER)) {
                 throw new IllegalArgumentException("Invalid error type " + errorType);
             }
 

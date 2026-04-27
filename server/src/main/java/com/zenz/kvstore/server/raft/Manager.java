@@ -195,6 +195,15 @@ public class Manager implements Closeable {
         }
     }
 
+    /**
+     * Replicates the log entry derived from this command across follower nodes
+     *
+     * @return A future which completes when a majority of nodes have committed the entry to their logs
+     */
+    public CompletableFuture<Boolean> handleCommand(final Command command) {
+        return null;
+    }
+
     public void close() throws IOException {
         if (!isOpen) {
             return;

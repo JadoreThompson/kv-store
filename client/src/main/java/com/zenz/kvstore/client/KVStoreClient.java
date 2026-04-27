@@ -106,7 +106,7 @@ public class KVStoreClient {
             ErrorType errorType = errorResponse.errorType();
             String errorMessage = null;
 
-            if (errorType.equals(ErrorType.NOT_CONTROLLER)) {
+            if (errorType.equals(ErrorType.NOT_LEADER)) {
                 errorMessage = "Node is no longer controller";
                 response = handleRedirectResponse((RedirectResponse) errorResponse);
             } else if (errorType.equals(ErrorType.IN_ELECTION)) {

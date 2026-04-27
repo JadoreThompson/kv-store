@@ -1,6 +1,7 @@
 package com.zenz.kvstore.server;
 
 import com.zenz.kvstore.common.command.Command;
+import com.zenz.kvstore.common.response.BaseResponse;
 import com.zenz.kvstore.server.command.handler.BaseCommandHandler;
 
 import java.io.IOException;
@@ -57,7 +58,7 @@ public class KVServer {
             while (keys.hasNext()) {
                 SelectionKey key = keys.next();
                 keys.remove();
-                
+
                 try {
                     if (!key.isValid()) {
                         cleanup(key);
@@ -154,9 +155,9 @@ public class KVServer {
         }
 
         try {
-            ByteBuffer responseBuffer = commandHandler.handleCommand(command);
-            if (responseBuffer != null) {
-                queueWrite(session.getChannel(), responseBuffer);
+            BaseResponse response = commandHandler.handleCommand(command);
+            if (response != null) {
+                queueWrite(session.getChannel(), ByteBuffer.wrap(response.serialize()));
             }
         } catch (Exception e) {
             queueWrite(

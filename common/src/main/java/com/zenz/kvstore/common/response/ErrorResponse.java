@@ -39,7 +39,7 @@ public record ErrorResponse(ResponseType type, ErrorType errorType, String messa
             int errorTypeValue = buffer.getInt();
             ErrorType errorType = ErrorType.fromValue(errorTypeValue);
 
-            if (errorType.equals(ErrorType.NOT_CONTROLLER)) {
+            if (errorType.equals(ErrorType.NOT_LEADER)) {
                 buffer.rewind();
                 return RedirectResponse.deserialize(buffer);
             }
