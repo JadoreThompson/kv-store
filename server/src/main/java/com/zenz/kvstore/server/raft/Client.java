@@ -56,6 +56,7 @@ public class Client implements Closeable {
     private int prevLogIndex = -1;
     private long prevLogId = -1;
     private long prevLogTerm = -1;
+    private boolean receivedAppendEntry;
     private SnapshotContext snapshotContext;
 
     @Getter
@@ -79,8 +80,7 @@ public class Client implements Closeable {
         openSocketChannel();
 
         while (isOpen) {
-            final State curState = stateObject.state;
-            switch (curState) {
+            switch (stateObject.getState()) {
                 case CANDIDATE -> handleCandidateState();
                 case LEADER -> handleLeaderState();
             }
@@ -95,6 +95,10 @@ public class Client implements Closeable {
                 final SelectionKey key = it.next();
                 it.remove();
 
+                if (!key.isValid()) {
+                    continue;
+                }
+
                 try {
                     if (key.isConnectable()) {
                         handleConnect(key);
@@ -104,7 +108,7 @@ public class Client implements Closeable {
                         handleWrite(key);
                     }
                 } catch (Exception e) {
-                    e.printStackTrace();
+                    log.error(e.getMessage(), e);
                 }
             }
         }
@@ -222,6 +226,7 @@ public class Client implements Closeable {
             replicateTask.incrementCount();
         }
         if (response.isSuccess()) {
+            receivedAppendEntry = true;
             return createAppendEntryRequest();
         }
 
@@ -286,17 +291,7 @@ public class Client implements Closeable {
     }
 
     private void handleLeaderState() {
-        final StateObject.ReplicateTask replicateTask = stateObject.getReplicateTask();
-        if (
-                replicateTask != null &&
-                        prevLogId == replicateTask.getLogEntry().id - 1 &&
-                        replicateTask.getLogEntry().id == stateObject.getLogHandler().getLogId()) {
-            queueWrite(ByteBuffer.wrap(new AppendEntry(
-                    manager.getNodeConfig().id(),
-                    stateObject.getCurrentTerm(),
-                    replicateTask.getPrevLogId(),
-                    replicateTask.getPrevLogTerm(),
-                    List.of(replicateTask.getLogEntry())).serialize()));
+        if (prevLogId != -1 && !receivedAppendEntry) {
             return;
         }
 
@@ -316,6 +311,7 @@ public class Client implements Closeable {
     }
 
     AppendEntry createAppendEntryRequest() {
+        receivedAppendEntry = false;
         if (prevLogId != -1 && prevLogId == stateObject.getLogHandler().getLogId()) {
             return new AppendEntry(
                     manager.getNodeConfig().id(),
@@ -331,10 +327,12 @@ public class Client implements Closeable {
         }
 
         // We suspect a snapshot occurred
+        final List<RaftLogEntry> logEntries = stateObject.getLogHandler().getEntries();
+        final int logEntriesSize = logEntries.size();
         if (
                 prevLogIndex >= 0 &&
-                        (prevLogIndex >= stateObject.getLogHandler().getEntries().size() ||
-                                stateObject.getLogHandler().getEntries().get(prevLogIndex).id != prevLogId)) {
+                        (prevLogIndex >= logEntriesSize ||
+                                logEntries.get(prevLogIndex).id != prevLogId)) {
             prevLogIndex = -1;
             final RaftLogEntry seedLogEntry = stateObject.getLogHandler().getSeedEntry();
             prevLogId = seedLogEntry.id;
@@ -345,20 +343,16 @@ public class Client implements Closeable {
         long prevLogId;
         long prevLogTerm;
         List<RaftLogEntry> entries;
-        if (stateObject.getLogHandler().getEntries().isEmpty()) {
+        if (logEntries.isEmpty()) {
             final RaftLogEntry seed = stateObject.getLogHandler().getSeedEntry();
             prevLogId = seed.id;
             prevLogTerm = seed.term;
             entries = Collections.emptyList();
         } else {
-            log.info(
-                    "prevLogId={}, prevLogTerm={}, logEntriesSize={}",
-                    this.prevLogId,
-                    this.prevLogTerm,
-                    stateObject.getLogHandler().getEntries().size());
-            entries = stateObject.getLogHandler().getEntries().subList(
+            List<RaftLogEntry> subList = logEntries.subList(
                     nextLogIndex,
-                    Math.min(stateObject.getLogHandler().getEntries().size(), nextLogIndex + batchSize));
+                    Math.min(logEntriesSize, nextLogIndex + batchSize));
+            entries = new ArrayList<>(subList);
             prevLogId = this.prevLogId;
             prevLogTerm = this.prevLogTerm;
             prevLogIndex = prevLogIndex + entries.size();

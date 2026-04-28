@@ -13,6 +13,7 @@ import org.slf4j.LoggerFactory;
 
 import java.io.Closeable;
 import java.io.IOException;
+import java.net.BindException;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
@@ -115,7 +116,10 @@ public class Manager implements Closeable {
         while (isOpen) {
             final int sleepTime = random.nextInt(1000, 1500);
             Thread.sleep(sleepTime);
-            if (stateObject.state != State.FOLLOWER) {
+            if (!isOpen) {
+                break;
+            }
+            if (stateObject.getState() != State.FOLLOWER) {
                 continue;
             }
 
@@ -128,7 +132,7 @@ public class Manager implements Closeable {
                 }
                 log.info(message);
             } else if (System.currentTimeMillis() - server.getLastAppendEntryTs() > sleepTime) {
-                log.info("Leader client message timed out");
+                log.info("Leader client message timed out. Starting election");
                 startElection();
                 leaderClient = null;
                 electionStarted = false;
@@ -140,8 +144,10 @@ public class Manager implements Closeable {
         return () -> {
             try {
                 runnable.run();
+            } catch (BindException e) {
+                throw new RuntimeException(e);
             } catch (IOException e) {
-                e.printStackTrace();
+                log.warn(e.getMessage(), e);
                 throw new RuntimeException(e);
             }
         };
@@ -167,13 +173,13 @@ public class Manager implements Closeable {
     }
 
     public StateObject.Election startElection() {
-        final int majority = 1 + (1 + peerConfigs.size() / 2);
+        final int majority = 1 + ((1 + peerConfigs.size()) / 2);
         final long term = stateObject.setCurrentTerm(stateObject.getCurrentTerm() + 1);
-        stateObject.election = new StateObject.Election(term, majority, System.currentTimeMillis() + 15000);
-        stateObject.state = State.CANDIDATE;
-        stateObject.votedTerm = term;
+        stateObject.setElection(new StateObject.Election(term, majority, System.currentTimeMillis() + 15_000));
+        stateObject.setState(State.CANDIDATE);
+        stateObject.setVotedTerm(term);
         handleRequestVoteResponse(new RequestVoteResponse(term, true));
-        return stateObject.election;
+        return stateObject.getElection();
     }
 
     public void handleRequestVoteResponse(final RequestVoteResponse response) {
@@ -186,6 +192,7 @@ public class Manager implements Closeable {
             if (response.voteGranted()) {
                 ++election.voteCount;
                 if (election.isDone()) {
+                    log.info("Handling request vote response. Setting state to leader");
                     stateObject.setState(State.LEADER);
                     stateObject.setLeaderId(nodeConfig.id());
                 }
@@ -205,7 +212,8 @@ public class Manager implements Closeable {
             }
         }
 
-        final StateObject.Election election = stateObject.election;
+//        final StateObject.Election election = stateObject.election;
+        final StateObject.Election election = stateObject.getElection();
         if (election != null && !election.isDone() && !election.isExpired()) {
             synchronized (election) {
                 ++election.voteCount;
@@ -227,6 +235,7 @@ public class Manager implements Closeable {
         }
 
         isOpen = false;
+        stateObject.setState(State.FOLLOWER);
         final List<Client> clients = new ArrayList<>(this.clients);
         for (Client client : clients) {
             client.close();

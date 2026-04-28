@@ -132,8 +132,6 @@ public class AppendEntryTest {
             when(mockManager.getNodeConfig()).thenReturn(new NodeConfig(
                     "follower",
                     new InetSocketAddress("localhost", 9999)));
-            doReturn(spyLogHandler).when(mockKvstore).getLogHandler();
-            doReturn(mockKvstore).when(mockManager).getKvstore();
             when(mockStateObject.getCurrentTerm()).thenReturn(2L);
             when(mockStateObject.getLeaderId()).thenReturn("leader");
             server.setManager(mockManager);
@@ -231,14 +229,13 @@ public class AppendEntryTest {
             when(mockManager.getNodeConfig()).thenReturn(new NodeConfig(
                     "follower",
                     new InetSocketAddress("localhost", 9999)));
-            doReturn(spyLogHandler).when(mockKvstore).getLogHandler();
-            doReturn(mockKvstore).when(mockManager).getKvstore();
             when(mockStateObject.getCurrentTerm()).thenReturn(2L);
             when(spyLogHandler.getSeedEntry()).thenReturn(new RaftLogEntry(
                     0L,
                     0L,
                     new PutCommand("seed", "value".getBytes(StandardCharsets.UTF_8))));
             when(spyLogHandler.getEntries()).thenReturn(localEntries);
+            when(mockStateObject.getLogHandler()).thenReturn(spyLogHandler);
             spyLogHandler.setLogId(2L);
             spyLogHandler.setTerm(1L);
             server.setManager(mockManager);

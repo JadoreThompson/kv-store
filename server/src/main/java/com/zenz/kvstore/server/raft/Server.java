@@ -81,6 +81,10 @@ public class Server implements AutoCloseable {
                 final SelectionKey key = it.next();
                 it.remove();
 
+                if (!key.isValid()) {
+                    continue;
+                }
+
                 try {
                     if (key.isAcceptable()) {
                         handleAccept(key);
@@ -90,12 +94,12 @@ public class Server implements AutoCloseable {
                         handleWrite(key);
                     }
                 } catch (Exception e) {
-                    e.printStackTrace();
+                    log.error(e.getMessage(), e);
                 }
             }
         }
 
-        log.info("Existing loop");
+        log.info("Exiting loop");
     }
 
     @Override
@@ -263,8 +267,6 @@ public class Server implements AutoCloseable {
         long prevLogTerm = this.prevLogTerm;
 
         if (appendEntry.prevLogId() != prevLogId || appendEntry.prevLogTerm() != prevLogTerm) {
-            log.info("Sending prev log mismatch prevLogId={}, prevLogTerm={}, appendEntry={}", prevLogId, prevLogTerm, appendEntry);
-            System.exit(-100);
             return new AppendEntryResponse(
                     stateObject.getCurrentTerm(),
                     AppendEntryResponse.FailureReason.PREV_LOG_MISMATCH,

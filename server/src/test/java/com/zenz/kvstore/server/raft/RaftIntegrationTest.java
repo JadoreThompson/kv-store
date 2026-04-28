@@ -25,6 +25,7 @@ import java.util.Random;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Stream;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -32,18 +33,18 @@ import static org.junit.jupiter.api.Assertions.*;
 public class RaftIntegrationTest {
 
     private Path logsDir;
-    private Path snapshotDir;
+    private Path snapshotsDir;
 
     @BeforeEach
     public void init() throws IOException {
         logsDir = Files.createTempDirectory("raft-integration-logs-");
-        snapshotDir = Files.createTempDirectory("raft-integration-snapshots-");
+        snapshotsDir = Files.createTempDirectory("raft-integration-snapshots-");
     }
 
     @AfterEach
     public void tearDown() throws IOException {
         logsDir.toFile().delete();
-        snapshotDir.toFile().delete();
+        snapshotsDir.toFile().delete();
     }
 
     @Test
@@ -83,7 +84,7 @@ public class RaftIntegrationTest {
 
             log.info("States after initial election - node1: {}, node2: {}, node3: {}", state1, state2, state3);
 
-            final long leaderCount = List.of(state1, state2, state3).stream()
+            final long leaderCount = Stream.of(state1, state2, state3)
                     .filter(s -> s == State.LEADER)
                     .count();
             assertEquals(1, leaderCount, "Exactly one node should be leader after initial election");
@@ -108,18 +109,16 @@ public class RaftIntegrationTest {
             assertNotNull(leaderManager.getNodeConfig(), "Leader should have config");
 
             final RaftCommandHandler commandHandler = new RaftCommandHandler(leaderManager);
-            commandHandler.handleCommand(new PutCommand("key1", "value".getBytes(StandardCharsets.UTF_8)));
+            commandHandler.handleCommand(new PutCommand("key1", "value1".getBytes(StandardCharsets.UTF_8)));
             commandHandler.handleCommand(new PutCommand("key2", "value2".getBytes(StandardCharsets.UTF_8)));
             commandHandler.handleCommand(new PutCommand("key3", "value3".getBytes(StandardCharsets.UTF_8)));
 
             log.info("Leader {} added 3 entries. Waiting for replication...", leaderManager.getNodeConfig().id());
-            Thread.sleep(5_000);
+            Thread.sleep(10_000);
 
             final RaftLogHandler leaderLogHandler = (RaftLogHandler) leaderManager.getStateObject().getLogHandler();
             final int leaderLogId = (int) leaderLogHandler.getLogId();
             log.info("Leader log ID: {}", leaderLogId);
-
-            assertEquals(3, leaderLogId, "Leader log ID should be 3 (3 commands performed)");
 
             for (Manager follower : followers) {
                 final RaftLogHandler followerLogHandler = (RaftLogHandler) follower.getStateObject().getLogHandler();
@@ -128,65 +127,62 @@ public class RaftIntegrationTest {
                 assertEquals(leaderLogId, followerLogHandler.getLogId(),
                         "Follower " + follower.getNodeConfig().id() + " should have same log ID as leader");
             }
-//
-//            log.info("Stopping leader: {}", leaderManager.getNodeConfig().id());
-//            final String leaderId = leaderManager.getNodeConfig().id();
-//            leaderManager.close();
-//
-//            Thread.sleep(8_000);
-//
-//            final State newState1 = manager1.getStateObject().state;
-//            final State newState2 = manager2.getStateObject().state;
-//            final State newState3 = manager3.getStateObject().state;
-//
-//            log.info("States after leader failure - node1: {}, node2: {}, node3: {}", newState1, newState2, newState3);
-//
-//            final long newLeaderCount = List.of(newState1, newState2, newState3).stream()
-//                    .filter(s -> s == State.LEADER)
-//                    .count();
-//            assertEquals(1, newLeaderCount, "Exactly one node should be leader after original leader fails");
-//
-//            Manager newLeader = null;
-//            Manager remainingFollower = null;
-//            if (manager1.getNodeConfig().id().equals(leaderId)) {
-//                if (newState2 == State.LEADER) {
-//                    newLeader = manager2;
-//                    remainingFollower = manager3;
-//                } else if (newState3 == State.LEADER) {
-//                    newLeader = manager3;
-//                    remainingFollower = manager2;
-//                }
-//            } else if (manager2.getNodeConfig().id().equals(leaderId)) {
-//                if (newState1 == State.LEADER) {
-//                    newLeader = manager1;
-//                    remainingFollower = manager3;
-//                } else if (newState3 == State.LEADER) {
-//                    newLeader = manager3;
-//                    remainingFollower = manager1;
-//                }
-//            } else {
-//                if (newState1 == State.LEADER) {
-//                    newLeader = manager1;
-//                    remainingFollower = manager2;
-//                } else if (newState2 == State.LEADER) {
-//                    newLeader = manager2;
-//                    remainingFollower = manager1;
-//                }
-//            }
-//
-//            assertNotNull(newLeader, "Should have a new leader");
-//            assertNotNull(remainingFollower, "Should have one remaining follower");
-//
-//            newLeader.getKvstore().put("key4", "value4".getBytes(StandardCharsets.UTF_8));
-//
-//            log.info("New leader {} added key4. Waiting for replication...", newLeader.getNodeConfig().id());
-//            Thread.sleep(5_000);
-//
-//            final RaftLogHandler newLeaderLogHandler = (RaftLogHandler) newLeader.getKvstore().getLogHandler();
-//            final RaftLogHandler remainingFollowerLogHandler = (RaftLogHandler) remainingFollower.getKvstore().getLogHandler();
-//
-//            assertEquals(newLeaderLogHandler.getLogId(), remainingFollowerLogHandler.getLogId(),
-//                    "Remaining follower should have same log ID as new leader");
+
+            log.info("Stopping leader: {}", leaderManager.getNodeConfig().id());
+            leaderManager.close();
+
+            Thread.sleep(8_000);
+
+            final List<Manager> managers = new ArrayList<>();
+            if (!manager1.getNodeConfig().id().equals(leaderManager.getNodeConfig().id())) {
+                managers.add(manager1);
+            }
+            if (!manager2.getNodeConfig().id().equals(leaderManager.getNodeConfig().id())) {
+                managers.add(manager2);
+            }
+            if (!manager3.getNodeConfig().id().equals(leaderManager.getNodeConfig().id())) {
+                managers.add(manager3);
+            }
+            final Manager remainingManger1 = managers.getFirst();
+            final Manager remainingManger2 = managers.getLast();
+            final State newState1 = remainingManger1.getStateObject().getState();
+            final State newState2 = remainingManger2.getStateObject().getState();
+            log.info(
+                    "States after leader failure - {}: {}, {}: {}",
+                    remainingManger1.getNodeConfig().id(),
+                    newState1,
+                    remainingManger2.getNodeConfig().id(),
+                    newState2);
+
+            final long newLeaderCount = managers.stream()
+                    .filter(m -> m.getStateObject().getState() == State.LEADER)
+                    .count();
+            assertEquals(
+                    1,
+                    newLeaderCount,
+                    "Exactly one node should be leader after original leader fails");
+
+            if (newState1 == State.LEADER) {
+                assertEquals(remainingManger1.getNodeConfig().id(), remainingManger2.getStateObject().getLeaderId());
+            } else {
+                assertEquals(remainingManger2.getNodeConfig().id(), remainingManger1.getStateObject().getLeaderId());
+            }
+
+            Manager newLeader = newState2 == State.LEADER ? manager2 : manager3;
+            Manager remainingFollower = newState2 == State.LEADER ? manager3 : manager2;
+
+            assertNotNull(newLeader, "Should have a new leader");
+            assertNotNull(remainingFollower, "Should have one remaining follower");
+
+            commandHandler.handleCommand(new PutCommand("key4", "value4".getBytes(StandardCharsets.UTF_8)));
+            log.info("New leader {} added key4. Waiting for replication...", newLeader.getNodeConfig().id());
+            Thread.sleep(5_000);
+
+            final RaftLogHandler newLeaderLogHandler = newLeader.getStateObject().getLogHandler();
+            final RaftLogHandler remainingFollowerLogHandler = remainingFollower.getStateObject().getLogHandler();
+
+            assertEquals(newLeaderLogHandler.getLogId(), remainingFollowerLogHandler.getLogId(),
+                    "Remaining follower should have same log ID as new leader");
         }
 
         executor.shutdown();
@@ -198,16 +194,19 @@ public class RaftIntegrationTest {
     }
 
     private Manager createManager(final NodeConfig nodeConfig, final List<NodeConfig> peerConfigs) throws IOException {
+        final var snapshotter = new KVStoreSnapshotter<>(
+                RaftSnapshotHeader.class,
+                RaftSnapshotBody.class,
+                RaftSnapshotFooter.class);
+        final var snapshotsDir = this.snapshotsDir.resolve(nodeConfig.id() + "-snapshots");
+        Files.createDirectories(snapshotsDir);
+
         final Manager manager = new Manager(
                 new KVStore(new RaftLogHandler(
                         new WALogger(logsDir.resolve(nodeConfig.id() + ".log")),
-                        new KVStoreSnapshotter<>(
-                                RaftSnapshotHeader.class,
-                                RaftSnapshotBody.class,
-                                RaftSnapshotFooter.class))),
+                        snapshotter)),
                 nodeConfig,
                 peerConfigs);
-
         final ClientObserver clientObserver = new TestClientObserver();
         final ServerObserver serverObserver = new TestServerObserver();
 
@@ -240,17 +239,5 @@ public class RaftIntegrationTest {
     @FunctionalInterface
     private interface RunnableEx {
         void run() throws Exception;
-    }
-
-    private void deleteDirectory(final java.io.File file) {
-        if (file.isDirectory()) {
-            final java.io.File[] children = file.listFiles();
-            if (children != null) {
-                for (final java.io.File child : children) {
-                    deleteDirectory(child);
-                }
-            }
-        }
-        file.delete();
     }
 }

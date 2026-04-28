@@ -3,7 +3,6 @@ package com.zenz.kvstore.server.raft;
 import com.zenz.kvstore.common.command.PutCommand;
 import com.zenz.kvstore.server.KVStore;
 import com.zenz.kvstore.server.logging.CommandLogger;
-import com.zenz.kvstore.server.logging.Deserializer;
 import com.zenz.kvstore.server.logging.RaftLogEntry;
 import com.zenz.kvstore.server.logging.RaftLogHandler;
 import com.zenz.kvstore.server.raft.message.*;
@@ -25,11 +24,9 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -64,9 +61,10 @@ public class InstallSnapshotTest {
                 RaftSnapshotHeader.class,
                 RaftSnapshotBody.class,
                 RaftSnapshotFooter.class);
-        snapshotDir = Files.createTempDirectory("test-snapshots");
+        snapshotDir = Files.createTempDirectory("test-snapshots-");
         snapshotter.setDir(snapshotDir);
-        logsDir = Files.createTempDirectory("test-logs");
+        spyLogHandler.setSnapshotter(snapshotter);
+        logsDir = Files.createTempDirectory("test-logs-");
     }
 
     @AfterEach
@@ -81,6 +79,7 @@ public class InstallSnapshotTest {
         public void test_installSnapshot_createsFileAndLoadsData() throws Exception {
             final List<RaftLogEntry> entries = createLogEntries(0, 10, 1);
 
+            spyLogHandler.getSnapshotter().setDir(snapshotDir);
             final Path snapshotPath = snapshotter.snapshot(entries);
             assertTrue(Files.exists(snapshotPath), "Snapshot file should be created");
 
@@ -93,13 +92,8 @@ public class InstallSnapshotTest {
             when(mockManager.getNodeConfig()).thenReturn(new NodeConfig(
                     "follower",
                     new InetSocketAddress("localhost", 9999)));
-            doReturn(spyLogHandler).when(mockKvstore).getLogHandler();
-            doReturn(mockKvstore).when(mockManager).getKvstore();
             when(mockStateObject.getCurrentTerm()).thenReturn(1L);
-            when(spyLogHandler.getSnapshotter()).thenReturn(snapshotter);
-            when(spyLogHandler.getLogger()).thenReturn(mockCommandLogger);
-            when(mockCommandLogger.getPath()).thenReturn(logsDir.resolve("test.log"));
-            when(mockCommandLogger.loadLogs(any(Path.class), any(Deserializer.class))).thenReturn(Collections.emptyList());
+            when(mockStateObject.getLogHandler()).thenReturn(spyLogHandler);
             server.setManager(mockManager);
             server.setStateObject(mockStateObject);
 
@@ -162,13 +156,8 @@ public class InstallSnapshotTest {
             when(mockManager.getNodeConfig()).thenReturn(new NodeConfig(
                     "follower",
                     new InetSocketAddress("localhost", 9999)));
-            doReturn(spyLogHandler).when(mockKvstore).getLogHandler();
-            doReturn(mockKvstore).when(mockManager).getKvstore();
-            when(mockStateObject.getCurrentTerm()).thenReturn(1L);
-            when(spyLogHandler.getSnapshotter()).thenReturn(snapshotter);
-            when(spyLogHandler.getLogger()).thenReturn(mockCommandLogger);
-            when(mockCommandLogger.getPath()).thenReturn(logsDir.resolve("test.log"));
-            when(mockCommandLogger.loadLogs(any(Path.class), any(Deserializer.class))).thenReturn(Collections.emptyList());
+            spyLogHandler.getSnapshotter().setDir(snapshotDir);
+            when(mockStateObject.getLogHandler()).thenReturn(spyLogHandler);
             server.setManager(mockManager);
             server.setStateObject(mockStateObject);
 
@@ -245,6 +234,7 @@ public class InstallSnapshotTest {
             final List<RaftLogEntry> existingEntries = createLogEntries(0, 5, 1);
             existingEntries.addAll(createLogEntries(5, 10, 2));
 
+            spyLogHandler.getSnapshotter().setDir(snapshotDir);
             final Path existingSnapshotPath = snapshotter.snapshot(existingEntries);
             assertTrue(Files.exists(existingSnapshotPath), "Existing snapshot should be created");
 
@@ -259,13 +249,13 @@ public class InstallSnapshotTest {
             when(mockManager.getNodeConfig()).thenReturn(new NodeConfig(
                     "follower",
                     new InetSocketAddress("localhost", 9999)));
-            doReturn(spyLogHandler).when(mockKvstore).getLogHandler();
-            doReturn(mockKvstore).when(mockManager).getKvstore();
             when(mockStateObject.getCurrentTerm()).thenReturn(3L);
             when(spyLogHandler.getSnapshotter()).thenReturn(snapshotter);
             when(spyLogHandler.getLogger()).thenReturn(mockCommandLogger);
-            when(mockCommandLogger.getPath()).thenReturn(logsDir.resolve("test.log"));
-            when(mockCommandLogger.loadLogs(any(Path.class), any(Deserializer.class))).thenReturn(Collections.emptyList());
+            final Path logPath = logsDir.resolve("test.log");
+            Files.createFile(logPath);
+            when(mockCommandLogger.getPath()).thenReturn(logPath);
+            when(mockStateObject.getLogHandler()).thenReturn(spyLogHandler);
             server.setManager(mockManager);
             server.setStateObject(mockStateObject);
 
@@ -308,6 +298,7 @@ public class InstallSnapshotTest {
         public void test_installSnapshot_restoresKvStoreAndUpdatesLogHandler() throws Exception {
             final List<RaftLogEntry> entries = createLogEntries(0, 10, 5);
 
+            spyLogHandler.getSnapshotter().setDir(snapshotDir);
             final Path snapshotPath = snapshotter.snapshot(entries);
             assertTrue(Files.exists(snapshotPath), "Snapshot file should be created");
 
@@ -319,13 +310,9 @@ public class InstallSnapshotTest {
             when(mockManager.getNodeConfig()).thenReturn(new NodeConfig(
                     "follower",
                     new InetSocketAddress("localhost", 9999)));
-            doReturn(spyLogHandler).when(mockKvstore).getLogHandler();
-            doReturn(mockKvstore).when(mockManager).getKvstore();
-            when(mockStateObject.getCurrentTerm()).thenReturn(5L);
-            when(spyLogHandler.getSnapshotter()).thenReturn(snapshotter);
-            when(spyLogHandler.getLogger()).thenReturn(mockCommandLogger);
-            when(mockCommandLogger.getPath()).thenReturn(logsDir.resolve("test.log"));
-            when(mockCommandLogger.loadLogs(any(Path.class), any(Deserializer.class))).thenReturn(Collections.emptyList());
+            final Path logPath = logsDir.resolve("test.log");
+            Files.createFile(logPath);
+            when(mockStateObject.getLogHandler()).thenReturn(spyLogHandler);
             server.setManager(mockManager);
             server.setStateObject(mockStateObject);
 
@@ -383,6 +370,7 @@ public class InstallSnapshotTest {
             final List<RaftLogEntry> firstSnapshotEntries = createLogEntries(0, 5, 1);
             final List<RaftLogEntry> secondSnapshotEntries = createLogEntries(5, 15, 2);
 
+            spyLogHandler.getSnapshotter().setDir(snapshotDir);
             final Path firstPath = snapshotter.snapshot(firstSnapshotEntries);
             final Path secondPath = snapshotter.snapshot(secondSnapshotEntries);
             assertTrue(Files.exists(firstPath), "First snapshot should exist");
@@ -395,13 +383,8 @@ public class InstallSnapshotTest {
             when(mockManager.getNodeConfig()).thenReturn(new NodeConfig(
                     "follower",
                     new InetSocketAddress("localhost", 9999)));
-            doReturn(spyLogHandler).when(mockKvstore).getLogHandler();
-            doReturn(mockKvstore).when(mockManager).getKvstore();
-            when(mockStateObject.getCurrentTerm()).thenReturn(1L);
-            when(spyLogHandler.getSnapshotter()).thenReturn(snapshotter);
-            when(spyLogHandler.getLogger()).thenReturn(mockCommandLogger);
-            when(mockCommandLogger.getPath()).thenReturn(logsDir.resolve("test.log"));
-            when(mockCommandLogger.loadLogs(any(Path.class), any(Deserializer.class))).thenReturn(Collections.emptyList());
+            spyLogHandler.getSnapshotter().setDir(snapshotDir);
+            when(mockStateObject.getLogHandler()).thenReturn(spyLogHandler);
             server.setManager(mockManager);
             server.setStateObject(mockStateObject);
 
@@ -512,8 +495,8 @@ public class InstallSnapshotTest {
             when(mockManager.getNodeConfig()).thenReturn(new NodeConfig(
                     "leader",
                     new InetSocketAddress("localhost", 9999)));
-            when(mockManager.getKvstore()).thenReturn(mockKvstore);
-            doReturn(spyLogHandler).when(mockKvstore).getLogHandler();
+
+            when(mockStateObject.getLogHandler()).thenReturn(spyLogHandler);
 
             client.setStateObject(mockStateObject);
             client.setManager(mockManager);
@@ -544,9 +527,9 @@ public class InstallSnapshotTest {
             when(mockManager.getNodeConfig()).thenReturn(new NodeConfig(
                     "leader",
                     new InetSocketAddress("localhost", 9999)));
-            when(mockManager.getKvstore()).thenReturn(mockKvstore);
-            doReturn(spyLogHandler).when(mockKvstore).getLogHandler();
+
             when(mockStateObject.getCurrentTerm()).thenReturn(1L);
+            when(mockStateObject.getLogHandler()).thenReturn(spyLogHandler);
 
             client.setStateObject(mockStateObject);
             client.setManager(mockManager);

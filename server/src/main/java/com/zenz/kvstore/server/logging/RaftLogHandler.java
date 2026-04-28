@@ -27,10 +27,10 @@ public class RaftLogHandler implements BaseLogHandler<
     private CommandLogger logger;
 
     @Setter
-    private long logId;
+    private volatile long logId;
 
     @Setter
-    private long term;
+    private volatile long term;
 
     @Setter
     private KVStoreSnapshotter<RaftSnapshotHeader, RaftSnapshotBody, RaftSnapshotFooter> snapshotter;

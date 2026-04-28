@@ -4,29 +4,20 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="f2a63f83-7187-4a54-8703-b4d1ce6944cf" name="Changes" comment="saving - Created integration tests for raft managers">
-      <change afterPath="$PROJECT_DIR$/server/src/main/java/com/zenz/kvstore/server/logging/NoOpLogHandler.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/server/src/main/java/com/zenz/kvstore/server/logging/NoOpRaftLogHandler.java" afterDir="false" />
+    <list default="true" id="f2a63f83-7187-4a54-8703-b4d1ce6944cf" name="Changes" comment="wip: Created raft integration tests - Added log handler to state object ; Refactored Manager constructor to replace kv store log handler with no-op log handler">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/client/src/main/java/com/zenz/kvstore/client/KVStoreClient.java" beforeDir="false" afterPath="$PROJECT_DIR$/client/src/main/java/com/zenz/kvstore/client/KVStoreClient.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/client/target/classes/com/zenz/kvstore/client/KVStoreClient.class" beforeDir="false" afterPath="$PROJECT_DIR$/client/target/classes/com/zenz/kvstore/client/KVStoreClient.class" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/client/target/client-1.0-SNAPSHOT.jar" beforeDir="false" afterPath="$PROJECT_DIR$/client/target/client-1.0-SNAPSHOT.jar" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/common/src/main/java/com/zenz/kvstore/common/enums/ErrorType.java" beforeDir="false" afterPath="$PROJECT_DIR$/common/src/main/java/com/zenz/kvstore/common/enums/ErrorType.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/common/src/main/java/com/zenz/kvstore/common/response/ErrorResponse.java" beforeDir="false" afterPath="$PROJECT_DIR$/common/src/main/java/com/zenz/kvstore/common/response/ErrorResponse.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/common/src/main/java/com/zenz/kvstore/common/response/RedirectResponse.java" beforeDir="false" afterPath="$PROJECT_DIR$/common/src/main/java/com/zenz/kvstore/common/response/RedirectResponse.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/server/src/main/java/com/zenz/kvstore/server/KVServer.java" beforeDir="false" afterPath="$PROJECT_DIR$/server/src/main/java/com/zenz/kvstore/server/KVServer.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/server/src/main/java/com/zenz/kvstore/server/command/handler/BaseCommandHandler.java" beforeDir="false" afterPath="$PROJECT_DIR$/server/src/main/java/com/zenz/kvstore/server/command/handler/BaseCommandHandler.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/server/src/main/java/com/zenz/kvstore/server/command/handler/CommandHandler.java" beforeDir="false" afterPath="$PROJECT_DIR$/server/src/main/java/com/zenz/kvstore/server/command/handler/CommandHandler.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/server/src/main/java/com/zenz/kvstore/server/command/handler/RaftCommandHandler.java" beforeDir="false" afterPath="$PROJECT_DIR$/server/src/main/java/com/zenz/kvstore/server/command/handler/RaftCommandHandler.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/client/target/client-1.0-SNAPSHOT.jar" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/client/target/maven-archiver/pom.properties" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/client/target/maven-status/maven-compiler-plugin/testCompile/default-testCompile/createdFiles.lst" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/client/target/maven-status/maven-compiler-plugin/testCompile/default-testCompile/inputFiles.lst" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/server/src/main/java/com/zenz/kvstore/server/logging/RaftLogHandler.java" beforeDir="false" afterPath="$PROJECT_DIR$/server/src/main/java/com/zenz/kvstore/server/logging/RaftLogHandler.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/server/src/main/java/com/zenz/kvstore/server/raft/Client.java" beforeDir="false" afterPath="$PROJECT_DIR$/server/src/main/java/com/zenz/kvstore/server/raft/Client.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/server/src/main/java/com/zenz/kvstore/server/raft/Manager.java" beforeDir="false" afterPath="$PROJECT_DIR$/server/src/main/java/com/zenz/kvstore/server/raft/Manager.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/server/src/main/java/com/zenz/kvstore/server/raft/Server.java" beforeDir="false" afterPath="$PROJECT_DIR$/server/src/main/java/com/zenz/kvstore/server/raft/Server.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/server/src/main/java/com/zenz/kvstore/server/raft/StateObject.java" beforeDir="false" afterPath="$PROJECT_DIR$/server/src/main/java/com/zenz/kvstore/server/raft/StateObject.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/server/src/main/java/com/zenz/kvstore/server/restore/KVStoreRestorer.java" beforeDir="false" afterPath="$PROJECT_DIR$/server/src/main/java/com/zenz/kvstore/server/restore/KVStoreRestorer.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/server/src/test/java/com/zenz/kvstore/server/raft/AppendEntryTest.java" beforeDir="false" afterPath="$PROJECT_DIR$/server/src/test/java/com/zenz/kvstore/server/raft/AppendEntryTest.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/server/src/test/java/com/zenz/kvstore/server/raft/ElectionTest.java" beforeDir="false" afterPath="$PROJECT_DIR$/server/src/test/java/com/zenz/kvstore/server/raft/ElectionTest.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/server/src/test/java/com/zenz/kvstore/server/raft/InstallSnapshotTest.java" beforeDir="false" afterPath="$PROJECT_DIR$/server/src/test/java/com/zenz/kvstore/server/raft/InstallSnapshotTest.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/server/src/test/java/com/zenz/kvstore/server/raft/RaftIntegrationTest.java" beforeDir="false" afterPath="$PROJECT_DIR$/server/src/test/java/com/zenz/kvstore/server/raft/RaftIntegrationTest.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/server/src/test/java/com/zenz/kvstore/server/raft/TestClientObserver.java" beforeDir="false" afterPath="$PROJECT_DIR$/server/src/test/java/com/zenz/kvstore/server/raft/TestClientObserver.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -86,6 +77,7 @@
   "keyToString": {
     "JUnit.AppendEntryTest and 2 more.executor": "Run",
     "JUnit.AppendEntryTest$Follower.executor": "Run",
+    "JUnit.AppendEntryTest$Follower.test_prevLogMismatch_rejectsAppendEntry.executor": "Run",
     "JUnit.AppendEntryTest$Leader.executor": "Run",
     "JUnit.AppendEntryTest$Leader.test_batchEntries_respectsBatchSize.executor": "Run",
     "JUnit.AppendEntryTest$Leader.test_highTermResponse_setsStateToFollower.executor": "Run",
@@ -110,6 +102,7 @@
     "JUnit.ElectionTest.test_nodeWithLargerLogId_winsElection.executor": "Run",
     "JUnit.ElectionTest.test_sameLogId_differentTerms_higherTermWins.executor": "Run",
     "JUnit.InstallSnapshotTest and 2 more.executor": "Run",
+    "JUnit.InstallSnapshotTest$Follower.executor": "Run",
     "JUnit.InstallSnapshotTest$Leader.executor": "Run",
     "JUnit.InstallSnapshotTest$Leader.test_installSnapshotResponse_higherTerm_stepsDown.executor": "Run",
     "JUnit.InstallSnapshotTest$Leader.test_installSnapshotResponse_success_sendsAppendEntry.executor": "Run",
@@ -234,20 +227,8 @@
       <recent name="com.zenz.kvstore.server" />
     </key>
   </component>
-  <component name="RunManager" selected="JUnit.RaftIntegrationTest">
-    <configuration name="AppendEntryTest and 2 more" type="JUnit" factoryName="JUnit" temporary="true" nameIsGenerated="true">
-      <module name="server" />
-      <option name="TEST_OBJECT" value="pattern" />
-      <patterns>
-        <pattern testClass="com.zenz.kvstore.server.raft.AppendEntryTest" />
-        <pattern testClass="com.zenz.kvstore.server.raft.ElectionTest" />
-        <pattern testClass="com.zenz.kvstore.server.raft.InstallSnapshotTest" />
-      </patterns>
-      <method v="2">
-        <option name="Make" enabled="true" />
-      </method>
-    </configuration>
-    <configuration name="AppendEntryTest" type="JUnit" factoryName="JUnit" temporary="true" nameIsGenerated="true">
+  <component name="RunManager" selected="JUnit.raft in server">
+    <configuration name="AppendEntryTest$Follower" type="JUnit" factoryName="JUnit" temporary="true" nameIsGenerated="true">
       <module name="server" />
       <extension name="coverage">
         <pattern>
@@ -255,15 +236,26 @@
           <option name="ENABLED" value="true" />
         </pattern>
       </extension>
-      <option name="PACKAGE_NAME" value="com.zenz.kvstore.server.raft" />
-      <option name="MAIN_CLASS_NAME" value="com.zenz.kvstore.server.raft.AppendEntryTest" />
-      <option name="METHOD_NAME" value="test_batchEntries_respectsBatchSize" />
+      <option name="PACKAGE_NAME" value="com.zenz.kvstore.server.raft.AppendEntryTest" />
+      <option name="MAIN_CLASS_NAME" value="com.zenz.kvstore.server.raft.AppendEntryTest$Follower" />
       <option name="TEST_OBJECT" value="class" />
-      <patterns>
-        <pattern testClass="com.zenz.kvstore.server.raft.AppendEntryTest" />
-        <pattern testClass="com.zenz.kvstore.server.raft.ElectionTest" />
-        <pattern testClass="com.zenz.kvstore.server.raft.InstallSnapshotTest" />
-      </patterns>
+      <dir value="$PROJECT_DIR$/server/src/test/java/com/zenz/kvstore/server/raft" />
+      <method v="2">
+        <option name="Make" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="AppendEntryTest$Follower.test_prevLogMismatch_rejectsAppendEntry" type="JUnit" factoryName="JUnit" temporary="true" nameIsGenerated="true">
+      <module name="server" />
+      <extension name="coverage">
+        <pattern>
+          <option name="PATTERN" value="com.zenz.kvstore.server.raft.*" />
+          <option name="ENABLED" value="true" />
+        </pattern>
+      </extension>
+      <option name="PACKAGE_NAME" value="com.zenz.kvstore.server.raft.AppendEntryTest" />
+      <option name="MAIN_CLASS_NAME" value="com.zenz.kvstore.server.raft.AppendEntryTest$Follower" />
+      <option name="METHOD_NAME" value="test_prevLogMismatch_rejectsAppendEntry" />
+      <option name="TEST_OBJECT" value="method" />
       <method v="2">
         <option name="Make" enabled="true" />
       </method>
@@ -283,7 +275,7 @@
         <option name="Make" enabled="true" />
       </method>
     </configuration>
-    <configuration name="ElectionTest.test_nodeWithLargerLogId_winsElection" type="JUnit" factoryName="JUnit" temporary="true" nameIsGenerated="true">
+    <configuration name="InstallSnapshotTest$Follower" type="JUnit" factoryName="JUnit" temporary="true" nameIsGenerated="true">
       <module name="server" />
       <extension name="coverage">
         <pattern>
@@ -291,36 +283,29 @@
           <option name="ENABLED" value="true" />
         </pattern>
       </extension>
-      <option name="PACKAGE_NAME" value="com.zenz.kvstore.server.raft" />
-      <option name="MAIN_CLASS_NAME" value="com.zenz.kvstore.server.raft.ElectionTest" />
-      <option name="METHOD_NAME" value="test_nodeWithLargerLogId_winsElection" />
-      <option name="TEST_OBJECT" value="method" />
+      <option name="PACKAGE_NAME" value="com.zenz.kvstore.server.raft.InstallSnapshotTest" />
+      <option name="MAIN_CLASS_NAME" value="com.zenz.kvstore.server.raft.InstallSnapshotTest$Follower" />
+      <option name="TEST_OBJECT" value="class" />
+      <dir value="$PROJECT_DIR$/server/src/test/java/com/zenz/kvstore/server/raft" />
       <method v="2">
         <option name="Make" enabled="true" />
       </method>
     </configuration>
-    <configuration name="RaftIntegrationTest" type="JUnit" factoryName="JUnit" temporary="true" nameIsGenerated="true">
+    <configuration name="raft in server" type="JUnit" factoryName="JUnit" temporary="true" nameIsGenerated="true">
       <module name="server" />
-      <extension name="coverage">
-        <pattern>
-          <option name="PATTERN" value="com.zenz.kvstore.server.raft.*" />
-          <option name="ENABLED" value="true" />
-        </pattern>
-      </extension>
-      <option name="PACKAGE_NAME" value="com.zenz.kvstore.server.raft" />
-      <option name="MAIN_CLASS_NAME" value="com.zenz.kvstore.server.raft.RaftIntegrationTest" />
-      <option name="TEST_OBJECT" value="class" />
+      <option name="TEST_OBJECT" value="directory" />
+      <dir value="$PROJECT_DIR$/server/src/test/java/com/zenz/kvstore/server/raft" />
       <method v="2">
         <option name="Make" enabled="true" />
       </method>
     </configuration>
     <recent_temporary>
       <list>
-        <item itemvalue="JUnit.RaftIntegrationTest" />
+        <item itemvalue="JUnit.raft in server" />
         <item itemvalue="JUnit.ElectionTest" />
-        <item itemvalue="JUnit.ElectionTest.test_nodeWithLargerLogId_winsElection" />
-        <item itemvalue="JUnit.AppendEntryTest and 2 more" />
-        <item itemvalue="JUnit.AppendEntryTest" />
+        <item itemvalue="JUnit.AppendEntryTest$Follower" />
+        <item itemvalue="JUnit.AppendEntryTest$Follower.test_prevLogMismatch_rejectsAppendEntry" />
+        <item itemvalue="JUnit.InstallSnapshotTest$Follower" />
       </list>
     </recent_temporary>
   </component>
@@ -398,39 +383,10 @@
       <workItem from="1777228185712" duration="5238000" />
       <workItem from="1777284713158" duration="4016000" />
       <workItem from="1777309247005" duration="1197000" />
-      <workItem from="1777311545121" duration="8395000" />
-    </task>
-    <task id="LOCAL-00017" summary="Fixed: NodeList.iterator pointless loop">
-      <option name="closed" value="true" />
-      <created>1775576054456</created>
-      <option name="number" value="00017" />
-      <option name="presentableId" value="LOCAL-00017" />
-      <option name="project" value="LOCAL" />
-      <updated>1775576054456</updated>
-    </task>
-    <task id="LOCAL-00018" summary="Fixed: NPE in RaftCommandHandler.handleCommand when handling GET command">
-      <option name="closed" value="true" />
-      <created>1775576136718</created>
-      <option name="number" value="00018" />
-      <option name="presentableId" value="LOCAL-00018" />
-      <option name="project" value="LOCAL" />
-      <updated>1775576136718</updated>
-    </task>
-    <task id="LOCAL-00019" summary="Fixed: Potential memory allocation error during resizing in KVMap.isRehashing">
-      <option name="closed" value="true" />
-      <created>1775576185568</created>
-      <option name="number" value="00019" />
-      <option name="presentableId" value="LOCAL-00019" />
-      <option name="project" value="LOCAL" />
-      <updated>1775576185568</updated>
-    </task>
-    <task id="LOCAL-00020" summary="Improved code consistency in KVMap">
-      <option name="closed" value="true" />
-      <created>1775576642210</created>
-      <option name="number" value="00020" />
-      <option name="presentableId" value="LOCAL-00020" />
-      <option name="project" value="LOCAL" />
-      <updated>1775576642210</updated>
+      <workItem from="1777311545121" duration="9273000" />
+      <workItem from="1777324915953" duration="2384000" />
+      <workItem from="1777370010927" duration="11036000" />
+      <workItem from="1777393422273" duration="8228000" />
     </task>
     <task id="LOCAL-00021" summary="Improved code consistency in KVStore">
       <option name="closed" value="true" />
@@ -792,7 +748,39 @@
       <option name="project" value="LOCAL" />
       <updated>1777233404892</updated>
     </task>
-    <option name="localTasksCounter" value="66" />
+    <task id="LOCAL-00066" summary="Extracted NoOpLogHandler from KVStoreRestorer">
+      <option name="closed" value="true" />
+      <created>1777320210525</created>
+      <option name="number" value="00066" />
+      <option name="presentableId" value="LOCAL-00066" />
+      <option name="project" value="LOCAL" />
+      <updated>1777320210530</updated>
+    </task>
+    <task id="LOCAL-00067" summary="Changed return type of CommandHandler.handleCommand to BaseResponse">
+      <option name="closed" value="true" />
+      <created>1777320501827</created>
+      <option name="number" value="00067" />
+      <option name="presentableId" value="LOCAL-00067" />
+      <option name="project" value="LOCAL" />
+      <updated>1777320501827</updated>
+    </task>
+    <task id="LOCAL-00068" summary="Changed return type of CommandHandler.handleCommand to BaseResponse">
+      <option name="closed" value="true" />
+      <created>1777320589293</created>
+      <option name="number" value="00068" />
+      <option name="presentableId" value="LOCAL-00068" />
+      <option name="project" value="LOCAL" />
+      <updated>1777320589293</updated>
+    </task>
+    <task id="LOCAL-00069" summary="wip: Created raft integration tests - Added log handler to state object ; Refactored Manager constructor to replace kv store log handler with no-op log handler">
+      <option name="closed" value="true" />
+      <created>1777320873116</created>
+      <option name="number" value="00069" />
+      <option name="presentableId" value="LOCAL-00069" />
+      <option name="project" value="LOCAL" />
+      <updated>1777320873116</updated>
+    </task>
+    <option name="localTasksCounter" value="70" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -810,9 +798,6 @@
     </option>
   </component>
   <component name="VcsManagerConfiguration">
-    <MESSAGE value="Refactored raft messages" />
-    <MESSAGE value="Implemented raft Server" />
-    <MESSAGE value="Updated AppendEntry and InstallSnapshot handlers in raft Server ; Implemented logic CANDIDATE and LEADER state in raft Client" />
     <MESSAGE value="Creatd ByteArraySerializable interface for serialize method" />
     <MESSAGE value="Created WALogger tests" />
     <MESSAGE value="Created LogHandler tests" />
@@ -835,6 +820,9 @@
     <MESSAGE value="Added leader side tests to AppendEntryTest" />
     <MESSAGE value="Implemented leader and follower side tests in InstallSnapshotTest" />
     <MESSAGE value="saving - Created integration tests for raft managers" />
-    <option name="LAST_COMMIT_MESSAGE" value="saving - Created integration tests for raft managers" />
+    <MESSAGE value="Extracted NoOpLogHandler from KVStoreRestorer" />
+    <MESSAGE value="Changed return type of CommandHandler.handleCommand to BaseResponse" />
+    <MESSAGE value="wip: Created raft integration tests - Added log handler to state object ; Refactored Manager constructor to replace kv store log handler with no-op log handler" />
+    <option name="LAST_COMMIT_MESSAGE" value="wip: Created raft integration tests - Added log handler to state object ; Refactored Manager constructor to replace kv store log handler with no-op log handler" />
   </component>
 </project>

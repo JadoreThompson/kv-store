@@ -34,7 +34,7 @@ public class StateObject {
 
     @Getter
     @Setter
-    private RaftLogHandler logHandler;
+    private volatile RaftLogHandler logHandler;
 
     private final Object currentTermLock = new Object();
 
